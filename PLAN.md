@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 16 / 74 task verificati
+- **Stato complessivo:** 17 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -288,7 +288,14 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   1 ignorato; `Prog_Quartz.cs` non contiene riferimenti Quartz/IJob/StdSchedulerFactory/JobBuilder/
   TriggerBuilder/IScheduler. Test della policy cron e del range orario verdi. Windows/macOS non
   verificati in locale.
-- [ ] **X1.3b2 — `ImportFatture_Scheduler`** — stessa DoD e stesso pattern di `X1.3b1`.
+- [x] **X1.3b2 — `ImportFatture_Scheduler`**
+  DoD: policy di scheduling separata dal codice invoice-import; provider Quartz 2.x in
+  `ImportFattureQuartzGateway`; `JobImportFatture` separato; interfaccia provider condivisa con
+  `X1.3b1`; firme pubbliche e semantica override/interval conservate.
+  Evidenza (Linux): build `PollingClass` net48 → 0 errori, 5 warning preesistenti; unit test →
+  73 passati, 1 ignorato; nessun riferimento Quartz/IJob/StdSchedulerFactory/JobBuilder/
+  TriggerBuilder/IScheduler in `ImportFatture.cs`; `git diff --check` pulito. Windows/macOS non
+  verificati in locale.
 - [ ] **X1.3b3 — `ImportBudget_Scheduler`** — idem.
 - [ ] **X1.3b4 — `Ordini_Scheduler`** — idem, con due trigger (invio ed esito).
 - [ ] **X1.3b5 — `SQL01_Scheduler`** — idem.
@@ -676,3 +683,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 19 | T1 infrastruttura test | `[x]` | **unit 50 superati / 1 ignorato** (difetto `C6` documentato); **integrazione 16 superati** con DB e **16 ignorati** senza DB (skip automatico, 0 falliti); `scripts/test-integration.sh` end-to-end → deploy + autotest permessi + test, tutto verde; `dotnet sln list` mostra 5 progetti |
 | 2026-10-16 | 20 | revisione 5 del piano (ADR 0006) | `[x]` | corretta la **mia** misura dell'ADR 0005: l'accoppiamento reale a Quartz è ~8% dell'assembly (215 righe di API su 1.430 righe di classi coinvolte), non il 55% dichiarato contando i *file*. Soglia `X1.3c` da 95% a **90%**; `X1.3b` scomposto in `X1.3b1`–`X1.3b5` |
 | 2026-10-16 | 21 | X1.3b1 separazione Fornitori_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test: 65 superati, 1 ignorato; nessun simbolo Quartz in `Prog_Quartz.cs`; policy cron testata; `git diff --check` pulito. Windows/macOS non verificati in locale. |
+| 2026-10-16 | 22 | X1.3b2 separazione ImportFatture_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test net8: 73 superati, 1 ignorato; nessun simbolo Quartz nel file `ImportFatture.cs`; test di policy, contratto adapter, identità job/trigger e intervalli verdi; `git diff --check` pulito. |

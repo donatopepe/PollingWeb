@@ -12,8 +12,6 @@ using System.IO;
 
 
 using PollingClass;
-using Quartz;
-using Quartz.Impl;
 
 namespace PollingClass
 {
@@ -392,6 +390,14 @@ namespace PollingClass
     public class ImportFatture_Scheduler
     {
         public string messaggio_errore = "";
+        private readonly IFornitoriSchedulingGateway schedulingGateway;
+
+        public ImportFatture_Scheduler() : this(new ImportFattureQuartzGateway()) { }
+
+        public ImportFatture_Scheduler(IFornitoriSchedulingGateway schedulingGateway)
+        {
+            this.schedulingGateway = schedulingGateway ?? throw new ArgumentNullException(nameof(schedulingGateway));
+        }
 
         public bool FirstStart(string codist, string idprocesso)
         {
@@ -456,57 +462,11 @@ namespace PollingClass
 
                 //Log_Errori.ScriviLOGPROCEDURE("FirstStart withCronSchedule " + withCronSchedule);
 
-                ISchedulerFactory schedFact = new StdSchedulerFactory();
-                IScheduler quartzScheduler = schedFact.GetScheduler();
-                var workingDays = new DayOfWeek[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
-
-                quartzScheduler.Start();
-
-                IJobDetail job = JobBuilder.Create<JobImportFatture>().WithIdentity("JOB_" + idprocesso + "_" + codist, "IDG").Build();
-                job.JobDataMap.Add("codist", codist);
-                job.JobDataMap.Add("idprocesso", idprocesso);
-
-
-                ITrigger trigger = TriggerBuilder.Create()
-                  .WithIdentity("Trigger_" + idprocesso + "_" + codist, "IDG")
-                  //.WithCronSchedule(withCronSchedule) //dal lun-ven, tutti i mesi alle 8.30                                                                             
-                  .WithSchedule(CronScheduleBuilder.AtHourAndMinuteOnGivenDaysOfWeek(ora_start, min_start, workingDays))
-                  //.StartAt(DateTimeOffset.Now)
-                  //.WithPriority(1)
-                  .Build();
-
-                //quartzScheduler.Start();
-                //cancello trigger
-                if (quartzScheduler.CheckExists(trigger.Key) && overrideTask)
-                    quartzScheduler.UnscheduleJob(trigger.Key);
-
-                if (quartzScheduler.CheckExists(trigger.Key))
+                if (!this.schedulingGateway.ScheduleDaily(codist, idprocesso, withCronSchedule, overrideTask))
                 {
                     esito = false;
                     throw new PollingException(PollingExceptionType.Job_Quartz_esistente, "");
                 }
-
-                quartzScheduler.ScheduleJob(job, trigger);
-                //quartzScheduler.Start();
-
-
-                //DEMO
-                //string withCronSchedule = "0 40/1 9 ? * MON-FRI";
-                //IJobDetail job = JobBuilder.Create<Job_Test2>().Build();
-
-                //ITrigger trigger = TriggerBuilder.Create()
-                //        .WithIdentity("Job_Test2", "IDG")
-                //        .WithCronSchedule(withCronSchedule) //dal lun-ven, tutti i mesi alle 8.30
-                //        .StartAt(DateTime.UtcNow)
-                //        .WithPriority(1)
-                //        .Build();
-
-                //IScheduler scheduler = StdSchedulerFactory.GetDefaultScheduler();
-                //bool esito = scheduler.CheckExists(trigger.Key);
-                //scheduler.UnscheduleJob(trigger.Key);
-                //scheduler.Start();
-                //scheduler.ScheduleJob(job, trigger);
-
             }
             catch (PollingException ex)
             {
@@ -526,48 +486,7 @@ namespace PollingClass
                 //Log_Errori.ScriviLOGPROCEDURE("Polling_Interval ");
 
 
-                ISchedulerFactory schedFact = new StdSchedulerFactory();
-                IScheduler quartzScheduler = schedFact.GetScheduler();
-                quartzScheduler.Start();
-
-
-                IJobDetail job = JobBuilder.Create<JobImportFatture>().WithIdentity(idprocesso + "_" + codist + "JOB_onetime_" + DateTime.Now.Ticks.ToString(), "IDG").Build();
-                job.JobDataMap.Add("codist", codist);
-                job.JobDataMap.Add("idprocesso", idprocesso);
-
-                DateTime orario = DateTime.Now.AddMinutes(minuti); //valore di polling_inteval
-                ITrigger trigger;
-
-                if (minuti == 0)
-                {
-                    job.JobDataMap.Add("onetime", "true");
-
-                    trigger = TriggerBuilder.Create()
-                      .WithIdentity(idprocesso + "_" + codist + "Trigger_onetime_" + DateTime.Now.Ticks.ToString(), "IDG")
-                      //.WithIdentity(idprocesso + "_" + codist+"_onetime")
-                      .StartNow()
-                      //.WithPriority(1)
-                      .Build();
-
-                    //Log_Errori.ScriviLOGPROCEDURE("Polling_Interval onetime");
-                }
-                else
-                {
-                    job.JobDataMap.Add("onetime", "false");
-
-                    trigger = TriggerBuilder.Create()
-                      .WithIdentity(idprocesso + "_" + codist + "_" + DateTime.Now.Ticks.ToString(), "IDG")
-                      //.WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(orario.Hour, orario.Minute)) // execute job daily at 9:30            
-                      .StartAt(DateTimeOffset.Now.AddMinutes(minuti))
-                      //.StartAt(DateTime.UtcNow)
-                      //.WithPriority(1)
-                      .Build();
-
-                    //Log_Errori.ScriviLOGPROCEDURE("Polling_Interval "+orario.ToString());
-                }
-
-                quartzScheduler.ScheduleJob(job, trigger);
-                //quartzScheduler.Start();
+                this.schedulingGateway.ScheduleInterval(minuti, codist, idprocesso);
             }
             catch (Exception ex)
             {
@@ -581,41 +500,5 @@ namespace PollingClass
         }
     }
 
-    [PersistJobDataAfterExecution]
-    public class JobImportFatture : IJob
-    {
-        public void Execute(IJobExecutionContext context)
-        {
-            try
-            {
-                //Log_Errori.ScriviLOGPROCEDURE("JobImportFatture execute");
 
-                bool onetime = Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime"));
-                ImportFatture job = new ImportFatture();
-                if (onetime)
-                {
-                    //Log_Errori.ScriviLOGPROCEDURE("JobImportFatture execute onetime");
-
-                    job.Lettura_ONETIME(
-                      context.JobDetail.JobDataMap.GetString("codist"),
-                      context.JobDetail.JobDataMap.GetString("idprocesso"));
-                }
-                else
-                {
-                    //Log_Errori.ScriviLOGPROCEDURE("JobImportFatture execute no_onetime");
-
-                    job.Lettura(
-                      context.JobDetail.JobDataMap.GetString("codist"),
-                      context.JobDetail.JobDataMap.GetString("idprocesso"));
-                }
-
-            }
-            catch (Exception ex)
-            {
-                PollingExceptionHandler.Esegui(ex);
-            }
-
-
-        }
-    }
 }
