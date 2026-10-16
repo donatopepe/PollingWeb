@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 8 / 65 task verificati
+- **Stato complessivo:** 9 / 65 task verificati
 - **Prompt operativo:** [`PROMPT.md`](PROMPT.md)
 - **Log iterazioni:** [`docs/LOOP_LOG.md`](docs/LOOP_LOG.md)
 
@@ -192,10 +192,13 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   DoD: `scripts/db-deploy.sh` crea `Polling`, `eProcurement`, `Quartz` su un'istanza SQL Server
   con utente applicativo a privilegi minimi; niente utenti/password reali; idempotente.
   Evidenza: `docker compose up -d mssql` + script → exit 0 e tabelle presenti.
-- [ ] **T0.9 — Nota di disclosure + rotazione credenziali**
+- [x] **T0.9 — Nota di disclosure + rotazione credenziali**
   DoD: `SECURITY.md` dichiara che le credenziali storiche sono compromesse e vanno ruotate;
   `docs/SECURITY-FINDINGS.md` §5 con l'istruzione operativa di rotazione.
   Evidenza: sezioni presenti e linkate dal README.
+  *Per soddisfare l'evidenza è stato creato un `README.md` minimo (e il `LICENSE` MIT già
+  promesso da `NOTICE`): `D1` e `D10` restano aperti per il README completo e per l'audit
+  delle licenze, gli header SPDX e `docs/LICENSING.md`.*
 - [x] **T0.10 — Storia Git ripulita**
   DoD: backup `git bundle` verificato; branch `main` con **orphan commit** contenente solo il
   contenuto sanificato; vecchio `master` conservato come tag `legacy-archive` (**non** distribuito);
@@ -564,3 +567,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 7 | T0.4 de-branding | `[x]` | logo e marchio rimossi; `git grep -ilE "$BRAND_PATTERNS" -- . ':(exclude)NOTICE'` → 0 risultati |
 | 2026-10-16 | 8 | T0.11 identificatori aziendali | `[x]` | vecchi identificatori: 0 occorrenze (pattern dal record di audit); chiave di connessione: 13 definizioni / 13 consumatori `.aspx` / 4 `.cs`; build net48 verde |
 | 2026-10-16 | 9 | T0.10 riscrittura storia Git | `[x]` | 164/164 blob senza pattern; 1 commit raggiungibile; `.git` 17,03 MiB → 608 KiB; `git bundle verify` OK |
+| 2026-10-16 | 10 | T0.9 disclosure + rotazione | `[x]` | `SECURITY.md` (7 sezioni) e `docs/SECURITY-FINDINGS.md` §5; 11 link relativi verificati esistenti; `git grep` pattern di audit su README/SECURITY/LICENSE/NOTICE → 0 |
