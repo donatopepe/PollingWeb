@@ -80,6 +80,7 @@ PROMPT.md          prompt operativo del loop di lavorazione
 | [`docs/RELEASING.md`](docs/RELEASING.md) | rilascio, record di audit, checklist |
 | [`sql/README.md`](sql/README.md) | stato dello schema SQL e come applicarlo |
 | [`sql/eProcurement/README.md`](sql/eProcurement/README.md) | schema recuperato in sola DDL, con i controlli anti-dati eseguiti |
+| [`sql/eProcurement/MISSING-TABLES.md`](sql/eProcurement/MISSING-TABLES.md) | **bloccato**: 4 tabelle da richiedere all'ambiente di origine, con la specifica delle colonne |
 | [`docs/adr/0001-sql-schema-source-of-truth.md`](docs/adr/0001-sql-schema-source-of-truth.md) | perché `sql/` è la fonte unica e perché i progetti SSDT non lo sono |
 | [`samples/README.md`](samples/README.md) | dati sintetici e regole per aggiungerne |
 
@@ -106,8 +107,9 @@ Lo schema completo è versionato in [`sql/`](sql/README.md) e il deploy è idemp
 due esecuzioni consecutive danno lo stesso risultato.
 
 ⚠️ Restano **4 tabelle** usate da `ParserFatture.cs` (`Tab_SC00S100_*`) che non esistono in
-nessuna fonte disponibile: vanno recuperate dall'ambiente di origine. Vedi
-[`sql/README.md`](sql/README.md).
+nessuna fonte disponibile: **il processo di import fatture non può funzionare** finché non
+vengono recuperate dall'ambiente di origine. La specifica di ciò che serve è in
+[`sql/eProcurement/MISSING-TABLES.md`](sql/eProcurement/MISSING-TABLES.md).
 
 ## Stato della build (verificato, non ipotetico)
 

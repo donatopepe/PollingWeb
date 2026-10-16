@@ -1039,3 +1039,76 @@ il clone della storia pre-riscrittura: rimosso a fine iterazione.
 minimi, verifica di idempotenza in `apply`, e chiusura dei punti A3 (migrazioni).
 
 **Blocchi.** Nessuno.
+
+## 2026-10-16T13:45Z — T0.13 Tabelle `Tab_SC00S100_*` — BLOCCATO `[!]`
+
+**Esito: task marcato `[!]`, non chiuso.** La DoD stessa lo prescriveva: «se l'ambiente di
+origine non è disponibile, il task va marcato `[!]` con il motivo, non chiuso a intuito».
+L'ho fatto, dopo aver verificato che il motivo regge.
+
+**Ricerca esaustiva, non un tentativo.** Prima di dichiarare il blocco ho interrogato ogni
+fonte plausibile:
+
+| Fonte | Esito |
+|---|---|
+| `sql/PollingDB/`, `sql/eProcurement/` | assenti |
+| snapshot `eProcurement` (i 17 oggetti di `T0.12`, 15 tabelle) | assenti |
+| 9 commit della storia archiviata, **tutti i blob** (non solo i path) | i nomi compaiono in **8 blob, tutti versioni di `ParserFatture.cs` e `Check_RdA.cs`**. Nessuno script, nessuna DDL |
+
+```
+$ git rev-list --objects --all | ... | while read b; do git cat-file blob "$b" | grep -qaE 'Tab_SC00S100' && echo $b; done
+  8 blob -> solo codice applicativo
+```
+
+Il blocco è quindi motivato da un'assenza verificata, non da una difficoltà.
+
+**Deliverable prodotto comunque.** Il task non è chiudibile, ma non è nemmeno inutile: ho
+estratto dal codice la specifica delle colonne effettivamente usate, per tabella e per
+operazione, in [`sql/eProcurement/MISSING-TABLES.md`](../sql/eProcurement/MISSING-TABLES.md).
+Contiene anche le righe di riferimento e il testo della richiesta da inoltrare al cliente.
+
+```
+Tab_SC00S100_1Ord    INSERT 10 colonne (Tab_Name, Tab_Prog, Istituto, Data_Rif, NOrdine, Tipo, CodFor, RagSoc, GrA, Data_OrdAcq) ; SELECT (filtro NOrdine)
+Tab_SC00S100_1Ord_R  INSERT  8 colonne ; SELECT (NOrdine, Perc_DaFatt) ; UPDATE 5 colonne (le *_DaFatt, mai inserite -> devono essere nullable)
+Tab_SC00S100_2Fatt   INSERT  3 colonne ; SELECT (NOrdine, NFatt)
+Tab_SC00S100_2Fatt_R INSERT  6 colonne ; SELECT (NOrdine, NFatt, NPos)
+```
+
+**Due errori dell'estrattore, trovati perché ho confrontato l'elenco con l'SQL originale.**
+
+1. **Tutte le `SELECT` sparivano.** Il nome della tabella compare nel frammento `FROM`, non nel
+   `SELECT`, e la mia ricerca della parola chiave avveniva solo sulla riga della tabella.
+2. **Le colonne di una tabella finivano in un'altra.** La finestra di righe catturava
+   l'istruzione successiva: `Tab_SC00S100_1Ord_R` compariva fra le colonne di
+   `Tab_SC00S100_1Ord`. Causa più sottile di quanto sembri: `Tab_SC00S100_1Ord` è **prefisso**
+   di `Tab_SC00S100_1Ord_R`, quindi l'attribuzione per elenco assegnava le istruzioni della
+   tabella `_R` a quella senza suffisso. Risolto attribuendo **dal nome più lungo al più corto**.
+
+Senza il confronto con l'SQL grezzo avrei pubblicato una specifica sbagliata, e la specifica è
+l'unica cosa che questo task consegna.
+
+**Impatto dichiarato, non nascosto.** `ParserFatture` — l'importazione fatture — non può
+funzionare: tutte e quattro le tabelle sono coinvolte in ogni esecuzione. Il criterio **AC3**
+non è raggiungibile per quel processo finché la DDL non arriva. Il resto della pipeline non è
+bloccato: il deploy crea 15 tabelle in `eProcurement` e funziona.
+
+**Perché non ho ricostruito le tabelle.** Il codice converte i valori con `getdouble`,
+`getInt`, `TextToDate`: tipi indovinati produrrebbero errori di conversione o troncamenti
+silenziosi sui dati reali. E le colonne elencate sono quelle **usate dal codice**, non tutte
+quelle che la tabella reale possiede — le procedure `Flusso_*` possono usarne altre. Una
+specifica congetturale sarebbe peggio di un blocco dichiarato: darebbe l'illusione di un
+repository distribuibile.
+
+**Sblocco.** Serve dall'ambiente di origine, in ordine di preferenza: script `CREATE TABLE`
+completo di indici e vincoli; oppure l'output di `INFORMATION_SCHEMA.COLUMNS`; oppure un export
+di schema completo del database `eProcurement`, da cui estrarre la sola DDL con la procedura di
+`T0.12` (che scarta i dati **prima** di scrivere).
+
+**Modifiche.** `sql/eProcurement/MISSING-TABLES.md` (nuovo), `PLAN.md` (T0.13 `[!]` + registro +
+nota in §4: il blocco non ferma la pipeline), `docs/adr/0001` (A6), `sql/README.md`,
+`README.md`.
+
+**Prossimo.** `T0.8` — deploy a livello di produzione: utente a privilegi minimi, verifica di
+idempotenza in `apply`, chiusura di A3 (migrazioni incrementali).
+
+**Blocchi.** `T0.13` in attesa dell'utente. Nessun altro.

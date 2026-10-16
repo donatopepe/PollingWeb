@@ -61,6 +61,6 @@ funzione `emit_sql`. Se si aggiunge un altro percorso di deploy, tenere presente
 | Cosa | Stato |
 |------|-------|
 | Schema del database `eProcurement` | ✅ versionato in `sql/eProcurement/` (17 oggetti, sola DDL) dal task `T0.12`. Vedi il suo [`README.md`](eProcurement/README.md) |
-| 4 tabelle usate da `ParserFatture.cs` (`Tab_SC00S100_*`) | **assenti da ogni fonte**: non erano nemmeno nello snapshot di origine. Vanno recuperate dall'ambiente di origine (ADR 0001 §4, A6) |
+| 4 tabelle usate da `ParserFatture.cs` (`Tab_SC00S100_*`) | **BLOCCATE**: assenti da repository, storia archiviata e snapshot di origine. Specifica delle colonne richieste e cosa chiedere al cliente in [`eProcurement/MISSING-TABLES.md`](eProcurement/MISSING-TABLES.md) (ADR 0001 §4, A6) |
 | Migrazioni incrementali | assenti: gli script sono `CREATE`, non `CREATE OR ALTER`. Il deploy è per istanza nuova (`recreate` o `apply` su database vuoto) |
 | Indici non-cluster | non presenti nello schema di origine, quindi non mancanti per costruzione (verificato in `T0.12`) |

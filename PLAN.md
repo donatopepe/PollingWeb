@@ -197,7 +197,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   Evidenza: `sql/eProcurement/` contiene ≥ 16 oggetti; `scripts/db-deploy.sh` mostra
   `tabelle=N>0` su `eProcurement`; scansione dei pattern di audit sul nuovo contenuto = 0;
   ADR 0001 §4 aggiornata (A1, A2 chiusi).
-- [ ] **T0.13 — Recupero delle 4 tabelle `Tab_SC00S100_*`**
+- [!] **T0.13 — Recupero delle 4 tabelle `Tab_SC00S100_*`** — **BLOCCATO (2026-10-16)**
   DoD: la DDL di `Tab_SC00S100_1Ord`, `Tab_SC00S100_1Ord_R`, `Tab_SC00S100_2Fatt`,
   `Tab_SC00S100_2Fatt_R` è versionata in `sql/eProcurement/`. Sono usate da
   `PollingClass/ParserFatture.cs` e non esistono in nessuno schema versionato **né nello
@@ -206,6 +206,16 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   ⚠️ **Richiede accesso all'ambiente di origine del cliente.** Se non è disponibile, il task
   va marcato `[!]` con il motivo, non chiuso a intuito: ricostruire colonne e tipi dai soli
   riferimenti nel codice sarebbe congetturale.
+  **Motivo del blocco:** la ricerca esaustiva non ha trovato alcuna fonte. La DDL non esiste
+  nel repository, né nei 9 commit della storia archiviata, né nei 17 oggetti dello snapshot
+  `eProcurement`. Nella storia i nomi compaiono **solo** in `ParserFatture.cs` e
+  `Check_RdA.cs`: nessuno script, nessuna definizione.
+  **Prodotto comunque (deliverable utile):** `sql/eProcurement/MISSING-TABLES.md` — specifica
+  *evidence-based* delle colonne usate dal codice per tabella e per operazione (estratta
+  meccanicamente, con le righe di riferimento), le scorciatoie da non prendere e la richiesta
+  precisa da inoltrare all'ambiente di origine.
+  **Impatto:** `ParserFatture` non può funzionare; **AC3** non è raggiungibile per il processo
+  fatture finché mancano. Il task va sbloccato quando l'utente fornisce la DDL.
 - [ ] **T0.8 — Script di deploy DB riproducibile**
   DoD: `scripts/db-deploy.sh` crea `Polling`, `eProcurement`, `Quartz` su un'istanza SQL Server
   con utente applicativo a privilegi minimi; niente utenti/password reali; idempotente.
@@ -487,7 +497,9 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 ```
 T0.2 → T0.3 → T0.4 → T0.6 → T0.11 → T0.9
-  → T0.7 → T0.12 → T0.13 → T0.8       # schema unico, schemi mancanti, deploy riproducibile
+  → T0.7 → T0.12 → T0.8              # schema unico, schema eProcurement, deploy riproducibile
+  #   T0.13 (4 tabelle Tab_SC00S100_*) e' BLOCCATO in attesa della DDL dall'ambiente di origine:
+  #   non blocca il resto della pipeline, va sbloccato quando la DDL e' disponibile.
   → X1.1 → X1.2 → X1.3 → X1.4 → X1.5 → X1.6 → X1.7
   → C1 → C2 → C3 → C4 → C5 → C6 → C7 → C8 → C9 → C10
   → T1 → T2 → T3 → T4
@@ -596,3 +608,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 10 | T0.9 disclosure + rotazione | `[x]` | `SECURITY.md` (7 sezioni) e `docs/SECURITY-FINDINGS.md` §5; 11 link relativi verificati esistenti; `git grep` pattern di audit su README/SECURITY/LICENSE/NOTICE → 0 |
 | 2026-10-16 | 11 | T0.7 schema unico + ADR 0001 | `[x]` | 2 alberi SQL identici (26 file) → 1; `DatabaseSQL/` eliminato (0 `<Build Include>`); deploy `recreate` due volte → exit 0; Polling 11 tabelle/1 vista/3 funzioni/8 procedure, Quartz 11 tabelle QRTZ_; `ViewTaskService` → 3 righe; `eProcurement` → 0 tabelle (gap → T0.12) |
 | 2026-10-16 | 12 | T0.12 schema eProcurement (solo DDL) | `[x]` | 17 oggetti estratti, 15.728 `INSERT` scartati (12.435 KB → 25 KB); deploy `tabelle=15 viste=1 funzioni=1 FK=5 default=22 PK=13` = **identico all'origine**; pattern di audit = 0; `StripHTML` e `ViewEstrazioneRdARdE` eseguibili |
+| 2026-10-16 | 13 | T0.13 tabelle `Tab_SC00S100_*` | `[!]` | **bloccato**: ricerca esaustiva su repository, 9 commit della storia archiviata e snapshot `eProcurement` → nessuna DDL esistente. Prodotto `sql/eProcurement/MISSING-TABLES.md` con la specifica delle colonne usate dal codice (10 istruzioni estratte, righe 277–560) |
