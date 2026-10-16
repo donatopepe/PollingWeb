@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 11 / 68 task verificati
+- **Stato complessivo:** 12 / 68 task verificati
 - **Prompt operativo:** [`PROMPT.md`](PROMPT.md)
 - **Log iterazioni:** [`docs/LOOP_LOG.md`](docs/LOOP_LOG.md)
 
@@ -216,7 +216,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   precisa da inoltrare all'ambiente di origine.
   **Impatto:** `ParserFatture` non può funzionare; **AC3** non è raggiungibile per il processo
   fatture finché mancano. Il task va sbloccato quando l'utente fornisce la DDL.
-- [ ] **T0.8 — Script di deploy DB riproducibile**
+- [x] **T0.8 — Script di deploy DB riproducibile**
   DoD: `scripts/db-deploy.sh` crea `Polling`, `eProcurement`, `Quartz` su un'istanza SQL Server
   con utente applicativo a privilegi minimi; niente utenti/password reali; idempotente.
   Evidenza: `docker compose up -d mssql` + script → exit 0 e tabelle presenti.
@@ -609,3 +609,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 11 | T0.7 schema unico + ADR 0001 | `[x]` | 2 alberi SQL identici (26 file) → 1; `DatabaseSQL/` eliminato (0 `<Build Include>`); deploy `recreate` due volte → exit 0; Polling 11 tabelle/1 vista/3 funzioni/8 procedure, Quartz 11 tabelle QRTZ_; `ViewTaskService` → 3 righe; `eProcurement` → 0 tabelle (gap → T0.12) |
 | 2026-10-16 | 12 | T0.12 schema eProcurement (solo DDL) | `[x]` | 17 oggetti estratti, 15.728 `INSERT` scartati (12.435 KB → 25 KB); deploy `tabelle=15 viste=1 funzioni=1 FK=5 default=22 PK=13` = **identico all'origine**; pattern di audit = 0; `StripHTML` e `ViewEstrazioneRdARdE` eseguibili |
 | 2026-10-16 | 13 | T0.13 tabelle `Tab_SC00S100_*` | `[!]` | **bloccato**: ricerca esaustiva su repository, 9 commit della storia archiviata e snapshot `eProcurement` → nessuna DDL esistente. Prodotto `sql/eProcurement/MISSING-TABLES.md` con la specifica delle colonne usate dal codice (10 istruzioni estratte, righe 277–560) |
+| 2026-10-16 | 14 | T0.8 deploy con privilegi minimi | `[x]` | deploy `recreate` due volte → exit 0; **12 controlli di autotest** (8 positivi + 4 negativi); `sysadmin=0`, `db_owner=0` sui 3 database, nessun ruolo server, `CHECK_POLICY=1`; **0 oggetti dbo senza permesso** (drift check) |

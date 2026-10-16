@@ -98,6 +98,12 @@ Lo **schema del database è deployabile e verificato**:
 docker compose up -d                                    # SQL Server 2022, cross-platform
 POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --with-seed
 #   exit 0, idempotente (verificato su due esecuzioni consecutive)
+
+# con l'utente applicativo a privilegi minimi, che viene anche verificato:
+POLLING_DB_$1=[REDACTED] POLLING_APP_$1=[REDACTED] \
+    ./scripts/db-deploy.sh --with-seed
+#   crea il login (CHECK_POLICY ON), i permessi oggetto per oggetto e li autotesta:
+#   8 controlli positivi + 4 negativi (il DDL deve risultare NEGATO su ogni database)
 #   Polling     :  9 tabelle, 1 vista, 3 funzioni, 8 procedure
 #   eProcurement: 15 tabelle, 1 vista, 1 funzione, 5 FK, 22 default
 #   Quartz      : 11 tabelle QRTZ_*

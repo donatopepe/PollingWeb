@@ -1112,3 +1112,97 @@ nota in §4: il blocco non ferma la pipeline), `docs/adr/0001` (A6), `sql/README
 idempotenza in `apply`, chiusura di A3 (migrazioni incrementali).
 
 **Blocchi.** `T0.13` in attesa dell'utente. Nessun altro.
+
+## 2026-10-16T14:20Z — T0.8 Deploy con utente a privilegi minimi — DONE
+
+**Contesto.** Lo script esisteva e funzionava, ma il passo di sicurezza consegnava **solo
+`GRANT CONNECT`**: la DoD chiede «utente applicativo a privilegi minimi» e non era consegnata.
+Riprodotto eseguendo lo script: il passo saltava del tutto senza `POLLING_APP_PASSWORD`, e con
+essa concedeva solo la connessione.
+
+**Modifiche.**
+
+| File | Intervento |
+|---|---|
+| `sql/PollingDB/Security/Permissions.sql` | riscritto: permessi oggetto per oggetto (9 tabelle, 1 vista, 3 funzioni, 8 procedure) |
+| `sql/eProcurement/Security/Permissions.sql` | **nuovo**: 15 tabelle, 1 vista, 1 funzione |
+| `sql/Quartz/Security/Permissions.sql` | **nuovo**: 11 tabelle |
+| `scripts/db-deploy.sh` | esecutore unico con credenziali parametriche; permessi per database; **autotest** (passo 6/7); il deploy esce 1 se un controllo fallisce |
+| `sql/deploy/README.md`, `README.md` | modello dei permessi, evidenza, procedura di rigenerazione |
+
+I tre file sono **generati** dallo schema deployato, non scritti a mano: 38 oggetti trascritti
+manualmente sono 38 occasioni di errore, e l'errore si manifesterebbe a runtime come "permesso
+negato".
+
+**Autotest: 8 controlli positivi e 4 negativi.** I negativi sono la parte che conta: verificano
+che l'utente applicativo **non** possa fare ciò che non deve. Un test negativo che passa è un
+difetto, non un successo, e il deploy fallisce.
+
+```
+ok  lettura tabella applicativa          ok  DDL negata (CREATE TABLE)
+ok  scrittura tabella applicativa        ok  DDL negata su eProcurement
+ok  lettura vista                        ok  DDL negata su Quartz
+ok  invocazione funzione scalare         ok  scrittura su database di sistema
+ok  esecuzione stored procedure
+ok  scrittura su eProcurement            (l'insert cross-database funziona:
+ok  lettura anagrafica fornitori          le procedure scrivono su eProcurement)
+ok  accesso al job store Quartz
+Autotest dei permessi: superato.
+```
+
+**Tre errori miei, tutti trovati eseguendo i test invece di assumerli.**
+
+1. **`GRANT SELECT` su una funzione scalare è rifiutato**: `Msg 4606: Granted or revoked
+   privilege SELECT is not compatible with object`. Il permesso corretto è `EXECUTE`. Non me ne
+   sono fidato della memoria: ho concesso `EXECUTE` e poi invocato la funzione come utente
+   applicativo.
+2. **Sostituzione troppo larga nel generatore.** Per correggere il punto 1 ho sostituito la
+   riga `GRANT SELECT ...` con `GRANT EXECUTE ...`: la stessa espressione era usata anche per
+   le **viste**, che sono diventate `GRANT EXECUTE ON [dbo].[ViewTaskService]` → nuovo `4606`.
+   Le viste richiedono `SELECT`, le funzioni `EXECUTE`: associazione inversa, stessa classe di
+   errore. Corretto in modo esplicito per sezione, non con una sostituzione globale.
+3. **Harness di test rotto da me.** Un test comparativo dava "tutte le forme falliscono": avevo
+   fatto `cd /tmp/permtest` e `docker compose exec` non trovava più il file di compose. Il
+   fallimento era del mio test, non di SQL Server. Rifatto dal repository: tutte le forme
+   valide. Un test che fallisce va diagnosticato, non aggirato.
+
+**Una scoperta collaterale che vale per la fase `C`.** Il primo test della funzione passava il
+letterale `'2024-03-15'` e falliva con
+`Msg 242: La conversione di un tipo di dati varchar in datetime ha generato un valore non
+compreso nell'intervallo`. Causa: il login applicativo è creato con
+`DEFAULT_LANGUAGE = [Italiano]`, quindi il letterale ISO viene interpretato come `gg/mm/aaaa`
+(giorno 15 → mese 15 → errore). Il test ora usa `DATEFROMPARTS(2024,3,15)`.
+
+Non è un problema del test: è **evidenza diretta per il task `C4`** (parsing di date dipendente
+dalla cultura). L'applicazione non deve affidarsi a conversioni implicite, perché il risultato
+cambia con la lingua del login — e il login applicativo ha una lingua diversa da `sa`.
+
+**Evidenza.**
+
+```
+$ ./scripts/db-deploy.sh --with-seed   (con POLLING_APP_PASSWORD)   -> EXIT=0
+$ ./scripts/db-deploy.sh --with-seed   (seconda esecuzione)         -> EXIT=0, autotest superato
+
+IS_SRVROLEMEMBER('sysadmin','PollingApp')  -> 0
+IS_ROLEMEMBER('db_owner','PollingApp')     -> 0  su Polling, eProcurement, Quartz
+ruoli server del login                     -> (nessun ruolo)
+CHECK_POLICY del login                     -> 1
+login disabilitato                         -> 0  (attivo)
+
+oggetti dbo senza alcun permesso per l'utente applicativo -> (nessuno)
+      ^ il controllo di drift che rende la manutenzione del file di permessi verificata
+        a ogni deploy invece che affidata alla memoria
+
+verifica incrociata dei GRANT contro il catalogo:
+  Polling GRANT=21 · eProcurement GRANT=17 · Quartz GRANT=11
+  incongruenze (EXECUTE su tabelle/viste/funzioni, SELECT su procedure): nessuna
+```
+
+**Resta aperto (A3, non in questa DoD).** Nessun meccanismo di migrazione incrementale: la
+modalità `apply` non è idempotente sugli oggetti già presenti. Documentato in
+`sql/deploy/README.md`.
+
+**Prossimo.** `X1.1` — layout della soluzione e `Directory.Build.props`: è il primo task del
+track cross-platform, e da lì dipendono `X1.2`/`X1.3` (multi-target `net48;net8.0`).
+
+**Blocchi.** `T0.13` in attesa della DDL dall'ambiente di origine. Nessun altro.
