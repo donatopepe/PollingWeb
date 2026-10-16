@@ -1,11 +1,9 @@
-using Database;
+﻿using Database;
 using Database.Base;
 using Database.TableInterface;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using Quartz;
-using Quartz.Impl;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -80,6 +78,14 @@ namespace PollingClass
         public class SQL01_Scheduler
         {
             public string messaggio_errore = "";
+            private readonly IFornitoriSchedulingGateway schedulingGateway;
+
+            public SQL01_Scheduler() : this(new SQL01QuartzGateway()) { }
+
+            public SQL01_Scheduler(IFornitoriSchedulingGateway schedulingGateway)
+            {
+                this.schedulingGateway = schedulingGateway ?? throw new ArgumentNullException(nameof(schedulingGateway));
+            }
 
             public bool FirstStart(string codist, string idprocesso, bool overrideTask)
             {
@@ -112,39 +118,12 @@ namespace PollingClass
                     }
 
 
-                    ISchedulerFactory schedFact = new StdSchedulerFactory();
-                    IScheduler quartzScheduler = schedFact.GetScheduler();
-                    //var workingDays = new DayOfWeek[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
-
-                    quartzScheduler.Start();
-
-                    IJobDetail job = JobBuilder.Create<JobSQL01>()
-                            .WithIdentity("JOB_" + idprocesso + "_" + codist, "IDG")
-                            .Build();
-
-                    job.JobDataMap.Add("codist", codist);
-                    job.JobDataMap.Add("idprocesso", idprocesso);
-
-                   
-                    ITrigger trigger = TriggerBuilder.Create()
-                     .WithIdentity("Trigger_" + idprocesso + "_" + codist, "IDG")
-                     .WithCronSchedule(withCronSchedule) //dal lun-ven, tutti i mesi alle 8.30
-                     //.WithSchedule(CronScheduleBuilder.AtHourAndMinuteOnGivenDaysOfWeek(ora_start, min_start, workingDays))
-                     .Build();
-
-
-                    //cancello trigger
-                    if (overrideTask)
-                        quartzScheduler.UnscheduleJob(trigger.Key);
-
-                    if (quartzScheduler.CheckExists(trigger.Key))
+                    if (!this.schedulingGateway.ScheduleDaily(codist, idprocesso, withCronSchedule, overrideTask))
                     {
                         esito = false;
-                        Log_Errori.ScriviLOGPROCEDURE(codist, idprocesso, "checkexists");
                         throw new PollingException(PollingExceptionType.Job_Quartz_esistente, "");
                     }
-
-                    quartzScheduler.ScheduleJob(job, trigger);
+                    Log_Errori.ScriviLOGPROCEDURE(codist, idprocesso, "quartzScheduler.ScheduleJob(job, trigger)");
                     Log_Errori.ScriviLOGPROCEDURE(codist, idprocesso, "quartzScheduler.ScheduleJob(job, trigger)");
                 }
                 catch (PollingException ex)
@@ -167,45 +146,8 @@ namespace PollingClass
                 dts = tsk.LeggiParametri(codist, idprocesso);
                 try
                 {
-                    ISchedulerFactory schedFact = new StdSchedulerFactory();
-                    IScheduler quartzScheduler = schedFact.GetScheduler();
-                    quartzScheduler.Start();
-
-                    IJobDetail job = JobBuilder.Create<JobSQL01>()
-                            //.WithIdentity("JOB_" + idprocesso + "_" + codist, "IDG")
-                            .WithIdentity(withIdentity, "IDG")
-                            .Build();
-
-                    job.JobDataMap.Add("codist", codist);
-                    job.JobDataMap.Add("idprocesso", idprocesso);
-
-                    DateTime orario = DateTime.Now.AddMinutes(minuti);//valore di polling_inteval
-                    ITrigger trigger;
-
-                    if (minuti == 0)
-                    {
-                        job.JobDataMap.Add("onetime", "true");
-
-                        trigger = TriggerBuilder.Create()
-                            .WithIdentity(withIdentity, "IDG")
-                            .StartNow()
-                            //.WithPriority(1)
-                            .Build();
-
-                        Log_Errori.ScriviLOGPROCEDURE(codist, idprocesso, "trigger onetime");
-                    }
-                    else
-                    {
-                        job.JobDataMap.Add("onetime", "false");
-
-                        trigger = TriggerBuilder.Create()
-                            .WithIdentity(withIdentity, "IDG")
-                            .StartAt(DateTimeOffset.Now.AddMinutes(minuti))
-                            .Build();
-                        Log_Errori.ScriviLOGPROCEDURE(codist, idprocesso, "trigger no onetime");
-                    }
-
-                    quartzScheduler.ScheduleJob(job, trigger);
+                    this.schedulingGateway.ScheduleInterval(minuti, codist, idprocesso);
+                    Log_Errori.ScriviLOGPROCEDURE(codist, idprocesso, "quartzScheduler.ScheduleJob(job, trigger)");
                     Log_Errori.ScriviLOGPROCEDURE(codist, idprocesso, "quartzScheduler.ScheduleJob(job, trigger)");
                 }
                 catch (Exception ex)
@@ -422,28 +364,5 @@ namespace PollingClass
 
     }
 
-    [PersistJobDataAfterExecution]
-    public class JobSQL01 : IJob
-    {
-        public void Execute(IJobExecutionContext context)
-        {
-            try
-            {
-                bool onetime = Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime"));
-                ExportSQL01 export = new ExportSQL01();
-                export.Leggi_File(
-                        context.JobDetail.JobDataMap.GetString("codist"),
-                        context.JobDetail.JobDataMap.GetString("idprocesso"),
-                        onetime);
 
-                Log_Errori.ScriviLOGPROCEDURE("", "", "Execute JobSQL01");
-
-            }
-            catch (Exception ex)
-            {
-                Log_Errori.ScriviLOGPROCEDURE("", "", "errore Execute JobSQL01 " + ex.Message);
-                PollingExceptionHandler.Esegui(ex);
-            }
-        }
-    }
 }

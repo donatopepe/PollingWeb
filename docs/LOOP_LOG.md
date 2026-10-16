@@ -1542,7 +1542,30 @@ $ git diff --check
 
 **Limiti.** Target `PollingClass` resta net48; build eseguita solo su Linux. Windows/macOS non verificati localmente. Non compilata l'intera soluzione WebForms per il blocker noto.
 
-**Prossimo task:** `X1.3b4 — Ordini_Scheduler`.
+**Prossimo task:** `X1.3b5 — SQL01_Scheduler`.
+
+---
+
+## 2026-10-16T17:xxZ — X1.3b5 Separazione SQL01_Scheduler/Quartz — DONE
+
+**Modifica.** `SQL01_Scheduler` mantiene le firme e la lettura dei parametri, delegando FirstStart e Polling_Interval a `IFornitoriSchedulingGateway`. Aggiunti `PollingClass/SQL01QuartzGateway.cs` e `PollingClass/JobSQL01.cs`; rimossi i riferimenti Quartz da `ExportSQL01.cs`. Il job conserva l'entry point `ExportSQL01.Leggi_File(..., onetime)` e il gateway mantiene identità, JobDataMap, cron giornaliero configurato, override e schedulazione interval/immediata.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --nologo -v quiet
+Compilazione completata. Avvisi: 5. Errori: 0.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --nologo -v quiet
+Superato! Non superati: 0. Superati: 97. Ignorati: 1. Totale: 98.
+$ grep -nE '\\b(Quartz|IJob|StdSchedulerFactory|JobBuilder|TriggerBuilder|IScheduler)\\b' PollingClass/ExportSQL01.cs
+(nessuna corrispondenza)
+$ git diff --check
+(exit 0)
+```
+
+**Limiti.** `PollingClass` resta net48; verificata solo la build Linux. Windows/macOS non verificati localmente; la soluzione WebForms non è stata compilata.
+
+**Prossimo task:** `X2.2 — Quartz 3.x con job store ADO su SQL Server`.
 
 ---
 
