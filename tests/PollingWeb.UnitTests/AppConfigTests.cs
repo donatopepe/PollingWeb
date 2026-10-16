@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Database.Configuration;
 using Microsoft.Extensions.Configuration;
+using Database.Base;
 using Xunit;
 
 namespace PollingWeb.UnitTests
@@ -32,6 +34,39 @@ namespace PollingWeb.UnitTests
 
             Assert.Equal("Server=localhost;Database=Polling;", config.GetConnectionString("PollingConnectionString"));
             Assert.Equal("mail.example.test", config.GetValue("smtpServer"));
+        }
+
+        [Fact]
+        public void DatabaseInfo_instances_keep_connection_and_timeout_state_isolated_under_parallel_load()
+        {
+            const int count = 100;
+            var instances = new DatabaseInfo[count];
+            Parallel.For(0, count, i =>
+            {
+                var values = new Dictionary<string, string> { ["POLLING_DB_COMMAND_TIMEOUT_SECONDS"] = (i + 1).ToString() };
+                var connections = new Dictionary<string, string>
+                {
+                    ["PollingConnectionString"] = "Server=localhost;Database=Polling" + i + ";"
+                };
+                instances[i] = new DatabaseInfo(new AppConfig(values, connections, useLegacyConfiguration: false));
+            });
+
+            for (var i = 0; i < count; i++)
+            {
+                Assert.Equal(i + 1, instances[i].CommandTimeoutSeconds);
+                Assert.Equal("localhost", instances[i].connessione.DataSource);
+                Assert.Equal("Polling" + i, instances[i].connessione.Database);
+                instances[i].Dispose();
+            }
+        }
+
+        [Fact]
+        public void DatabaseInfo_uses_safe_default_for_missing_or_invalid_timeout()
+        {
+            var connection = new Dictionary<string, string> { ["PollingConnectionString"] = "Server=localhost;Database=Polling;" };
+            Assert.Equal(30, new DatabaseInfo(new AppConfig(connectionStrings: connection, useLegacyConfiguration: false)).CommandTimeoutSeconds);
+            Assert.Equal(30, new DatabaseInfo(new AppConfig(
+                new Dictionary<string, string> { ["POLLING_DB_COMMAND_TIMEOUT_SECONDS"] = "invalid" }, connection, useLegacyConfiguration: false)).CommandTimeoutSeconds);
         }
 
         [Fact]

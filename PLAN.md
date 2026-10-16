@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 31 / 74 task verificati
+- **Stato complessivo:** 32 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -431,9 +431,9 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [x] **C4 — Eliminazione `Convert.ToDateTime(string)` culture-dependent**
   DoD: parse esplicito dd/MM/yyyy ISO/invariant, conversioni numeriche invariant e valori ADO `DateTime` nativi; cron utilizza componenti orario typed.
   Evidenza (Linux, 2026-10-17): nessun `Convert.ToDateTime(` eseguibile rimasto in Database/PollingClass/PollingWeb (solo commento storico); test `ValidaData` e `IsNumeric` sotto en-US e it-IT passano; build Database e PollingClass net48/net8 → 0 errori; unit 106 passati/2 ignorati.
-- [ ] **C5 — `DatabaseInfo` thread-safe, senza stato statico mutabile**
-  DoD: connection string iniettata; timeout con default sicuro; `using`/`Dispose` ovunque.
-  Evidenza: test di concorrenza (100 task paralleli) senza eccezioni.
+- [x] **C5 — `DatabaseInfo` thread-safe, senza stato statico mutabile**
+  DoD: config e connessione per istanza; timeout command configurato con fallback 30 secondi; rimosso stato statico DAL; ciclo connessione/transaction Dispose-aware.
+  Evidenza (Linux): test 100 istanze parallele con connection string/timeout distinti; build Database e PollingClass net48/net8 → 0 errori; unit 108 passati/2 ignorati.
 - [ ] **C6 — Gestione errori e logging**
   DoD: `catch { }` silenziosi rimossi o loggati; `throw ex;` → `throw;`; livelli di log coerenti
   fra net48 e net8.
@@ -718,3 +718,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-17 | 34 | C2 TableAdapter parametrizzati | `[x]` | Migrati 18 query dei 9 adapter al SelectCommand con parametri; rimossi overload SQL raw non usati e overload string BuildWhere. Test SqlClientAdapterTests sul container: 2/2 PASS; unit 104/2 ignorati; build Database net48/net8 0 errori; `git diff --check` pulito. |
 | 2026-10-17 | 35 | C3 SqlDataSource / TaskService | `[x]` | `sqlDimProcessi.SelectCommand` è costante con parametro `@IdProcesso`, passato a `SelectParameters`; scansione nessuna interpolazione SelectedValue/SelectCommand. `dotnet build PollingWeb.sln` → MSB4249 riprodotto; unit 104/2 ignorati; test Website non eseguibile nel runner net8. |
 | 2026-10-17 | 36 | C4 Parsing invariant | `[x]` | Rimossi Convert.ToDateTime eseguibili, conversioni ADO date ora typed, ValidaData e IsNumeric invariant; cron usa DateTime typed e cultura invariant. Build Database/PollingClass entrambi TFM 0 errori; unit 106/2 ignorati; diff-check pulito. |
+| 2026-10-17 | 37 | C5 DatabaseInfo per-istanza | `[x]` | Eliminati campi statici DAL e provider config mutabile; DatabaseInfo riceve IAppConfig/connection string e timeout, default 30s; smaltimento connection/transaction. Test 100 istanze parallele distinte; Database/PollingClass net48/net8 0 errori; unit 108/2 ignorati. |

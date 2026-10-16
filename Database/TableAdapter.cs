@@ -61,25 +61,30 @@ namespace Database.TableInterface
 
                 build.RefreshSchema();
 
+                var timeout = adapter.SelectCommand.Connection is null
+                    ? DatabaseInfo.DefaultCommandTimeoutSeconds
+                    : adapter.SelectCommand.CommandTimeout > 0
+                        ? adapter.SelectCommand.CommandTimeout
+                        : DatabaseInfo.DefaultCommandTimeoutSeconds;
                 if (build.DataAdapter.SelectCommand != null)
-                    adapter.SelectCommand.CommandTimeout = Convert.ToInt32(Database.Base.DatabaseInfo.timeOut);
+                    adapter.SelectCommand.CommandTimeout = timeout;
 
                 if (build.DataAdapter.InsertCommand != null)
                 {
                     adapter.InsertCommand = build.GetInsertCommand();
-                    adapter.SelectCommand.CommandTimeout = Convert.ToInt32(Database.Base.DatabaseInfo.timeOut);
+                    adapter.InsertCommand.CommandTimeout = timeout;
                 }
 
                 if (build.DataAdapter.UpdateCommand != null)
                 {
                     adapter.UpdateCommand = build.GetUpdateCommand();
-                    adapter.SelectCommand.CommandTimeout = Convert.ToInt32(Database.Base.DatabaseInfo.timeOut);
+                    adapter.UpdateCommand.CommandTimeout = timeout;
                 }
 
                 if (build.DataAdapter.DeleteCommand != null)
                 {
                     adapter.DeleteCommand = build.GetDeleteCommand();
-                    adapter.SelectCommand.CommandTimeout = Convert.ToInt32(Database.Base.DatabaseInfo.timeOut);
+                    adapter.DeleteCommand.CommandTimeout = timeout;
                 }
             }
             catch (Exception ex)

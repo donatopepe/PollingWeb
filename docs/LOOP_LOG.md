@@ -1882,6 +1882,38 @@ Windows/macOS non verificati localmente; WebForms completo non compilabile su Li
 
 **Prossimo task:** `C5 — DatabaseInfo thread-safe, senza stato statico mutabile`.
 
+---
+
+## 2026-10-17T10:30Z — C5 DatabaseInfo thread-safe — DONE
+
+**Baseline riprodotto.** `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1/MSB4249, Website legacy. `DatabaseInfo` esponeva campi/statiche di configurazione condivisi e `TableAdapter.BuildCommand` vi accedeva per il timeout; source grep trovava 4 accessi statici al timeout.
+
+**Modifiche.** Riscritto `DatabaseInfo` come oggetto per-istanza: `IAppConfig` iniettato al costruttore, connessione dedicata, timeout command per istanza con default 30 s; rimosse configurazioni e stringhe di connessione statiche mutabili. `Dispose` chiude connection/transaction e prova rollback transaction attiva. `TableAdapter.BuildCommand` non legge più timeout globale: conserva il timeout del command/default sicuro. Test aggiunti per 100 istanze parallele con connection strings/timeouts diversi e fallback invalid/missing.
+
+**Evidenza reale (Linux, 2026-10-17).**
+
+```
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build Database/Database.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+108 passati, 2 ignorati, 0 falliti.
+$ rg -n 'DatabaseInfo\\.(timeOut|StringaConnessione|StringaConnessioneEproc|data_source|user_id|password|initial_catalog|AppConfigProvider|Configure)' Database --glob '*.cs'
+nessuna corrispondenza (nessun accesso statico configurazione).
+$ git diff --check
+exit 0.
+```
+
+`dotnet build PollingWeb.sln` resta bloccato dal Website legacy MSB4249; Windows/macOS non verificati localmente.
+
+**Prossimo task:** `C6 — Gestione errori e logging`.
+
+
 
 
 

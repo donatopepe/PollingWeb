@@ -1,210 +1,101 @@
-﻿using System;
-using Database.Configuration;
+using System;
 using System.Configuration;
 using System.Data;
+using System.Data.Common;
+using Database.Configuration;
 using Microsoft.Data.SqlClient;
 
 namespace Database.Base
 {
-    /// <summary>
-    /// Descrizione di riepilogo per Connessioni.
-    /// </summary>
-    /// 
-
-
-    public class DatabaseInfo
+    /// <summary>Owns one database connection and transaction; instances share no mutable state.</summary>
+    public sealed class DatabaseInfo : IDisposable
     {
+        public const int DefaultCommandTimeoutSeconds = 30;
+        private readonly int commandTimeoutSeconds;
+        private bool disposed;
 
+        public SqlConnection connessione { get; private set; }
+        public SqlTransaction transazione { get; private set; }
+        public int CommandTimeoutSeconds => commandTimeoutSeconds;
 
-        #region ATTRIBUTI STATICI (CLASS MEMBERS)
+        public DatabaseInfo() : this(new AppConfig(), false) { }
+        public DatabaseInfo(bool eprocurement) : this(new AppConfig(), eprocurement) { }
 
-
-        //server dell'istanza di sql server
-        public static string data_source;
-
-        //username e password dell'account di accesso a sql server
-        public static string user_id;
-        public static string password;
-
-        //nome del database
-        public static string initial_catalog;
-
-        public static string timeOut;
-
-        //stringa di connessione
-        //Esempio:
-        //"data source=DC01;user id=sa;$1=[REDACTED];initial catalog=Retail;integrated security=false;persist security info=False;packet size=4096" />    
-        private static IAppConfig appConfig = new AppConfig();
-        private static string stringaConnessione;
-        private static string stringaConnessioneEproc;
-        public static IAppConfig AppConfigProvider
+        public DatabaseInfo(IAppConfig configuration, bool eprocurement = false)
         {
-            get { return appConfig; }
-            set { appConfig = value ?? throw new ArgumentNullException(nameof(value)); }
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            var connectionName = eprocurement ? "PollingEprocurement" : "PollingConnectionString";
+            var connectionString = configuration.GetConnectionString(connectionName);
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new ConfigurationErrorsException("Connection string '" + connectionName + "' is not configured.");
+
+            int timeout;
+            var timeoutValue = configuration.GetValue("POLLING_DB_COMMAND_TIMEOUT_SECONDS");
+            commandTimeoutSeconds = int.TryParse(timeoutValue, out timeout) && timeout > 0
+                ? timeout : DefaultCommandTimeoutSeconds;
+            connessione = new SqlConnection(connectionString);
         }
-
-        public static void Configure(IAppConfig configuration)
-        {
-            AppConfigProvider = configuration;
-        }
-
-        public static string StringaConnessione
-        {
-            //get	{return stringaConnessione;}
-            get
-            {
-                string timeout = (timeOut != null && timeOut != "") ? ";Connect Timeout=" + timeOut : "";
-
-                //stringaConnessione =
-                //    "data source=(local)\\Sqlexpress;" +
-                //    "user id=sa;" +
-                //    "$1=[REDACTED];" +
-                //    //"initial catalog=" + initial_catalog + ";" +
-                //    "initial catalog=Polling;" +
-                //    "integrated security=false;persist security info=False;packet size=4096" +
-                //    timeout;
-
-                stringaConnessione = appConfig.GetConnectionString("PollingConnectionString");
-                if (string.IsNullOrWhiteSpace(stringaConnessione))
-                    throw new ConfigurationErrorsException("Connection string 'PollingConnectionString' is not configured.");
-
-                //versione local
-                //stringaConnessione = "data source=.\\SQLEXPRESS;initial catalog=TEST_01;integrated security=true;persist security info=False;packet size=4096;Connect Timeout=100";
-
-                return stringaConnessione;
-            }
-
-        }
-
-        public static string StringaConnessioneEproc
-        {           
-            get
-            {
-                string timeout = (timeOut != null && timeOut != "") ? ";Connect Timeout=" + timeOut : "";
-
-                stringaConnessioneEproc = appConfig.GetConnectionString("PollingEprocurement");
-                if (string.IsNullOrWhiteSpace(stringaConnessioneEproc))
-                    throw new ConfigurationErrorsException("Connection string 'PollingEprocurement' is not configured.");
-
-                 return stringaConnessioneEproc;
-            }
-        }
-
-
-
-
-
-
-        #endregion
-
-
-
-
-        #region ATTRIBUTI NON STATICI (INSTANCE MEMBERS)
-
-
-        //CONNESSIONE 
-        public SqlConnection connessione;
-
-
-        //TRANSAZIONE
-        public SqlTransaction transazione;
-
-
-
-
-        #endregion
-
-
-
-
-
-        #region COSTRUTTORI
-
-
-        public DatabaseInfo()
-        {
-            this.connessione = new SqlConnection(DatabaseInfo.StringaConnessione);
-
-        }
-        public DatabaseInfo(bool eprocurement)
-        {
-            this.connessione = new SqlConnection(DatabaseInfo.StringaConnessioneEproc);
-
-        }
-
-
-
-        #endregion
-
-
-
-
-
-        #region METODI PUBBLICI
-
-
-
-        //SESSIONE DATABASE 
-
 
         public void IniziaSessione()
         {
-            try
-            {
-                this.connessione.Open();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            ThrowIfDisposed();
+            connessione.Open();
         }
-
 
         public void TerminaSessione()
         {
-            this.connessione.Close();
+            ThrowIfDisposed();
+            if (transazione != null)
+            {
+                transazione.Dispose();
+                transazione = null;
+            }
+            if (connessione.State != ConnectionState.Closed) connessione.Close();
         }
-
-
-        //GESTIONE TRANSAZIONI
-
 
         public void IniziaTransazione()
         {
-            if (this.connessione.State != ConnectionState.Open)
-            {
-                this.connessione.Open();
-            }
-
-            this.transazione = this.connessione.BeginTransaction();
+            ThrowIfDisposed();
+            if (connessione.State != ConnectionState.Open) connessione.Open();
+            if (transazione != null) throw new InvalidOperationException("A transaction is already active.");
+            transazione = connessione.BeginTransaction();
         }
-
-
-
 
         public void AnnullaTransazione()
         {
-            if (this.transazione != null && this.transazione.Connection != null)
-                this.transazione.Rollback();
+            ThrowIfDisposed();
+            if (transazione == null) return;
+            transazione.Rollback();
+            transazione.Dispose();
+            transazione = null;
         }
-
-
-
 
         public void ConfermaTransazione()
         {
-            this.transazione.Commit();
+            ThrowIfDisposed();
+            if (transazione == null) throw new InvalidOperationException("No active transaction.");
+            transazione.Commit();
+            transazione.Dispose();
+            transazione = null;
         }
 
+        public void Dispose()
+        {
+            if (disposed) return;
+            if (transazione != null)
+            {
+                try { transazione.Rollback(); }
+                catch (DbException) { }
+                transazione.Dispose();
+                transazione = null;
+            }
+            if (connessione != null) connessione.Dispose();
+            disposed = true;
+        }
 
-
-        #endregion
-
-
-
+        private void ThrowIfDisposed()
+        {
+            if (disposed) throw new ObjectDisposedException(nameof(DatabaseInfo));
+        }
     }
-
-
-
 }
