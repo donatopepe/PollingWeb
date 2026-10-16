@@ -17,8 +17,10 @@ macOS e Windows su .NET 8+. La build .NET Framework 4.8 / IIS sopravvive solo co
 *legacy mode* opzionale e non deve bloccare il port.
 
 Lavori nel repository `/home/public/PollingWeb`. Non sei in un ambiente usa-e-getta:
-il repository è già pubblico su GitHub e contiene, nella storia, credenziali reali e
-dati di produzione. Ogni tua azione deve **ridurre**, mai aumentare, l'esposizione.
+la storia Git conteneva credenziali reali e dati di produzione, e il progetto è
+destinato alla pubblicazione. La storia è stata riscritta (T0.10) ma i segreti rimossi
+**non sono ancora stati ruotati** e il remoto va ancora sostituito. Ogni tua azione
+deve **ridurre**, mai aumentare, l'esposizione: nessun segreto deve rientrare.
 
 ## OBIETTIVO GLOBALE (una frase)
 

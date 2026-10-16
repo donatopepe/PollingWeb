@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 7 / 65 task verificati
+- **Stato complessivo:** 8 / 65 task verificati
 - **Prompt operativo:** [`PROMPT.md`](PROMPT.md)
 - **Log iterazioni:** [`docs/LOOP_LOG.md`](docs/LOOP_LOG.md)
 
@@ -53,7 +53,7 @@ massimo 3 tentativi per task, poi il task passa a `BLOCKED` con motivo scritto.
 | F2 | `Database` e `PollingClass` **compilano** con dotnet 8 + `Microsoft.NETFramework.ReferenceAssemblies` | build pilot in `/tmp/pb` → 0 errori, 5 warning |
 | F3 | `PollingWeb` è un **Website project** (nessun `.csproj`, nessun `.designer.cs`) → non compilabile da CI | `CodeFile=` + `partial class` senza dichiarazioni controlli |
 | F4 | `PollingClass/Check_RdA.cs` è **codice rotto** (conversione VB→C#), orfano (fuori dal csproj) | `error CS1525` (82,53) |
-| F5 | Credenziali reali **hardcoded e già pubbliche** su GitHub | `Web.config`, `Database/app.config`, `Settings.Designer.cs`, `Bin/*.config`, `.exclude`; remote `github.com/donatopepe/PollingWeb` |
+| F5 | Credenziali reali **hardcoded** e presenti nella storia Git di una repository GitHub **privata** (verificato 2026-10-16) | `Web.config`, `Database/app.config`, `Settings.Designer.cs`, `Bin/*.config`, `.exclude`; remote `github.com/donatopepe/PollingWeb` |
 | F6 | Dati reali nel repo | `script_eprocurement_donato.sql` (15.732 INSERT), `SC00G100_inizio.TXT` (anagrafiche + P.IVA), `BDG_MCC.xlsx` |
 | F7 | SQL injection | `Database/DataType.cs` → `FiltroCampi.BuildWhere` concatena stringhe; `TaskService.aspx.cs` concatena `SelectCommand` |
 | F8 | `AntiSqlInject` usato in **1 solo punto** | `PollingClass/ParserFatture.cs:126` |
@@ -194,11 +194,14 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   DoD: `SECURITY.md` dichiara che le credenziali storiche sono compromesse e vanno ruotate;
   `docs/SECURITY-FINDINGS.md` §5 con l'istruzione operativa di rotazione.
   Evidenza: sezioni presenti e linkate dal README.
-- [ ] **T0.10 — Storia Git ripulita**
+- [x] **T0.10 — Storia Git ripulita**
   DoD: backup `git bundle` verificato; branch `main` con **orphan commit** contenente solo il
   contenuto sanificato; vecchio `master` conservato come tag `legacy-archive` (**non** distribuito);
   istruzioni in `docs/RELEASING.md`.
   Evidenza: `git bundle verify` OK; `git grep` su tutti i commit di `main` = 0 segreti.
+  *Eseguito in anticipo rispetto a §4 su richiesta esplicita dell'utente. L'archivio della
+  vecchia storia non è un tag nel repository (sarebbe distribuito): è il bundle nel record di
+  audit offline, con SHA-256 registrato.*
 
 ### Fase 1 — Fondazioni cross-platform (X1)
 
@@ -504,7 +507,7 @@ su macOS/Windows ciò che non è stato eseguito lì.
 
 | Rischio | Impatto | Mitigazione |
 |---|---|---|
-| Credenziali già pubbliche dal 2023 | Alto | T0.9 rotazione obbligatoria + T0.10 storia nuova |
+| Credenziali nella storia Git di una repo privata, in via di pubblicazione | Alto | T0.10 storia nuova (fatto) + T0.9 rotazione obbligatoria **prima** della pubblicazione |
 | ASMX non supportato su .NET 8 | Alto | X3.3 ADR SOAP/CoreWCF prima di rimuovere gli endpoint citati |
 | Upgrade Quartz 2.1.2 → 3.x cambia API | Medio | X1.3 isola `Prog_Quartz` dietro interfaccia; X2.2 con test di persistenza |
 | `System.Data.SqlClient` vs `Microsoft.Data.SqlClient` (differenze di comportamento: `DataSet` typeless, timeout) | Medio | X1.5 adapter unico + T4 round-trip su entrambi i TFM |
@@ -558,3 +561,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 6 | T0.6 pulizia file morti | `[x]` | file tracciati 239 → 186; `git grep` dei nomi rimossi (esclusi i documenti di lavoro) = 0; build net48 verde |
 | 2026-10-16 | 7 | T0.4 de-branding | `[x]` | logo e marchio rimossi; `git grep -ilE "$BRAND_PATTERNS" -- . ':(exclude)NOTICE'` → 0 risultati |
 | 2026-10-16 | 8 | T0.11 identificatori aziendali | `[x]` | vecchi identificatori: 0 occorrenze (pattern dal record di audit); chiave di connessione: 13 definizioni / 13 consumatori `.aspx` / 4 `.cs`; build net48 verde |
+| 2026-10-16 | 9 | T0.10 riscrittura storia Git | `[x]` | 164/164 blob senza pattern; 1 commit raggiungibile; `.git` 17,03 MiB → 608 KiB; `git bundle verify` OK |

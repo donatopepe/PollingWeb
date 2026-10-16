@@ -23,7 +23,7 @@ commit `6b01bfa` del 2023-01-16). Soluzione .NET Framework 4.5: `Database`,
   (`CS1525` a 82,53). Escludendolo la build passa.
 - `PollingWeb` è un Website project con `CodeFile=` e classi `partial` senza
   dichiarazioni dei controlli → non compilabile senza generare `.designer.cs`.
-- Credenziali reali hardcoded e già pubbliche: `Web.config`, `Database/app.config`,
+- Credenziali reali hardcoded, nella storia Git di una repo privata: `Web.config`, `Database/app.config`,
   `Database/Properties/Settings.Designer.cs`, `Database/bin/*/Database.dll.config`.
 - Dati reali nel repository: `script_eprocurement_donato.sql` (15.732 `INSERT`),
   `SC00G100_inizio.TXT` (anagrafiche fornitori + P.IVA), `BDG_MCC.xlsx`.
@@ -51,8 +51,11 @@ $ git ls-remote origin
 
 **Prossimo.** `T0.1` — inventario segreti in `docs/SECURITY-FINDINGS.md`.
 
-**Blocchi.** Nessuno. Nota: le credenziali sono compromesse dal 2023 (storia pubblica) →
-rotazione a carico dell'ente, vedi `T0.9`.
+**Blocchi.** Nessuno. Nota: **correzione successiva** — a questo punto avevo scritto che la
+repository era pubblica. Verificato in `T0.10` con `gh repo view`: è **privata**, unico
+collaboratore il proprietario, 0 fork. I segreti non sono stati esposti pubblicamente; la
+rotazione resta comunque obbligatoria prima della pubblicazione (debolezza intrinseca,
+copie non verificabili, pubblicazione imminente).
 
 ---
 
@@ -587,8 +590,10 @@ marchio e identificatori sono fuori dall'albero.
 
 ## 2026-10-16T11:40Z — T0.10 Riscrittura della storia Git — DONE
 
-**Contesto.** Richiesta esplicita dell'utente. Il commit radice, pubblico dal 2023-01-16,
-conteneva credenziali di produzione, dati reali di terzi e riferimenti all'istituto. Dopo
+**Contesto.** Richiesta esplicita dell'utente. Il commit radice (2023-01-16, repository
+**privata** — verificato con `gh repo view`: `visibility: private`, unico collaboratore il
+proprietario, 0 fork) conteneva credenziali di produzione, dati reali di terzi e
+riferimenti all'istituto. Dopo
 `T0.2`–`T0.11` l'albero non contiene più nulla di tutto ciò: ora si poteva ricostruire la
 storia senza trascinarsi dietro la versione precedente.
 
@@ -632,7 +637,7 @@ puntatore SHA1 nullo.
 $ git rev-list --all --count
 1
 $ git log --oneline --all
-a8cf49f chore: pubblica PollingWeb su storia Git ripulita [T0.10]
+"<sha>" chore: pubblica PollingWeb su storia Git ripulita [T0.10]
 
 # scansione di OGNI blob di OGNI commit raggiungibile
 $ CNT=$(git rev-list --objects --all | awk '{print $1}' \
@@ -656,14 +661,32 @@ nel repository pubblico. Sostituiti con placeholder e con un rimando al record d
 (`REDACTED-VALUES.md` contiene la mappatura completa vecchio → nuovo). I pattern del record
 di audit sono scesi a 16 voci, includendo ora anche i vecchi identificatori.
 
-**Conseguenza che NON è stata risolta da questa operazione.**
-La riscrittura **non annulla l'esposizione già avvenuta**: chiunque abbia clonato, forkato o
-copiato i blob entro il 2026-10-16 ha i valori originali, e GitHub può conservare oggetti
-orfani raggiungibili per SHA. Restano quindi obbligatorie:
+**Correzione di un'affermazione errata.** Fino a questo punto i documenti dicevano che la
+repository era pubblica dal 2023. La verifica eseguita prima del push la smentisce:
 
-1. la **rotazione** delle credenziali (`docs/SECURITY-FINDINGS.md` §5);
-2. la richiesta a GitHub di rimozione degli oggetti orfani, se necessaria;
-3. la verifica che non esistano **fork** con la storia vecchia.
+```
+$ gh repo view donatopepe/PollingWeb --json visibility,isFork,defaultBranchRef
+{"defaultBranchRef":{"name":"master"},"isFork":false,"visibility":"PRIVATE"}
+$ gh api repos/donatopepe/PollingWeb/collaborators --jq '.[].login'
+donatopepe                      # unico collaboratore
+$ gh api repos/donatopepe/PollingWeb/forks --jq 'length'
+0
+```
+
+Quindi: **i segreti non sono stati esposti al pubblico**. Documenti e messaggio di commit
+sono stati corretti. Sopravvalutare una violazione è un errore quanto sottovalutarla: la
+prima porta a decisioni sbagliate (notifiche inutili, panico), la seconda a sottovalutare
+il rischio.
+
+**Cosa resta comunque da fare.**
+
+1. **sostituire il contenuto remoto**: su GitHub c'è ancora `master` @ `6b01bfa` con i
+   segreti. La riscrittura è solo locale finché non viene pubblicata (`docs/RELEASING.md` §2);
+2. **ruotare** le credenziali **prima** della pubblicazione: non per un'esposizione
+   avvenuta, ma perché la pubblicazione le esporrebbe, perché le password erano deboli di
+   per sé (password = utente, `CHECK_POLICY = OFF`, `SID` replicabile) e perché non è
+   verificabile che non ne esistano copie locali dal 2023;
+3. abilitare *secret scanning* e *push protection* (richiede Pro o repo pubblico).
 
 **Prossimo.** `T0.9` — nota di disclosure e rotazione credenziali; poi `T0.7` (schema unico) e
 `T0.8` (deploy riproducibile), che sbloccano il track cross-platform.

@@ -36,7 +36,7 @@ cd /tmp/legacy-pollingweb
 git log --all --oneline
 ```
 
-### Verificare che la storia pubblicata sia pulita
+### Verificare che la storia da pubblicare sia pulita
 
 ```bash
 cd <repo>
@@ -61,10 +61,12 @@ git count-objects -v          # count=0, garbage=0, size 0
 
 ## 2. Riscrittura della storia (task T0.10)
 
-La storia pubblicata è stata ricostruita perché conteneva, nel commit radice, credenziali
-di produzione e dati di terzi. Poiché **la riscrittura non annulla l'esposizione già
-avvenuta**, essa non sostituisce la rotazione delle credenziali: vedi
-`docs/SECURITY-FINDINGS.md` §5.
+La storia è stata ricostruita perché conteneva, nel commit radice, credenziali di
+produzione e dati di terzi. La repository remota è **privata** (verificato il 2026-10-16),
+quindi i valori non sono stati esposti al pubblico: la riscrittura è necessaria per poter
+pubblicare senza esporli. Resta comunque obbligatoria la rotazione **prima** della
+pubblicazione, per la debolezza intrinseca delle credenziali e perché non è verificabile
+l'assenza di copie dal 2023: vedi `docs/SECURITY-FINDINGS.md` §5.
 
 Procedura eseguita e da ripetere se necessario:
 
@@ -112,8 +114,12 @@ Azioni da completare sul repository remoto:
   raggiungibili per SHA;
 - verificare che non esistano **fork** con la storia vecchia.
 
-⚠️ Nemmeno questa procedura cancella le copie già effettuate (fork, cache, archivi
-pubblici di terze parti). È il motivo per cui la rotazione è obbligatoria.
+⚠️ La riscrittura non cancella le copie già effettuate da chi aveva accesso (clone locali,
+backup, macchine di sviluppo). È il motivo per cui la rotazione delle credenziali è
+obbligatoria **prima** della pubblicazione, indipendentemente dalla pulizia della storia.
+
+⚠️ Su GitHub, dopo il force-push, gli oggetti orfani possono restare raggiungibili per SHA
+per un periodo indefinito. Se serve garanzia, richiedere la rimozione a GitHub Support.
 
 ---
 

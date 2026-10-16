@@ -3,10 +3,24 @@
 > Inventario dei segreti e dei dati sensibili presenti nel repository.
 > **Task:** `T0.1` (inventario) · `T0.10` (redazione + riscrittura storia) · **Data:** 2026-10-16
 >
-> ⚠️ **Le credenziali elencate qui sotto sono da considerarsi COMPROMESSE.** La repository
-> `github.com/donatopepe/PollingWeb` è pubblica dal 2023-01-16: ogni segreto presente nella
-> storia Git è stato esposto. La sanificazione **non annulla** l'esposizione: è obbligatoria
-> la **rotazione** (§5).
+> ⚠️ **Le credenziali elencate qui sotto vanno considerate compromesse e ruotate.**
+>
+> **Stato di esposizione accertato il 2026-10-16** (`gh repo view`, `gh api`): la repository
+> `github.com/donatopepe/PollingWeb` è **privata**, con il solo proprietario come
+> collaboratore, 0 fork, nessun webhook, nessuna deploy key. I segreti quindi **non sono
+> stati esposti al pubblico**, e una precedente versione di questo documento lo affermava
+> erroneamente.
+>
+> La rotazione resta comunque **obbligatoria prima della pubblicazione**, perché:
+>
+> 1. la repository è destinata a diventare pubblica: senza rotazione, la pubblicazione
+>    esporrebbe credenziali ancora valide;
+> 2. non è verificabile a posteriori che il contenuto non sia stato copiato (clone locali,
+>    backup, macchine di sviluppo) nel periodo 2023-2026;
+> 3. le credenziali erano deboli **a prescindere** dalla storia Git: password uguale al
+>    nome utente, `CHECK_POLICY = OFF`, `SID` esplicito che le rendeva replicabili;
+> 4. la storia Git rendeva il leak **banale**: sarebbe bastato un `git log -p` dopo la
+>    pubblicazione, quindi il rischio era reale, solo non ancora consumato.
 >
 > 🔒 **Questo documento è redatto.** I valori originali (password, hostname, IP) **non sono
 > più presenti nel repository né nella sua storia**: sono conservati solo in un record di
@@ -175,7 +189,7 @@ git rev-list --objects --all \
   | git cat-file --batch \
   | grep -aoE "$PATTERNS" | sort -u
 
-# 3) La storia pubblicata deve contenere un solo commit (orfano, sanificato).
+# 3) La storia da pubblicare deve contenere un solo commit (orfano, sanificato).
 git rev-list --all --count        # atteso: 1
 
 # 4) Nessun oggetto irraggiungibile residuo nel repository locale.
@@ -225,14 +239,14 @@ git count-objects -v              # atteso: count=0, garbage=0, size 0
    - Cancellare i file dal repository pubblico; confermare con il titolare del trattamento
      la necessità di notifica se i dati erano riconducibili a persone fisiche.
 6. **Storia Git**
-   - La riscrittura **locale** è stata eseguita (`T0.10`). L'esposizione **passata** non è
-     annullabile: la storia già pubblicata su GitHub resta raggiungibile tramite SHA, fork,
-     cache e archivi pubblici.
-   - **Azione obbligatoria:** ruotare comunque tutti i segreti (punti 1–3). La riscrittura
-     della storia non sostituisce la rotazione.
-   - **Azione consigliata:** force-push della storia riscritta e, se necessario, richiesta a
-     GitHub di rimozione dei riferimenti orfani; abilitare *secret scanning* e *push
-     protection* sul repository.
+   - La riscrittura **locale** è stata eseguita (`T0.10`): la storia non contiene più alcun
+     valore sensibile (verificato su 164 blob, 0 corrispondenze).
+   - **Prima di pubblicare** il repository va sostituito il contenuto remoto: la storia con
+     i segreti è ancora quella presente su GitHub (`master` @ `6b01bfa`). La procedura è in
+     `docs/RELEASING.md` §2.
+   - **Azione obbligatoria:** ruotare i segreti (punti 1–3) **prima** della pubblicazione.
+   - **Azione consigliata:** abilitare *secret scanning* e *push protection* sul repository
+     (richiede piano GitHub Pro o repository pubblico).
 
 ---
 
