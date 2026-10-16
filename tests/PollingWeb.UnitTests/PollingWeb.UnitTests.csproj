@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PollingWeb.UnitTests — test unitari (task T1).
+
+    Target net8.0 e non net48 perché i test devono essere ESEGUIBILI su Linux, macOS e
+    Windows. Il runtime di .NET Framework non esiste fuori da Windows, quindi un progetto
+    di test net48 si compilerebbe ma non si eseguirebbe in CI.
+
+    Copre i tipi di `Database`, che è multi-target net48;net8.0. I tipi di `PollingClass`
+    non sono testabili finché quel progetto non è multi-target: il target net8.0 arriva con
+    X1.3c (ADR 0005). Fino ad allora i test di dominio restano limitati a `Database`.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>PollingWeb.UnitTests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Database\Database.csproj" />
+  </ItemGroup>
+
+</Project>

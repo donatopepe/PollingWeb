@@ -1402,3 +1402,99 @@ impossibile, quindi falsa. La restrizione è dichiarata nella DoD.
 è verificabile.
 
 **Blocchi.** `T0.13` in attesa della DDL dall'ambiente di origine. Nessun altro.
+
+## 2026-10-16T17:00Z — T1 Infrastruttura di test — DONE
+
+**Vincolo verificato prima di scrivere i test.** I test devono essere **eseguiti**, e su questa
+macchina esistono solo i runtime .NET 8 e .NET 10:
+
+```
+$ dotnet --list-runtimes
+  Microsoft.NETCore.App 8.0.32 / 10.0.13
+  Microsoft.AspNetCore.App 8.0.32 / 10.0.13
+$ which mono
+  (assente)
+```
+
+Quindi un progetto di test `net48` si **compilerebbe** ma non girerebbe: sarebbe un test
+inutile in CI. I due progetti di test hanno target **`net8.0`**, e questo ha una conseguenza
+che va dichiarata: `Database` è multi-target e si testa; **`PollingClass` no** (è `net48` fino
+a `X1.3c`), quindi parser, flussi e wrapper di stored procedure **restano scoperti**. È scritto
+in `tests/README.md` e nella DoD, non nascosto.
+
+**Due progetti, 66 test reali.**
+
+| Progetto | Test | Copre |
+|---|---|---|
+| `PollingWeb.UnitTests` | 50 superati, 1 ignorato | `AntiSqlInject`, `ValidaData`, `ValidaMail`, `IsNumeric` |
+| `PollingWeb.IntegrationTests` | 16 superati | contratto dello schema + privilegi minimi |
+
+Non sono test di riempimento:
+
+- i **6 test su `AntiSqlInject`** fissano la modifica di `X1.2`: lì ho sostituito
+  `HttpUtility.UrlDecode` asserendo l'equivalenza su 8 casi. Ora quell'asserzione è un test, e
+  una futura modifica alla decodifica non può passare inosservata;
+- i **16 test di integrazione** danno valore operativo a `T0.7`, `T0.8` e `T0.12`: numeri di
+  tabelle/viste/funzioni/procedure/chiavi esterne per i tre database, la collocazione delle due
+  tabelle spostate, la semantica fuorviante di `Datini`/`Datfin`, e **4 test negativi** che
+  verificano che l'utente applicativo **non** possa eseguire DDL né essere `db_owner`/`sysadmin`.
+
+**Errore mio, corretto osservando invece di indovinare.** Il primo test su `GetSafetySql`
+asseriva che il sanificatore restituisse stringa vuota. **Falso.** Ho scritto un probe,
+osservato il comportamento e riscritto:
+
+```
+  in=' OR 1=1 --          safe=False out=' 1=1 '        out_safe=True
+  in=1' or '1'='1         safe=False out='1 1=1'        out_safe=True
+  in=x; drop table tool   safe=False out='x tool'       out_safe=True
+  in=SELECT * FROM utenti safe=False out='utenti'       out_safe=True
+  in=Fornitore Sin. SRL   safe=True  out='Fornitore Sintetico SRL'
+  in=sconto 50%           safe=False out='sconto 50'    out_safe=True
+  in=codice A#1           safe=False out='codice a1'    out_safe=True
+```
+
+Da lì sono venuti tre test migliori di quello che avevo scritto a intuito: la **proprietà
+forte** `IsSafetySql(GetSafetySql(x)) == true` per ogni payload, un test di regressione sui
+valori esatti, e un test che **documenta un difetto reale**: il filtraggio rimuove `%` e `#`
+anche da testo legittimo («sconto 50%» → «sconto 50»), e abbassa il caso. Su tracciati SAP con
+percentuali è un rischio funzionale: è materia di `C1`–`C3`.
+
+**Due difetti documentati dai test, non approvati.**
+
+- `ValidaData` dipende dalla cultura del thread: `"31/12/2024"` è valido con cultura italiana e
+  **rifiutato** con cultura statunitense. Il test asserisce entrambi i comportamenti e si
+  chiama `..._difetto_C4`. Quando `C4` renderà il parsing indipendente dalla cultura, il test
+  dovrà essere aggiornato: è il segnale che si vuole.
+- `ValidaMail.IsValidEmail(null)` genera `NullReferenceException` perché `email.Replace(...)`
+  è **fuori** dal blocco `try`. Il test è marcato `Skip` con la motivazione e l'asserzione del
+  comportamento voluto: quando `C6` lo corregge, basta togliere lo `Skip`.
+
+**Salto automatico, verificato in entrambe le direzioni.**
+
+```
+$ POLLING_DB_$1=[REDACTED] dotnet test tests/PollingWeb.IntegrationTests
+  Superato!  - Non superati: 0. Superati: 16. Ignorati: 0.  Totale: 16
+$ dotnet test tests/PollingWeb.IntegrationTests        # senza credenziali
+  Ignorato!  - Non superati: 0. Superati: 0. Ignorati: 16. Totale: 16
+```
+
+Un test di integrazione che fallisce perché manca il database non segnala un difetto del codice,
+e un fallimento che si impara a ignorare è peggio di un test assente.
+
+**`scripts/test-integration.sh`** incatena le tre cose nell'ordine in cui le farebbe una persona:
+avvia il container, applica lo schema con `scripts/db-deploy.sh` (come richiede la DoD), lancia
+i test. Eseguito end-to-end: container già attivo → deploy `recreate` con seed → autotest dei
+permessi superato → 16 test superati.
+
+**Errore XML, lo stesso di `T0.2`.** Il commento nel `.csproj` conteneva `--with-seed` e due
+trattini consecutivi non sono ammessi in un commento XML: `MSB4025`. Corretto riformulando. È la
+seconda volta: vale la pena ricordarlo, e l'ho annotato nel file stesso.
+
+**Limite dichiarato.** `dotnet test PollingWeb.sln` non è ancora possibile: la soluzione contiene
+il sito WebForms, non compilabile in CI (`MSB4249`, fatto `P13`). I due progetti si lanciano
+singolarmente; l'esecuzione unificata arriva con `X1.7`.
+
+**Prossimo.** `X1.3b` — estrazione della logica dei 4 ASMX e isolamento di `Prog_Quartz`, ora che
+esiste la rete di sicurezza (66 test) che `T1` doveva fornire.
+
+**Blocchi.** `T0.13` in attesa della DDL dall'ambiente di origine. Nessun altro.

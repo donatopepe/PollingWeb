@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 14 / 70 task verificati
+- **Stato complessivo:** 15 / 70 task verificati
 - **Revisione piano:** 4 (2026-10-16) — `X1.3` ridotto alla parte verificabile; il multi-target si
   scompone in `X1.3b` (dopo `T1`) e `X1.3c` (dopo `X1.3b` e `X2.2`); introdotta la **regola
   anti-svuotamento**. Motivo in [`docs/adr/0005`](docs/adr/0005-multitarget-perimeter-and-refactoring-safety-net.md)
@@ -432,11 +432,15 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 ### Fase 6 — Test (T)
 
-- [ ] **T1 — Infrastruttura test**
+- [x] **T1 — Infrastruttura test**
   DoD: `tests/PollingWeb.UnitTests`, `tests/PollingWeb.IntegrationTests` (xUnit); `docker compose`
   con SQL Server 2022; `scripts/db-deploy.sh` usato dai test; skip automatico se DB assente;
   registra i progetti di test in `PollingWeb.sln` (requisito trasferito da `X1.1`, ADR 0004 §2.1).
   Evidenza: `dotnet test` esegue entrambi i progetti.
+  *Target `net8.0`, non `net48`: i test devono essere eseguiti, e il runtime di .NET Framework
+  non esiste fuori da Windows. Conseguenza dichiarata in `tests/README.md`: i tipi di
+  `PollingClass` (parser, flussi, wrapper di stored procedure) **non sono coperti** finché
+  `X1.3c` non rende quel progetto multi-target.*
 - [ ] **T2 — Unit test logica pura**
   DoD: copertura di `ValidaData`, `ValidaMail`, `FiltroCampi`, `AntiSqlInject`, `Aggset`,
   `ParserFatture`, config adapter.
@@ -663,3 +667,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 16 | X1.2 Database multi-target | `[x]` | `net48` 0 errori / 0 avvisi; `net8.0` 0 errori / 28 avvisi (tutti CA2200 = `throw ex;`, scope di C6); `System.Web` e `System.Drawing` in `Database` → 0; artefatti per entrambi i TFM; errori `MSB3644` sulla soluzione → 0 (restano solo 2 `MSB4249` del sito) |
 | 2026-10-16 | 17 | revisione 4 del piano (ADR 0005) | `[x]` | misurato: **2.905 righe su 5.246 (55%)** di `PollingClass` non compilabili per net8 (Quartz 2.x + ASMX). `X1.3` ristretto; nuovi `X1.3b` (dopo `T1`) e `X1.3c` (dopo `X2.2`); introdotta la regola anti-svuotamento (righe net8/totali ≥ 95%) |
 | 2026-10-16 | 18 | X1.3 PollingClass SDK-style net48 + rimozione LGPL | `[x]` | `dotnet build PollingClass/PollingClass.csproj -f net48` → **0 errori** (5 avvisi preesistenti) su Linux; `remotion\|linqtoexcel` in codice/progetti/config → **0**; `WindowsBase` e `HintPath` verso `PollingWeb/Bin` → 0; `System.Data.SqlClient` in `PollingClass` → 0; Quartz e Common.Logging ora da NuGet |
+| 2026-10-16 | 19 | T1 infrastruttura test | `[x]` | **unit 50 superati / 1 ignorato** (difetto `C6` documentato); **integrazione 16 superati** con DB e **16 ignorati** senza DB (skip automatico, 0 falliti); `scripts/test-integration.sh` end-to-end → deploy + autotest permessi + test, tutto verde; `dotnet sln list` mostra 5 progetti |

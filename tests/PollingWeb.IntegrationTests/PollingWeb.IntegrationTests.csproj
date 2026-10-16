@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PollingWeb.IntegrationTests — test di integrazione (task T1).
+
+    Target net8.0: i test devono essere eseguibili su Linux, macOS e Windows.
+
+    Richiedono un'istanza SQL Server con lo schema applicato. Se non è raggiungibile,
+    i test vengono SALTATI automaticamente invece di fallire: un test di integrazione
+    che fallisce perché manca il database non segnala un difetto del codice, e un
+    fallimento che si impara a ignorare è peggio di un test assente.
+
+    Preparazione dell'istanza (usa lo script di deploy, come richiesto dal task):
+        docker compose up -d
+        POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh [opzione dati di esempio]
+        # oppure, che fa entrambe le cose:
+        ./scripts/test-integration.sh
+
+    Nota: nel commento non compare l'opzione con i due trattini, perché due trattini
+    consecutivi non sono ammessi in un commento XML (MSB4025). È lo stesso inciampo
+    già corretto in Database/app.config durante T0.2.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>PollingWeb.IntegrationTests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Database\Database.csproj" />
+  </ItemGroup>
+
+</Project>
