@@ -106,12 +106,11 @@ namespace PollingClass
                     string withCronSchedule = "0 30 8 ? * MON-FRI";
                     if (dts.TaskService.Rows.Count == 1)
                     {
-                        min_start = Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Minute;
-                        ora_start = Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Hour;
-
-                        orario_start =
-                            Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Minute.ToString() + " " +
-                            Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Hour.ToString();
+                        var configuredTime = (DateTime)dts.TaskService.Rows[0]["Orario_Check_File"];
+                        min_start = configuredTime.Minute;
+                        ora_start = configuredTime.Hour;
+                        orario_start = min_start.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                       ora_start.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
                         day_start = dts.TaskService.Rows[0]["Day_Check_File"].ToString();
                         withCronSchedule = "0 " + orario_start + " ? * " + day_start.Trim();

@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Collections;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace Database
 {
@@ -31,8 +32,11 @@ namespace Database
                 if (data.Length < 10)
                     return false;
 
-                DateTime dataNew = Convert.ToDateTime(data);
-                valoreRet = dataNew.ToShortDateString();
+                DateTime dataNew;
+                if (!DateTime.TryParseExact(data.Trim(), new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "yyyy-MM-ddTHH:mm:ss" },
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out dataNew))
+                    return false;
+                valoreRet = dataNew.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
                 return true;
             }
             catch
@@ -46,10 +50,10 @@ namespace Database
         {
             try
             {
-                valoreRet = Convert.ToDateTime(valoreRet).Year.ToString() + "-" +
-                                Convert.ToDateTime(valoreRet).Month.ToString("00") + "-" +
-                                Convert.ToDateTime(valoreRet).Day.ToString("00");
-
+                DateTime parsed;
+                if (!DateTime.TryParseExact(valoreRet, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsed))
+                    return string.Empty;
+                valoreRet = parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                 return valoreRet;
             }
             catch
@@ -120,23 +124,13 @@ namespace Database
                 formattazione += "#";
             }
 
-            try
-            {
-                valore = valore.Replace('.', ',');
-                Convert.ToDouble(valore);
+            double parsed;
+            if (!double.TryParse(valore, NumberStyles.Float, CultureInfo.InvariantCulture, out parsed))
+                return false;
 
-                valoreRet = Convert.ToDouble(valore);
-                valoreRetformat = String.Format("{0:###,###,###,##0." + formattazione + "0}", valore);
-                esito = true;
-            }
-            catch
-            {
-                valore = "0";
-
-            }
-            valoreRet = Convert.ToDouble(valore);
-            valoreRetformat = String.Format("{0:###,###,###,##0." + formattazione + "0}", valore);
-            return esito;
+            valoreRet = parsed;
+            valoreRetformat = parsed.ToString("N" + decimali, CultureInfo.InvariantCulture);
+            return true;
         }
 
         public static double Valore()
@@ -168,7 +162,7 @@ namespace Database
             try
             {
 
-                return string.Format("{0:########0.#0}", Convert.ToDecimal(valoreRetformat)).Replace(",", ".");
+                return valoreRet.ToString("0.00", CultureInfo.InvariantCulture);
             }
             catch
             {
@@ -186,7 +180,7 @@ namespace Database
             try
             {
 
-                return string.Format("{0:########0." + formattazione + "0}", Convert.ToDecimal(valoreRetformat)).Replace(",", ".");
+                return valoreRet.ToString("F" + decimali, CultureInfo.InvariantCulture);
             }
             catch
             {

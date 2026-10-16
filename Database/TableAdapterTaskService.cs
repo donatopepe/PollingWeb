@@ -240,7 +240,7 @@ namespace Database.TableInterface
                 this.Descrizione = reader["Descrizione"].ToString();
                 this.Path_Source = reader["Path_Source"].ToString();
                 this.File_Source = reader["File_Source"].ToString();
-                this.Orario_Check_File = Convert.ToDateTime(reader["Orario_Check_File"].ToString());
+                this.Orario_Check_File = reader.GetDateTime(reader.GetOrdinal("Orario_Check_File"));
                 this.Day_Check_File = reader["Day_Check_File"].ToString();
                 this.Polling_Intervall = Convert.ToInt16(reader["Polling_Intervall"].ToString());
                 this.Cutoff = Convert.ToInt16(reader["Cutoff"].ToString());

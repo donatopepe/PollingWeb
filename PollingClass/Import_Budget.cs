@@ -188,7 +188,7 @@ namespace PollingClass
                 Log_Errori.ScriviLOGPROCEDURE(this.codice_istituto, this.IdProcesso, "File.Exists NO");
 
                 //controllo se ha suoeratoil cutoff
-                DateTime orario = Convert.ToDateTime(Convert.ToDateTime(this.dts.TaskService[0]["Orario_Check_File"].ToString()).ToString("HH:mm"));
+                DateTime orario = this.dts.TaskService[0].Orario_Check_File;
                 Int16 min = Convert.ToInt16(this.dts.TaskService[0]["Cutoff"].ToString());
                 DateTime cutoff = orario.AddMinutes(min);
                 if (DateTime.Now > cutoff)
@@ -280,7 +280,7 @@ namespace PollingClass
         //        Log_Errori.ScriviLOGPROCEDURE(this.codice_istituto, this.IdProcesso, "File.Exists NO");
 
         //        //controllo se ha suoeratoil cutoff
-        //        DateTime orario = Convert.ToDateTime(Convert.ToDateTime(this.dts.TaskService[0]["Orario_Check_File"].ToString()).ToString("HH:mm"));
+        //        DateTime orario = this.dts.TaskService[0].Orario_Check_File;
         //        Int16 min = Convert.ToInt16(this.dts.TaskService[0]["Cutoff"].ToString());
         //        DateTime cutoff = orario.AddMinutes(min);
         //        if (DateTime.Now > cutoff)
@@ -343,12 +343,11 @@ namespace PollingClass
                 string withCronSchedule = "0 30 8 ? * MON-FRI";
                 if (dts.TaskService.Rows.Count == 1)
                 {
-                    min_start = Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Minute;
-                    ora_start = Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Hour;
-
-                    orario_start =
-                        Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Minute.ToString() + " " +
-                        Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Hour.ToString();
+                    var configuredTime = (DateTime)dts.TaskService.Rows[0]["Orario_Check_File"];
+                    min_start = configuredTime.Minute;
+                    ora_start = configuredTime.Hour;
+                    orario_start = min_start.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                   ora_start.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
                     day_start = dts.TaskService.Rows[0]["Day_Check_File"].ToString();
                     withCronSchedule = "0 " + orario_start + " ? * " + day_start.Trim();

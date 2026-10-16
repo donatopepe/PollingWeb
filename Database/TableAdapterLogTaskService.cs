@@ -229,10 +229,10 @@ namespace Database.TableInterface
             {
                 this.Istituto = Convert.ToInt16(reader["Istituto"].ToString());
                 this.IdProcesso = (reader["IdProcesso"].ToString());
-                this.Data = Convert.ToDateTime(reader["Data"].ToString());
+                this.Data = reader.GetDateTime(reader.GetOrdinal("Data"));
                 this.Codice_stato = Convert.ToInt16(reader["Codice_stato"].ToString());
-                this.Ora_Inizio = Convert.ToDateTime(reader["Ora_Inizio"].ToString());
-                this.Ora_fine = Convert.ToDateTime(reader["Ora_fine"].ToString());
+                this.Ora_Inizio = reader.GetDateTime(reader.GetOrdinal("Ora_Inizio"));
+                this.Ora_fine = reader.IsDBNull(reader.GetOrdinal("Ora_fine")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("Ora_fine"));
                 this.Messaggio_Return = (reader["Messaggio_Return"].ToString());
             }
         }

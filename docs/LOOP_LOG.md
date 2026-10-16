@@ -1851,6 +1851,38 @@ La pagina WebForms non può essere compilata/eseguita dai test net8; il test pag
 
 **Prossimo task:** `C4 — Eliminazione Convert.ToDateTime(string) culture-dependent`.
 
+---
+
+## 2026-10-17T10:00Z — C4 Parsing date invariant — DONE
+
+**Baseline riprodotto.** `Convert.ToDateTime(string)` era usato da parser `ValidaData`, table adapter e policy cron; il test preesistente confermava che `31/12/2024` passava con `it-IT` e falliva con `en-US`.
+
+**Modifiche.** `ValidaData` ora usa `DateTime.TryParseExact` con formati espliciti e `InvariantCulture`; FEvalore formata ISO invariant. `IsNumeric` usa `double.TryParse` invariant e output numerico invariant. I TableAdapter leggono i campi data da `SqlDataReader.GetDateTime`; schedulatori usano `DataRow` DateTime typed e serializzano numeri cron invariant. Date SAP ricevute come `DateTime` nel parser sono formattate direttamente con invariant. Aggiornati test cultura: stessi input/esiti per `en-US` e `it-IT`.
+
+**Evidenza reale (Linux, 2026-10-17).**
+
+```
+$ rg -n 'Convert\\.ToDateTime\\(' Database PollingClass PollingWeb --glob '*.cs' | grep -v '//'
+nessuna conversione eseguibile (solo commento storico in ExportSQL01.cs).
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build Database/Database.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+106 passati, 2 ignorati, 0 falliti.
+$ git diff --check
+exit 0.
+```
+
+Windows/macOS non verificati localmente; WebForms completo non compilabile su Linux (MSB4249).
+
+**Prossimo task:** `C5 — DatabaseInfo thread-safe, senza stato statico mutabile`.
+
+
 
 
 

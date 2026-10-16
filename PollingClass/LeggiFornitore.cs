@@ -325,8 +325,7 @@ namespace PollingClass
                     
           //Log_Errori.ScriviLOGPROCEDURE("CheckFile controlla cutoff");
           //controllo se ha suoeratoil cutoff
-          DateTime orario = Convert.ToDateTime(Convert
-            .ToDateTime(this.dts.TaskService[0]["Orario_Check_File"].ToString()).ToString("HH:mm"));
+          DateTime orario = this.dts.TaskService[0].Orario_Check_File;
           Int16 min = Convert.ToInt16(this.dts.TaskService[0]["Cutoff"].ToString());
           DateTime cutoff = orario.AddMinutes(min);
           if (DateTime.Now > cutoff)

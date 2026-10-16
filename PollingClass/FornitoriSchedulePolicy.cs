@@ -6,12 +6,18 @@ namespace PollingClass
     /// <summary>Pure scheduling policy shared by the legacy host and the future worker.</summary>
     public static class FornitoriSchedulePolicy
     {
-        /// <summary>Builds the cron value already calculated by the legacy scheduler.</summary>
+        /// <summary>Formats a validated clock time into a Quartz weekday expression.</summary>
         public static string WeekdayCron(string timeAndHour, string weekdays)
         {
-            if (string.IsNullOrWhiteSpace(timeAndHour)) throw new ArgumentException("Schedule time is required.", "timeAndHour");
-            if (string.IsNullOrWhiteSpace(weekdays)) throw new ArgumentException("Weekdays are required.", "weekdays");
-            return string.Format(CultureInfo.InvariantCulture, "0 {0} ? * {1}", timeAndHour, weekdays.Trim());
+            if (string.IsNullOrWhiteSpace(timeAndHour)) throw new ArgumentException("Schedule time is required.", nameof(timeAndHour));
+            if (string.IsNullOrWhiteSpace(weekdays)) throw new ArgumentException("Weekdays are required.", nameof(weekdays));
+            var parts = timeAndHour.Split(new[] { ' ', ':' }, StringSplitOptions.RemoveEmptyEntries);
+            int first, second;
+            if (parts.Length != 2 || !int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out first)
+                || !int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out second)
+                || !IsValidClockTime(second, first))
+                throw new ArgumentException("Schedule clock time must be minute hour in invariant numeric form.", nameof(timeAndHour));
+            return string.Format(CultureInfo.InvariantCulture, "0 {0} {1} ? * {2}", first, second, weekdays.Trim());
         }
 
         public static bool IsValidClockTime(int hour, int minute)

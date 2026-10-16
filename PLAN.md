@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 30 / 74 task verificati
+- **Stato complessivo:** 31 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -428,9 +428,9 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [x] **C3 — Rimozione concatenazione in `SqlDataSource`/pagine**
   DoD: `SelectCommand` usa un parametro `@IdProcesso` bound per il lookup dinamico; Insert/Update restano con valori `@...` già bound e SQL text composto solo da identificatori/colonne costanti; nessuna interpolazione di `ddl.SelectedValue` in SQL.
   Evidenza (Linux, 2026-10-17): `TaskService.aspx.cs` usa `SelectParameters`; scansione dei `SelectCommand` non trova più interpolazioni/SelectedValue. Il test pagina WebForms non è eseguibile nel test project net8; la compilazione completa Website resta bloccata da MSB4249, documentato in X1.7.
-- [ ] **C4 — Eliminazione `Convert.ToDateTime(string)` culture-dependent**
-  DoD: parsing con `TryParse` + `CultureInfo.InvariantCulture`; idem per i numeri.
-  Evidenza: `git grep -n "Convert.ToDateTime(reader"` = 0; test con culture `it-IT` e `en-US`.
+- [x] **C4 — Eliminazione `Convert.ToDateTime(string)` culture-dependent**
+  DoD: parse esplicito dd/MM/yyyy ISO/invariant, conversioni numeriche invariant e valori ADO `DateTime` nativi; cron utilizza componenti orario typed.
+  Evidenza (Linux, 2026-10-17): nessun `Convert.ToDateTime(` eseguibile rimasto in Database/PollingClass/PollingWeb (solo commento storico); test `ValidaData` e `IsNumeric` sotto en-US e it-IT passano; build Database e PollingClass net48/net8 → 0 errori; unit 106 passati/2 ignorati.
 - [ ] **C5 — `DatabaseInfo` thread-safe, senza stato statico mutabile**
   DoD: connection string iniettata; timeout con default sicuro; `using`/`Dispose` ovunque.
   Evidenza: test di concorrenza (100 task paralleli) senza eccezioni.
@@ -717,3 +717,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 33 | C1 BuildWhere parametrizzato | `[x]` | Nuovo overload con SqlCommand, allowlist campi/operatore/connettore/tipo e valori parametrici; tutti i 18 call site DAL delegano al comando SqlCommand. Test payload injection, input invalido, conversione N/D. Build Database net48/net8 0 errori; unit 104/2 ignorati; integrazione 17 ignorati senza DB; diff-check pulito. |
 | 2026-10-17 | 34 | C2 TableAdapter parametrizzati | `[x]` | Migrati 18 query dei 9 adapter al SelectCommand con parametri; rimossi overload SQL raw non usati e overload string BuildWhere. Test SqlClientAdapterTests sul container: 2/2 PASS; unit 104/2 ignorati; build Database net48/net8 0 errori; `git diff --check` pulito. |
 | 2026-10-17 | 35 | C3 SqlDataSource / TaskService | `[x]` | `sqlDimProcessi.SelectCommand` è costante con parametro `@IdProcesso`, passato a `SelectParameters`; scansione nessuna interpolazione SelectedValue/SelectCommand. `dotnet build PollingWeb.sln` → MSB4249 riprodotto; unit 104/2 ignorati; test Website non eseguibile nel runner net8. |
+| 2026-10-17 | 36 | C4 Parsing invariant | `[x]` | Rimossi Convert.ToDateTime eseguibili, conversioni ADO date ora typed, ValidaData e IsNumeric invariant; cron usa DateTime typed e cultura invariant. Build Database/PollingClass entrambi TFM 0 errori; unit 106/2 ignorati; diff-check pulito. |

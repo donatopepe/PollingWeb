@@ -62,17 +62,13 @@ namespace PollingClass
             tbiTaskService.Load(array);
             try
             {
-                int min_start, ora_start;
-                string orario_start = "0 8"; //8 per default
-                string withCronSchedule = FornitoriSchedulePolicy.WeekdayCron("30 8", "MON-FRI");
+                var orario_start = "30 8";
+                var withCronSchedule = FornitoriSchedulePolicy.WeekdayCron(orario_start, "MON-FRI");
                 if (dts.TaskService.Rows.Count == 1)
                 {
-                    min_start = Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Minute;
-                    ora_start = Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Hour;
-
-                    orario_start =
-                      Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Minute.ToString() + " " +
-                      Convert.ToDateTime(dts.TaskService.Rows[0]["Orario_Check_File"].ToString()).Hour.ToString();
+                    var configuredTime = (DateTime)dts.TaskService.Rows[0]["Orario_Check_File"];
+                    orario_start = configuredTime.Minute.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                   configuredTime.Hour.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
                     // Il gateway conserva la ricorrenza feriale legacy.
                     withCronSchedule = FornitoriSchedulePolicy.WeekdayCron(orario_start, "MON-FRI");

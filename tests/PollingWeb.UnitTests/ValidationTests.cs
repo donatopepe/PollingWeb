@@ -76,23 +76,17 @@ namespace PollingWeb.UnitTests
             });
         }
 
-        /// <summary>
-        /// <b>Documenta un difetto, non lo approva.</b>
-        ///
-        /// L'interpretazione della data dipende dalla cultura del thread: lo stesso valore
-        /// che con cultura italiana è il 31 dicembre, con cultura statunitense viene letto
-        /// come mese 31 e quindi rifiutato. È il problema tracciato dal task <c>C4</c>
-        /// («eliminazione di <c>Convert.ToDateTime(string)</c> culture-dependent»).
-        ///
-        /// Il test asserisce il comportamento <b>attuale</b> per fissarlo: quando <c>C4</c>
-        /// renderà il parsing indipendente dalla cultura, questo test dovrà essere aggiornato
-        /// — ed è proprio il segnale che si vuole ottenere.
-        /// </summary>
-        [Fact]
-        public void ValidaData_dipende_dalla_cultura_difetto_C4()
+        [Theory]
+        [InlineData("en-US")]
+        [InlineData("it-IT")]
+        public void ValidaData_dd_mm_yyyy_ha_esito_indipendente_dalla_cultura(string culture)
         {
-            ConCultura("en-US", () => Assert.False(ValidaData.Esegui("31/12/2024")));
-            ConCultura("it-IT", () => Assert.True(ValidaData.Esegui("31/12/2024")));
+            ConCultura(culture, () =>
+            {
+                Assert.True(ValidaData.Esegui("31/12/2024"));
+                Assert.Equal("31/12/2024", ValidaData.Valore());
+                Assert.Equal("2024-12-31", ValidaData.FEvalore());
+            });
         }
 
         // ------------------------------------------------------------------ ValidaMail
@@ -158,15 +152,16 @@ namespace PollingWeb.UnitTests
             ConCultura("it-IT", () => Assert.False(IsNumeric.Esegui(valore)));
         }
 
-        [Fact]
-        public void IsNumeric_converte_il_punto_in_separatore_decimale()
+        [Theory]
+        [InlineData("en-US")]
+        [InlineData("it-IT")]
+        public void IsNumeric_usa_formato_invariant_sotto_culture_diverse(string culture)
         {
-            // Il codice fa valore.Replace('.', ',') prima di convertire: è la sua difesa
-            // contro il separatore decimale dei tracciati SAP. Fissa il comportamento.
-            ConCultura("it-IT", () =>
+            ConCultura(culture, () =>
             {
                 Assert.True(IsNumeric.Esegui("1234.56"));
                 Assert.Equal(1234.56, IsNumeric.Valore(), 2);
+                Assert.Equal("1234.56", IsNumeric.FEFormattato());
             });
         }
     }

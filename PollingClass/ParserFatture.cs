@@ -114,7 +114,7 @@ namespace PollingClass
             }
             if (type == typeof(DateTime))
             {
-                sTemp = "'" + Convert.ToDateTime(pvValue).ToString("dd/MM/yyyy") + "'";
+                sTemp = "'" + ((DateTime)pvValue).ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) + "'";
                 return sTemp;
             }
 
