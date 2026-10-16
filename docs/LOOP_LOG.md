@@ -764,3 +764,74 @@ poi `T0.7`/`T0.8`. Il loop cron viene riattivato.
 
 **Blocchi.** Nessuno. Attenzione operativa: la rotazione delle credenziali è **ancora da
 fare** ed è ora l'unica mitigazione garantita.
+
+## 2026-10-16T12:15Z — T0.9 Nota di disclosure e rotazione credenziali — DONE
+
+**Contesto.** `docs/SECURITY-FINDINGS.md` documenta i problemi, ma mancava il canale di
+segnalazione, la policy di divulgazione e una dichiarazione di sicurezza di livello superiore.
+La DoD richiede inoltre che le sezioni siano **linkate dal README** — che non esisteva.
+
+**Modifiche.**
+
+| File | Contenuto |
+|---|---|
+| `SECURITY.md` (nuovo) | 7 sezioni: versioni supportate · come segnalare (canale privato, cosa includere, tempi, fuori perimetro) · divulgazione coordinata (90 giorni) · **avviso storico** con la tabella di stato · **rotazione credenziali** · regole per chi contribuisce con i comandi di controllo · hardening per chi installa |
+| `README.md` (nuovo, minimo) | descrizione, avviso di sicurezza in evidenza, architettura, struttura, documentazione, **stato della build verificato**, contribuzione, licenza |
+| `LICENSE` (nuovo) | testo MIT, già promesso da `NOTICE` che lo referenziava senza che il file esistesse |
+
+`docs/SECURITY-FINDINGS.md` §5 (procedura operativa di rotazione) esisteva già da `T0.1`/`T0.10`
+ed è la destinazione dei link.
+
+**Perché ho aggiunto README e LICENSE, che appartengono ad altri task.** La DoD di `T0.9`
+pretende il link dal README: senza un README la verifica è impossibile, e la repository
+pubblica non ne aveva alcuno. `NOTICE` referenziava già `LICENSE` senza che il file esistesse —
+un riferimento rotto introdotto da me in `T0.4`. `D1` resta aperto per il README completo con
+quickstart verificato su due OS; `D10` per audit delle licenze, header SPDX e
+`docs/LICENSING.md`.
+
+**Errore intercettato e corretto.** La prima stesura del README mostrava come quickstart:
+
+```bash
+dotnet build Database/Database.csproj
+dotnet build PollingClass/PollingClass.csproj
+```
+
+Li ho **eseguiti** invece di assumerli. Falliscono entrambi (`MSB3644`: mancano i targeting
+pack `v4.5`), e `dotnet build PollingWeb.sln` fallisce con `MSB4249` (il compilatore ASP.NET
+esiste solo in MSBuild di .NET Framework, su Windows). Il README è stato riscritto con una
+sezione **"Stato della build (verificato, non ipotetico)"** che riporta i tre errori reali con
+il testo esatto e la tabella causa → task che li risolve. Un README che promette un comando
+che non funziona è peggio di un README che dichiara di non essere ancora buildabile.
+
+**Fatti nuovi registrati nel piano** (`PLAN.md` §2.2):
+
+- **P13** — `MSB4249`: il sito WebForms **non è compilabile in CI su Linux**. Giustifica `X1.7`
+  (esclusione dal build di default) e `X4.2` (porting a Razor Pages).
+- **P14** — `MSB3644`: i `.csproj` classici dichiarano `v4.5` senza targeting pack, quindi
+  `dotnet build <progetto>.csproj` fallisce su **qualsiasi** OS. Giustifica `X1.1`–`X1.3`.
+
+**Evidenza.**
+
+```
+$ for f in README.md SECURITY.md; do ... verifica di ogni link relativo ... done
+README.md   -> docs/LOOP_LOG.md docs/RELEASING.md docs/SECURITY-FINDINGS.md
+               LICENSE NOTICE PLAN.md samples/README.md SECURITY.md sql/README.md   (9 link, tutti OK)
+SECURITY.md -> docs/RELEASING.md docs/SECURITY-FINDINGS.md                          (2 link, OK)
+$ grep -c '^## ' SECURITY.md              -> 7
+$ grep -n '^## 5\.' docs/SECURITY-FINDINGS.md
+217:## 5. Piano di rotazione credenziali (operativo — a carico dell'ente)
+$ grep -c 'SECURITY.md' README.md          -> 5 occorrenze (link in evidenza)
+$ git grep -inE "$PATTERNS" -- README.md SECURITY.md LICENSE NOTICE   -> exit 1 (0 risultati)
+$ dotnet build Database/Database.csproj      -> MSB3644 (documentato, non nascosto)
+$ dotnet build PollingClass/PollingClass.csproj -> MSB3644 (idem)
+$ dotnet build PollingWeb.sln                -> 2 errori MSB4249 (idem)
+```
+
+**Punto aperto per D10.** Il titolare del copyright in `LICENSE` è indicato come
+"PollingWeb contributors": è una convenzione sicura, ma il proprietario della repository deve
+confermarlo o sostituirlo con il proprio nome prima della `v1.0.0`.
+
+**Prossimo.** `T0.7` — consolidamento dello schema SQL in `sql/` come fonte unica di verità,
+con ADR. Serve prima di `T0.8` (`scripts/db-deploy.sh`) e di tutto il track cross-platform.
+
+**Blocchi.** Nessuno.

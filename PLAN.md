@@ -82,6 +82,8 @@ massimo 3 tentativi per task, poi il task passa a `BLOCKED` con motivo scritto.
 | P10 | `ConfigurationManager` per le connection string | ✅ Portabile con `System.Configuration.ConfigurationManager` NuGet; meglio astrarre su `IConfiguration` | `Database/DatabaseInfo.cs` |
 | P11 | SQL Server è l'unica dipendenza infrastrutturale esterna | ✅ gira in container Linux (`mcr.microsoft.com/mssql/server:2022-latest`) | `docker info` OK |
 | P12 | Logica di business totale ≈ 2.500 righe (`PollingClass`) + DAL generato ≈ 4.000 (`Database`) | ✅ Dimensione compatibile con un port incrementale, non con una riscrittura | `wc -l` |
+| P13 | `dotnet build PollingWeb.sln` fallisce con **`MSB4249`**: il compilatore ASP.NET esiste solo in MSBuild di .NET Framework, su Windows | ⚠️ Il sito **non è compilabile in CI su Linux**: da escludere dal build di default (`X1.7`) e sostituire con Razor Pages (`X4.2`) | `dotnet build PollingWeb.sln` |
+| P14 | I `.csproj` classici dichiarano `v4.5` senza targeting pack | ⚠️ `dotnet build <progetto>.csproj` fallisce con **`MSB3644`** su qualsiasi OS: serve la conversione SDK-style (`X1.1`–`X1.3`) | `dotnet build Database/Database.csproj` |
 
 **Conclusione.** Il port è a basso rischio tecnico: mancano solo (a) sostituzione
 ASMX→API, (b) upgrade Quartz, (c) rimozione `System.Drawing`/`LinqToExcel`/`WindowsBase`,
