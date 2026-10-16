@@ -1519,13 +1519,13 @@ $ git diff --check
 
 **Limiti.** `PollingClass` resta `net48`; la build è stata eseguita su Linux con reference assemblies. Windows/macOS non verificati in locale. `PollingWeb.sln` non è stata compilata: il Website WebForms resta un blocker noto. La scansione dei 16 pattern riservati ha dato 0 match nei file tracciati e 0 nei blob raggiungibili.
 
-**Prossimo task:** `X1.3b2 — ImportFatture_Scheduler`.
+**Prossimo task:** `X1.3b3 — ImportBudget_Scheduler`.
 
 ---
 
-## 2026-10-16T16:xxZ — X1.3b2 Separazione ImportFatture_Scheduler/Quartz — DONE
+## 2026-10-16T16:xxZ — X1.3b3 Separazione ImportBudget_Scheduler/Quartz — DONE
 
-**Modifica.** `ImportFatture_Scheduler` mantiene le firme pubbliche e la lettura/configurazione legacy, ma delega la schedulazione a `IFornitoriSchedulingGateway`. Aggiunti `PollingClass/ImportFattureQuartzGateway.cs` per Quartz 2.x e `PollingClass/JobImportFatture.cs`; rimossi i riferimenti Quartz da `ImportFatture.cs`. L'adapter conserva le identità di job/trigger, `JobDataMap` (`codist`, `idprocesso`, `onetime`), giorni feriali, override del trigger esistente e schedule immediata/intervallo. Aggiunti test unitari dell'adapter e della policy condivisa.
+**Modifica.** `ImportBudget_Scheduler` mantiene firma e logica di caricamento parametri, delegando FirstStart e Polling_Interval a `IFornitoriSchedulingGateway`. Aggiunti `PollingClass/ImportBudgetQuartzGateway.cs` (Quartz 2.x) e `PollingClass/JobBudget.cs`; `Import_Budget.cs` non contiene più simboli Quartz. L'adapter mantiene il trigger feriale lun-ven, identity legacy, flag `onetime`, chiamata a `ImportBudget.Leggi_File(..., onetime)`, override e scheduling immediato/intervallo. La chiamata esistente `TaskServiceClass.LeggiParametri` nel percorso interval resta mantenuta.
 
 **Evidenza reale (Linux, 2026-10-16).**
 
@@ -1533,13 +1533,36 @@ $ git diff --check
 $ dotnet build PollingClass/PollingClass.csproj -f net48 --nologo -v quiet
 Compilazione completata. Avvisi: 5. Errori: 0.
 $ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --nologo -v quiet
-Superato! Non superati: 0. Superati: 73. Ignorati: 1. Totale: 74.
-$ grep -nE '\\b(Quartz|IJob|StdSchedulerFactory|JobBuilder|TriggerBuilder|IScheduler)\\b' PollingClass/ImportFatture.cs
+Superato! Non superati: 0. Superati: 80. Ignorati: 1. Totale: 81.
+$ grep -nE '\\b(Quartz|IJob|StdSchedulerFactory|JobBuilder|TriggerBuilder|IScheduler)\\b' PollingClass/Import_Budget.cs
 (nessuna corrispondenza)
 $ git diff --check
 (exit 0)
 ```
 
-**Limiti.** `PollingClass` resta `net48`; verificata solo la build Linux con reference assemblies. Windows/macOS non verificati localmente. La soluzione `PollingWeb.sln` non è stata compilata per il blocker WebForms già noto. Nessun test DB end-to-end richiesto da questo task.
+**Limiti.** Target `PollingClass` resta net48; build eseguita solo su Linux. Windows/macOS non verificati localmente. Non compilata l'intera soluzione WebForms per il blocker noto.
 
-**Prossimo task:** `X1.3b3 — ImportBudget_Scheduler`.
+**Prossimo task:** `X1.3b4 — Ordini_Scheduler`.
+
+---
+
+## 2026-10-16T16:xxZ — X1.3b3 Separazione ImportBudget_Scheduler/Quartz — DONE
+
+**Modifica.** `ImportBudget_Scheduler` mantiene firma e caricamento parametri legacy, delegando FirstStart e Polling_Interval a `IFornitoriSchedulingGateway`. Aggiunti `PollingClass/ImportBudgetQuartzGateway.cs` (Quartz 2.x) e `PollingClass/JobBudget.cs`; `Import_Budget.cs` non contiene più simboli Quartz. L'adapter mantiene trigger feriale lun-ven, identity legacy, flag `onetime`, chiamata `ImportBudget.Leggi_File(..., onetime)`, override e schedule immediata/intervallo. La chiamata esistente `TaskServiceClass.LeggiParametri` nel percorso interval è mantenuta.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --nologo -v quiet
+Compilazione completata. Avvisi: 5. Errori: 0.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --nologo -v quiet
+Superato! Non superati: 0. Superati: 80. Ignorati: 1. Totale: 81.
+$ grep -nE '\\b(Quartz|IJob|StdSchedulerFactory|JobBuilder|TriggerBuilder|IScheduler)\\b' PollingClass/Import_Budget.cs
+(nessuna corrispondenza)
+$ git diff --check
+(exit 0)
+```
+
+**Limiti.** Target `PollingClass` resta net48; build eseguita solo su Linux. Windows/macOS non verificati localmente. Non compilata l'intera soluzione WebForms per il blocker noto.
+
+**Prossimo task:** `X1.3b4 — Ordini_Scheduler`.
