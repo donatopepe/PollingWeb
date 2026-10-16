@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 9 / 65 task verificati
+- **Stato complessivo:** 10 / 66 task verificati
 - **Prompt operativo:** [`PROMPT.md`](PROMPT.md)
 - **Log iterazioni:** [`docs/LOOP_LOG.md`](docs/LOOP_LOG.md)
 
@@ -184,10 +184,19 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   Nota: i riferimenti negli `.aspx` non sono verificabili con un build finché il progetto
   web non è compilabile (`X1.7`/`X4.2`): la verifica è il grep incrociato, dichiarato come
   tale.
-- [ ] **T0.7 — SQL projects: schema unico**
+- [x] **T0.7 — SQL projects: schema unico**
   DoD: una sola fonte di verità per lo schema (`sql/PollingDB/`, `sql/eProcurement/`, `sql/Quartz/`),
   `DatabaseSQL/` e `PollingDB/` consolidati; ADR `docs/adr/0001-sql-schema-source-of-truth.md`.
   Evidenza: deploy idempotente su container con exit 0.
+- [ ] **T0.12 — Recupero dello schema `eProcurement` (solo DDL)**
+  DoD: gli oggetti `eProcurement` referenziati dal codice sono versionati in `sql/eProcurement/`.
+  Estrazione **solo DDL** dallo snapshot nel record di audit offline, scartando integralmente
+  ogni `INSERT`; verifica che il risultato non contenga dati reali né pattern del record di audit;
+  risolta l'ambiguità di collocazione di `RDA_Esiti_LastOutput_OnLine` e `Tbl_Export_SAP_OnLine`
+  (vedi ADR 0001 §4); il deploy non deve più lasciare `eProcurement` vuoto.
+  Evidenza: `sql/eProcurement/` contiene ≥ 16 oggetti; `scripts/db-deploy.sh` mostra
+  `tabelle=N>0` su `eProcurement`; scansione dei pattern di audit sul nuovo contenuto = 0;
+  ADR 0001 §4 aggiornata (A1, A2 chiusi).
 - [ ] **T0.8 — Script di deploy DB riproducibile**
   DoD: `scripts/db-deploy.sh` crea `Polling`, `eProcurement`, `Quartz` su un'istanza SQL Server
   con utente applicativo a privilegi minimi; niente utenti/password reali; idempotente.
@@ -461,7 +470,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 ```
 T0.2 → T0.3 → T0.4 → T0.6 → T0.11 → T0.9
-  → T0.7 → T0.8                     # schema unico + deploy riproducibile (serve a X2/C)
+  → T0.7 → T0.12 → T0.8             # schema unico, schema eProcurement, deploy riproducibile
   → X1.1 → X1.2 → X1.3 → X1.4 → X1.5 → X1.6 → X1.7
   → C1 → C2 → C3 → C4 → C5 → C6 → C7 → C8 → C9 → C10
   → T1 → T2 → T3 → T4
@@ -568,3 +577,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 8 | T0.11 identificatori aziendali | `[x]` | vecchi identificatori: 0 occorrenze (pattern dal record di audit); chiave di connessione: 13 definizioni / 13 consumatori `.aspx` / 4 `.cs`; build net48 verde |
 | 2026-10-16 | 9 | T0.10 riscrittura storia Git | `[x]` | 164/164 blob senza pattern; 1 commit raggiungibile; `.git` 17,03 MiB → 608 KiB; `git bundle verify` OK |
 | 2026-10-16 | 10 | T0.9 disclosure + rotazione | `[x]` | `SECURITY.md` (7 sezioni) e `docs/SECURITY-FINDINGS.md` §5; 11 link relativi verificati esistenti; `git grep` pattern di audit su README/SECURITY/LICENSE/NOTICE → 0 |
+| 2026-10-16 | 11 | T0.7 schema unico + ADR 0001 | `[x]` | 2 alberi SQL identici (26 file) → 1; `DatabaseSQL/` eliminato (0 `<Build Include>`); deploy `recreate` due volte → exit 0; Polling 11 tabelle/1 vista/3 funzioni/8 procedure, Quartz 11 tabelle QRTZ_; `ViewTaskService` → 3 righe; `eProcurement` → 0 tabelle (gap → T0.12) |

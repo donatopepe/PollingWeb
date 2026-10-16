@@ -1,0 +1,40 @@
+# =============================================================================
+# docker-compose.yml — ambiente di sviluppo e test di PollingWeb
+# =============================================================================
+# Avvia SQL Server 2022 e applica lo schema. Funziona su Linux, macOS e Windows
+# (con Docker Desktop). Persistenza dei dati in un volume configurabile.
+#
+# Avvio:   docker compose up -d
+# Schema:  ./scripts/db-deploy.sh
+# Stop:    docker compose down          (i dati restano nel volume)
+# Reset:   docker compose down -v       (cancella i dati)
+#
+# ⚠️ La password di `sa` qui sotto è un valore di SVILUPPO, non un segreto:
+#    vale solo per un'istanza locale effimera. Sovrascriverla con la variabile
+#    d'ambiente POLLING_SA_PASSWORD per qualunque uso non locale.
+# =============================================================================
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: pollingweb-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: "${POLLING_SA_PASSWORD:-DevOnly!Passw0rd2026}"
+    ports:
+      - "${POLLING_MSSQL_PORT:-14330}:1433"
+    volumes:
+      # I dati del database stanno FUORI dal container: sopravvivono al riavvio
+      # e non consumano spazio sul filesystem di sistema.
+      - "${POLLING_MSSQL_DATA:-./.mssql-data}:/var/opt/mssql"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa
+          -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped

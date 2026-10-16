@@ -1,5 +1,5 @@
 |1001  |FORNITORE SINTETICO UNO SRL           |VIA DELLE PROVE 1                   |RM |00100   |ROMA                            |00000000001     |
 |1002  |FORNITORE SINTETICO DUE SPA           |CORSO ESEMPIO 22                    |MI |20100   |MILANO                          |00000000002     |
 |1003  |FORNITORE SINTETICO TRE SNC           |PIAZZA MODELLO 3                    |TO |10100   |TORINO                          |00000000003     |
-|1004  |FORNITORE SINTETICO QUATTRO           |VIA FITTIZIA 4                      |NA |80100   |NAPOLI                          |00000000000000000|
+|1004  |FORNITORE SINTETICO QUATTRO           |VIA FITTIZIA 4                      |NA |80100   |NAPOLI                          |0000000000000000|
 1005  |FORNITORE SINTETICO CINQUE            |VIA INVENTATA 5                     |FI |50100   |FIRENZE                         |00000000005     |

@@ -835,3 +835,101 @@ confermarlo o sostituirlo con il proprio nome prima della `v1.0.0`.
 con ADR. Serve prima di `T0.8` (`scripts/db-deploy.sh`) e di tutto il track cross-platform.
 
 **Blocchi.** Nessuno.
+
+## 2026-10-16T12:45Z — T0.7 Schema SQL: fonte unica di verità — DONE
+
+**Contesto.** Due database project SSDT con contenuto dichiaratamente identico, uno dei quali
+non compilava nulla, più uno snapshot Quartz in UTF-16. Nessuna fonte di verità dichiarata.
+
+**Confronto hash sui 26 file prima di toccare qualsiasi cosa:**
+
+```
+comuni identici: 25
+comuni DIVERSI:   1   -> Security/01-create-app-login.sql
+                       (DatabaseSQL: 1177 byte  vs  PollingDB: 0 byte)
+```
+
+**Bug trovato: un file di sicurezza vuoto che nessuno segnalava.** `PollingDB` — il progetto
+che compila davvero — aveva `Security/01-create-app-login.sql` **vuoto**. La causa era un `sed`
+di `T0.2` che leggeva e riscriveva lo stesso file: la shell lo troncava prima della lettura.
+Effetto reale: il `<Build Include>` puntava a uno script vuoto, quindi un deploy basato su quel
+progetto **non avrebbe mai creato il login applicativo**, in silenzio. Ripristinato dalla copia
+intatta invece di "rigenerarlo", così il contenuto non è congetturale.
+
+Questo è il motivo per cui il confronto hash è stato fatto **prima** di cancellare: i due
+alberi non erano duplicati puri finché quel file non è stato riparato.
+
+**Contesto che ha cambiato la decisione.** `DatabaseSQL.sqlproj` ha **0 `<Build Include>`**:
+non compila nulla, i suoi 26 file sono orfani. Il percorso di deploy non poteva quindi restare
+SSDT: si compila solo su Windows (`MSB4249`, fatto `P13`) e il progetto punta a girare su Linux.
+
+**Decisione (ADR 0001).** `sql/` è la fonte unica di verità; gli script sono autorevoli, il
+`.sqlproj` resta come comodità opzionale per Visual Studio; `DatabaseSQL/` è eliminato.
+
+Modifiche: `PollingDB/` → `sql/PollingDB/`; `sql/quartz-schema.sql` → `sql/Quartz/`;
+`DatabaseSQL/` rimosso (26 file, duplicati puri); nuovi `sql/eProcurement/README.md`,
+`sql/deploy/README.md`, `sql/README.md` riscritto, `docs/adr/0001-*.md`;
+`docker-compose.yml` + `scripts/db-deploy.sh`.
+
+**Ostacoli di piattaforma risolti durante la verifica.**
+
+1. **Docker e spazio su disco.** `/` era al 96% e il pull dell'immagine SQL Server (~2,9 GB)
+   l'ha portato al 98%, 2,3 GB liberi. I dati del container sono stati spostati **fuori** dal
+   filesystem di sistema.
+2. **Il bind-mount non funzionava su `/mnt/ssd-transfer`**: è `exfat`, che non supporta
+   `chown`; SQL Server gira come uid 10001 e non poteva scrivere
+   (`Directory [/var/opt/mssql/.system/system] could not be created`). Spostato su
+   `/home/public` (`ext4`, 23 GB liberi) → container `healthy`.
+3. **BOM vs `sqlcmd` su stdin.** Tutti i `.sql` hanno il BOM UTF-8: con `sqlcmd -i` è gestito,
+   ma su **stdin** finisce nella prima istruzione →
+   `Msg 102: Incorrect syntax near ''`. Aggiunta la funzione `emit_sql` che lo elimina al volo
+   senza toccare i file.
+4. **Lo script Quartz falliva su database vuoto**: iniziava con 4
+   `ALTER TABLE ... DROP CONSTRAINT` non condizionati su tabelle inesistenti. Resi condizionali
+   con `IF EXISTS` su `sys.foreign_keys`.
+5. **Bug nel seed sintetico, trovato solo eseguendolo**:
+   `String or binary data would be truncated in column 'Codfis'` — `NVARCHAR(16)` e io avevo
+   scritto 17 caratteri. Corretto in `samples/seed/seed.sql` **e** in
+   `samples/sap/SC00G100.sample.txt`, per coerenza. È esattamente il tipo di difetto che un
+   sample mai eseguito nasconde.
+
+**Scoperta di portata maggiore: lo schema `eProcurement` non è versionato.** Analisi dei
+riferimenti espliciti `eProcurement.dbo.*`: **19 oggetti, di cui 16 assenti dal repository**.
+Il deploy quindi **riesce** (name resolution differita) ma produce un database vuoto: le
+stored procedure falliscono alla prima esecuzione. Il sistema non è distribuibile nella sua
+interezza. Registrato come **T0.12** (recupero della sola DDL dallo snapshot nel record di
+audit offline) e documentato in `sql/eProcurement/README.md` e ADR 0001 §4.
+
+**Evidenza.**
+
+```
+$ POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --with-seed     # esecuzione 1
+  database: Polling, eProcurement, Quartz (ricreati)
+  schema applicativo: 23 file applicati
+  Quartz: quartz-schema.sql
+  login: saltato (POLLING_APP_PASSWORD non impostata: nessuna credenziale inventata)
+  seed: samples/seed/seed.sql
+  EXIT=0
+$ POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --with-seed     # esecuzione 2 (idempotenza)
+  EXIT=0
+
+Polling : tabelle=11  viste=1  funzioni=3  procedure=8
+Quartz  : tabelle=11 (QRTZ_*)
+eProcurement: tabelle=0                      <- conferma il gap T0.12
+dati sintetici: DimStato=6 DimProcessi=5 TaskService=3 TargetSC00G100=5
+ViewTaskService -> 3 righe                    <- la vista unisce TaskService e DimProcessi
+dbo.Datini('2024-03-15') -> 2024-03-15 23:59:59.997
+dbo.Datfin('2024-03-15') -> 2024-03-15 00:00:00.000
+```
+
+**Nota su un test che non testava nulla.** Il primo smoke test delle due funzioni usava
+`CONVERT(varchar(10), ...)`, che tronca la componente oraria: `Datini` e `Datfin` restituivano
+la stessa stringa e il test non distingueva i due rami. Rifatto con `varchar(23)`: si vede che
+`Datini` è la *fine* giornata e `Datfin` l'*inizio*. I nomi sono fuorvianti, ma il
+comportamento resta invariato (rinominarli romperebbe il contratto con le procedure).
+
+**Prossimo.** `T0.12` — recupero dello schema `eProcurement` (solo DDL) dallo snapshot nel
+record di audit offline.
+
+**Blocchi.** Nessuno. Il container `pollingweb-mssql` resta attivo per le iterazioni
+successive; i dati sono in `/home/public/.pollingweb-mssql` (fuori dal repository, ext4).

@@ -53,5 +53,5 @@ resta confrontabile in un diff binario.
 | `SC00G100_inizio.TXT` | anagrafica fornitori reale con P.IVA e codici fiscali |
 | `BDG_MCC.xlsx` | estrazione di budget reale |
 | `_047_1047_oda_input.#00`, `_063_1063_rda_input.#00` | tracciati SAP reali |
-| `DatabaseSQL/Importa log di schema/`, `PollingDB/Importa log di schema/` | log con nomi di macchine e utenti di sviluppo |
-| `script_polling.sql` | snapshot di schema di 3,3 MB; oggetti utili estratti in `PollingDB/dbo/Tables/` |
+| `*/Importa log di schema/*.log` (due database project) | log con nomi di macchine e utenti di sviluppo |
+| `script_polling.sql` | snapshot di schema di 3,3 MB; oggetti utili estratti in `sql/PollingDB/dbo/Tables/` |

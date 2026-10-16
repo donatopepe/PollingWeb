@@ -40,7 +40,9 @@ SAP ──file──► cartella sorvegliata ──► motore di polling ──�
 | `Database` | accesso dati (DataSet tipizzati, TableAdapter, filtri) | .NET Framework 4.8 → **multi-target `net48;net8.0` in corso** |
 | `PollingClass` | logica di dominio: parser tracciati, flussi, job, email | idem |
 | `PollingWeb` | interfaccia di amministrazione (11 pagine + 4 web service ASMX) | ASP.NET WebForms — **legacy**, in conversione a Razor Pages |
-| `PollingDB/`, `DatabaseSQL/` | schema SQL Server (tabelle, viste, stored procedure, funzioni) | T-SQL / progetti SSDT |
+| `sql/PollingDB/` | schema SQL Server del database applicativo (tabelle, viste, procedure, funzioni, security) | T-SQL — **fonte unica di verità** |
+| `sql/Quartz/` | schema del job store ADO di Quartz.NET | T-SQL |
+| `scripts/db-deploy.sh` | applica lo schema a qualunque istanza SQL Server, senza Visual Studio | Bash + `sqlcmd` |
 | `sql/` | schema del job store Quartz e, a regime, fonte unica dello schema | T-SQL |
 
 **Direzione tecnica:** il motore (worker + API) deve girare su **Linux, macOS e Windows**
@@ -56,11 +58,11 @@ riscritta.
 Database/          libreria di accesso dati
 PollingClass/      logica di dominio (parser, flussi, job)
 PollingWeb/        interfaccia WebForms (legacy)
-PollingDB/         progetto SQL: schema applicativo
-DatabaseSQL/       progetto SQL: schema (in consolidamento, vedi sql/README.md)
-sql/               schema Quartz + (a regime) fonte unica dello schema
+sql/               schema del database: FONTE UNICA DI VERITÀ (vedi sql/README.md)
+scripts/           db-deploy.sh — deploy dello schema su SQL Server
 samples/           dati sintetici per test e sviluppo — mai dati reali
-docs/              documentazione (piano, registro, sicurezza, rilascio)
+docker-compose.yml SQL Server 2022 per sviluppo e test
+docs/              documentazione (piano, registro, sicurezza, rilascio, ADR)
 PLAN.md            piano di lavorazione: 65 task, 15 criteri di accettazione
 PROMPT.md          prompt operativo del loop di lavorazione
 ```
@@ -75,7 +77,9 @@ PROMPT.md          prompt operativo del loop di lavorazione
 | [`docs/LOOP_LOG.md`](docs/LOOP_LOG.md) | registro delle iterazioni con evidenze |
 | [`docs/SECURITY-FINDINGS.md`](docs/SECURITY-FINDINGS.md) | inventario di sicurezza |
 | [`docs/RELEASING.md`](docs/RELEASING.md) | rilascio, record di audit, checklist |
-| [`sql/README.md`](sql/README.md) | stato dello schema SQL |
+| [`sql/README.md`](sql/README.md) | stato dello schema SQL e come applicarlo |
+| [`sql/eProcurement/README.md`](sql/eProcurement/README.md) | schema **mancante**: il repository non è distribuibile senza (task `T0.12`) |
+| [`docs/adr/0001-sql-schema-source-of-truth.md`](docs/adr/0001-sql-schema-source-of-truth.md) | perché `sql/` è la fonte unica e perché i progetti SSDT non lo sono |
 | [`samples/README.md`](samples/README.md) | dati sintetici e regole per aggiungerne |
 
 Guida di installazione dettagliata, architettura, configurazione, database, operazioni, API e
@@ -83,6 +87,21 @@ troubleshooting sono **in preparazione** (fase `D` del piano). Questo `README` �
 il documento completo con quickstart verificato è il task `D1`.
 
 ---
+
+## Cosa funziona già
+
+Lo **schema del database è deployabile e verificato**:
+
+```bash
+docker compose up -d                                    # SQL Server 2022, cross-platform
+POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --with-seed
+#   exit 0, idempotente (verificato su due esecuzioni consecutive)
+#   Polling: 11 tabelle, 1 vista, 3 funzioni, 8 procedure
+#   Quartz : 11 tabelle QRTZ_*
+```
+
+⚠️ Il database `eProcurement` resta **vuoto**: il suo schema non è versionato
+(16 oggetti su 19 referenziati dal codice). Vedi [`sql/eProcurement/README.md`](sql/eProcurement/README.md).
 
 ## Stato della build (verificato, non ipotetico)
 

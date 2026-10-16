@@ -107,3 +107,6 @@ $RECYCLE.BIN/
 .vscode/
 .idea/
 *.code-workspace
+
+# ---------------------------------------------------- Database locale (compose)
+.mssql-data/

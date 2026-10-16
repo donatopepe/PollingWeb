@@ -1,38 +1,62 @@
-# sql/
+# sql/ — schema del database
 
-Script SQL del progetto.
-
-## Stato attuale (dopo `T0.6`)
-
-| File | Contenuto |
-|------|-----------|
-| `quartz-schema.sql` | schema del job store ADO di Quartz.NET: 11 tabelle `QRTZ_*` |
-
-## Nota importante — la struttura è provvisoria
-
-Lo schema applicativo vive ancora **duplicato** in due database project SSDT:
-
-- `DatabaseSQL/` — contiene i file `dbo/**/*.sql` ma il `.sqlproj` **non include alcun
-  `<Build Include>`**: i file non vengono compilati, sono di fatto orfani;
-- `PollingDB/` — è il progetto che compila davvero, con `<Build Include>` per tabelle,
-  viste, stored procedure, funzioni e script di security.
-
-Inoltre il nome della directory e del progetto contiene l'abbreviazione dell'istituto per
-cui il software è stato sviluppato: va rimosso (task `T0.11`).
-
-Il task **`T0.7`** consolida tutto in questa cartella come **unica fonte di verità**:
+**Questa cartella è la fonte unica di verità dello schema.** Le decisioni e le alternative
+scartate sono in [`docs/adr/0001-sql-schema-source-of-truth.md`](../docs/adr/0001-sql-schema-source-of-truth.md).
 
 ```
 sql/
-  PollingDB/          schema del database applicativo
-  eProcurement/        schema del database di acquisto
-  Quartz/              schema del job store (quartz-schema.sql)
-  Security/            login, utenti e permessi a privilegi minimi
-  deploy/              ordine di applicazione, idempotenza, migrazioni
+  PollingDB/            database applicativo
+    dbo/Tables/         11 tabelle
+    dbo/Views/          1 vista
+    dbo/Functions/      3 funzioni
+    dbo/Stored Procedures/  8 procedure
+    Security/           login, utente e permessi a privilegi minimi
+    PollingDB.sqlproj   progetto SSDT — OPZIONALE, solo comodità su Windows
+  Quartz/               schema del job store ADO di Quartz.NET (11 tabelle QRTZ_*)
+  eProcurement/         database di acquisto — schema NON versionato, vedi il README
+  deploy/               ordine di applicazione e note di deploy
 ```
 
-con un ADR che motiva la scelta (`docs/adr/0001-sql-schema-source-of-truth.md`).
+## Applicare lo schema
 
-Fino ad allora **non considerare coerente** quanto presente in `DatabaseSQL/` e
-`PollingDB/`: la divergenza ha già causato la perdita quasi avvenuta di due tabelle
-(vedi `docs/LOOP_LOG.md`, task `T0.3`).
+Il percorso supportato è lo script, non il progetto SSDT:
+
+```bash
+# prerequisito: un'istanza SQL Server raggiungibile (anche il container di questo repo)
+docker compose up -d
+
+# deploy distruttivo e idempotente su database ricreati + dati sintetici
+POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --with-seed
+```
+
+Dettagli, modalità `apply` e variabili d'ambiente: [`scripts/db-deploy.sh`](../scripts/db-deploy.sh)
+(header del file) e [`deploy/README.md`](deploy/README.md).
+
+## Il progetto SSDT è opzionale
+
+`PollingDB/PollingDB.sqlproj` resta perché è comodo a chi lavora su Windows con Visual Studio.
+**Non è** il percorso di deploy e **non è** un requisito di build: si compila solo con SSDT o
+MSBuild di .NET Framework, quindi non è utilizzabile nella CI su Linux (il build cross-platform
+fallisce con `MSB4249`).
+
+Se il `.sqlproj` e questa cartella divergessero, **la fonte di verità sono i file `.sql`**.
+Quando si aggiunge un oggetto, ricordarsi di aggiungere anche il `<Build Include>`: nessuno
+strumento lo verifica.
+
+## BOM UTF-8 nei file `.sql`
+
+Tutti i file hanno il BOM UTF-8, eredità di Visual Studio. `sqlcmd -i` lo gestisce, ma su
+**stdin** il BOM finisce nella prima istruzione e SQL Server risponde
+`Msg 102: Incorrect syntax near ''`.
+
+`scripts/db-deploy.sh` lo elimina al volo, senza modificare i file su disco, tramite la
+funzione `emit_sql`. Se si aggiunge un altro percorso di deploy, tenere presente il problema:
+è già costato un ciclo di debug.
+
+## Cosa non c'è (e perché conta)
+
+| Cosa | Stato |
+|------|-------|
+| Schema del database `eProcurement` | **assente**: 16 oggetti su 19 referenziati dal codice non sono versionati. Vedi [`eProcurement/README.md`](eProcurement/README.md) |
+| Migrazioni incrementali | assenti: gli script sono `CREATE`, non `CREATE OR ALTER`. Il deploy è per istanza nuova (`recreate` o `apply` su database vuoto) |
+| Indici e statistiche non-cluster | da verificare: potrebbero non essere stati catturati nei dump di origine |
