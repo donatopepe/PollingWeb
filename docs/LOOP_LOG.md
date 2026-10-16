@@ -1627,6 +1627,40 @@ La soluzione contiene i progetti esistenti: i due classici test e le due libreri
 
 **Prossimo task:** `X1.4 — Configurazione astratta`.
 
+---
+
+## 2026-10-16T19:xxZ — X1.4 Configurazione astratta — DONE
+
+**Riproduzione baseline.** `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, MSB4249 (Website WebForms). `rg ConfigurationManager Database PollingClass --glob '*.cs'` mostrava accessi diretti in `DatabaseInfo.cs`, `QuartzSchedulerFactory.cs`, `MailSede.cs` (4 chiamate). Evidenza attesa: astrazione comune, provider fake, JSON/environment per net8, fallback legacy net48 e accesso a `ConfigurationManager` confinato all'adapter.
+
+**Modifiche.** Aggiunti `Database/AppConfig.cs` con `IAppConfig`, implementazione `AppConfig` che legge `IConfiguration` (appsettings.json + environment variables) o valori forniti dal chiamante e fallback `ConfigurationManager`; `DatabaseInfo`, `QuartzSchedulerFactory` e `MailSede` consumano l'interfaccia/provider. Test fake e test `IConfiguration` in `tests/PollingWeb.UnitTests/AppConfigTests.cs`. Ninguna logica di dominio cambiata.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori (29 avvisi CA2200 esistenti).
+$ dotnet build Database/Database.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori, 0 avvisi.
+$ dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori, 0 avvisi.
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori, 6 avvisi.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+101 passati, 2 ignorati, 0 falliti.
+$ dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet
+16 ignorati, 0 falliti (istanza DB non configurata in questa esecuzione).
+$ rg -n 'ConfigurationManager' Database PollingClass --glob '*.cs'
+solo 2 match nell'adapter Database/AppConfig.cs.
+$ git diff --check
+exit 0.
+```
+
+La soluzione completa non è buildata per il blocker Website MSB4249 riprodotto; Windows/macOS non verificati localmente.
+
+**Prossimo task:** `X1.5 — Provider dati astratto (Microsoft.Data.SqlClient)`.
+
+
 
 ---
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Database.Configuration;
 using System.Net;
 using System.Net.Mail;
 
@@ -13,6 +14,7 @@ namespace PollingClass
 {
     public class MailSede
     {
+        public static IAppConfig Configuration { get; set; } = new AppConfig();
         private string corpo_mail =
             "<html>< style type='text/css'>" +
             ".latosx {background-color:#dce5ea;font-size:11px;font-family:verdana;}" +
@@ -79,7 +81,7 @@ namespace PollingClass
                 oMsg.IsBodyHtml = true;
                 //Imposto il Server Smtp
                 SmtpClient oSmtp = new SmtpClient(
-                System.Configuration.ConfigurationManager.AppSettings["smtpServer"].ToString());
+                Configuration.GetValue("smtpServer"));
                 
 
                 //Possiamo impostare differenti metodi di spedizione. 

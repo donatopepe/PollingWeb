@@ -26,6 +26,7 @@
     <!-- Un solo provider dati, come in Database (ADR 0004 §1) -->
     <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <!-- Quartz 3.x: JobStoreTX persistente su SQL Server, task X2.2 -->
     <PackageReference Include="Quartz" />
     <PackageReference Include="Quartz.Serialization.Json" />

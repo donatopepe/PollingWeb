@@ -1,5 +1,5 @@
 using System;
-using System.Configuration;
+using Database.Configuration;
 using Quartz;
 using Quartz.Impl;
 
@@ -8,6 +8,7 @@ namespace PollingClass
     /// <summary>Creates the application's persistent Quartz 3.x scheduler on the Quartz SQL database.</summary>
     public static class QuartzSchedulerFactory
     {
+        public static IAppConfig Configuration { get; set; } = new AppConfig();
         public static IScheduler Create(string connectionString = null, string instanceName = "PollingWebScheduler")
         {
             if (string.IsNullOrWhiteSpace(instanceName))
@@ -16,7 +17,7 @@ namespace PollingClass
             if (string.IsNullOrWhiteSpace(resolved))
             {
                 resolved = Environment.GetEnvironmentVariable("POLLING_QUARTZ_CONNECTION")
-                    ?? ConfigurationManager.ConnectionStrings["QuartzConnectionString"]?.ConnectionString;
+                    ?? Configuration.GetConnectionString("QuartzConnectionString");
             }
             if (string.IsNullOrWhiteSpace(resolved))
                 throw new InvalidOperationException("Quartz connection is not configured. Set POLLING_QUARTZ_CONNECTION or QuartzConnectionString.");

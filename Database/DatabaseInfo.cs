@@ -1,4 +1,5 @@
 ﻿using System;
+using Database.Configuration;
 using System.Configuration;
 using System.Data;
 using Microsoft.Data.SqlClient;
@@ -33,8 +34,20 @@ namespace Database.Base
         //stringa di connessione
         //Esempio:
         //"data source=DC01;user id=sa;$1=[REDACTED];initial catalog=Retail;integrated security=false;persist security info=False;packet size=4096" />    
+        private static IAppConfig appConfig = new AppConfig();
         private static string stringaConnessione;
         private static string stringaConnessioneEproc;
+        public static IAppConfig AppConfigProvider
+        {
+            get { return appConfig; }
+            set { appConfig = value ?? throw new ArgumentNullException(nameof(value)); }
+        }
+
+        public static void Configure(IAppConfig configuration)
+        {
+            AppConfigProvider = configuration;
+        }
+
         public static string StringaConnessione
         {
             //get	{return stringaConnessione;}
@@ -51,7 +64,9 @@ namespace Database.Base
                 //    "integrated security=false;persist security info=False;packet size=4096" +
                 //    timeout;
 
-                stringaConnessione = ConfigurationManager.ConnectionStrings["PollingConnectionString"].ConnectionString;
+                stringaConnessione = appConfig.GetConnectionString("PollingConnectionString");
+                if (string.IsNullOrWhiteSpace(stringaConnessione))
+                    throw new ConfigurationErrorsException("Connection string 'PollingConnectionString' is not configured.");
 
                 //versione local
                 //stringaConnessione = "data source=.\\SQLEXPRESS;initial catalog=TEST_01;integrated security=true;persist security info=False;packet size=4096;Connect Timeout=100";
@@ -67,7 +82,9 @@ namespace Database.Base
             {
                 string timeout = (timeOut != null && timeOut != "") ? ";Connect Timeout=" + timeOut : "";
 
-                stringaConnessioneEproc = ConfigurationManager.ConnectionStrings["PollingEprocurement"].ConnectionString;
+                stringaConnessioneEproc = appConfig.GetConnectionString("PollingEprocurement");
+                if (string.IsNullOrWhiteSpace(stringaConnessioneEproc))
+                    throw new ConfigurationErrorsException("Connection string 'PollingEprocurement' is not configured.");
 
                  return stringaConnessioneEproc;
             }
