@@ -5,6 +5,7 @@ using System.Web;
 using Database.Configuration;
 using System.Net;
 using System.Net.Mail;
+using Database;
 
 /// <summary>
 /// Descrizione di riepilogo per MailSede
@@ -100,7 +101,7 @@ namespace PollingClass
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                PollingExceptionHandler.Esegui(ex);
             }
 
         }

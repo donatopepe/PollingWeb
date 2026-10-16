@@ -146,9 +146,9 @@ namespace Database.TableInterface
                 this.adapter.Fill(this.dataset.Tables[this.NomeTabella]);
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -175,10 +175,10 @@ namespace Database.TableInterface
                     //this.dataset.Tables[this.NomeTabella].AcceptChanges();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 this.dataset.Tables[this.NomeTabella].RejectChanges();
-                throw ex;
+                throw;
             }
         }
 
@@ -197,9 +197,9 @@ namespace Database.TableInterface
                 if (changesDataTable != null)
                     this.dataset.Tables[this.NomeTabella].AcceptChanges();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 

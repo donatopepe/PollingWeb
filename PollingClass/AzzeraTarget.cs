@@ -1,4 +1,5 @@
 using System;
+using Database;
 
 using System.Data;
 using Microsoft.Data.SqlClient;
@@ -87,7 +88,7 @@ namespace PollingClass
                 if  (!myReader.IsClosed)                
                     myReader.Close();                
 
-                Console.WriteLine(ex.Message);
+                PollingExceptionHandler.Esegui(ex);
             }
             return @po_valoreuscita;
         }

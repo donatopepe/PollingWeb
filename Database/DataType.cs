@@ -39,8 +39,9 @@ namespace Database
                 valoreRet = dataNew.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
                 return true;
             }
-            catch
+            catch (ArgumentException)
             {
+                valoreRet = string.Empty;
                 return false;
             }
 
@@ -56,8 +57,9 @@ namespace Database
                 valoreRet = parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                 return valoreRet;
             }
-            catch
+            catch (FormatException)
             {
+                throw;
             }
             return "";
         }
@@ -68,8 +70,9 @@ namespace Database
 
                 return valoreRet;
             }
-            catch
+            catch (InvalidOperationException)
             {
+                throw;
             }
             return "";
         }
@@ -97,7 +100,7 @@ namespace Database
 
                 return true;
             }
-            catch
+            catch (ArgumentException)
             {
                 return false;
             }
@@ -140,8 +143,9 @@ namespace Database
 
                 return valoreRet;
             }
-            catch
+            catch (InvalidOperationException)
             {
+                return 0;
             }
             return 0;
         }
@@ -152,8 +156,9 @@ namespace Database
             {
                 return valoreRetformat;
             }
-            catch
+            catch (InvalidOperationException)
             {
+                return "0.00";
             }
             return "0.00";
         }
@@ -164,8 +169,9 @@ namespace Database
 
                 return valoreRet.ToString("0.00", CultureInfo.InvariantCulture);
             }
-            catch
+            catch (FormatException)
             {
+                return "0.00";
             }
             return "0.00";
         }
@@ -182,8 +188,9 @@ namespace Database
 
                 return valoreRet.ToString("F" + decimali, CultureInfo.InvariantCulture);
             }
-            catch
+            catch (FormatException)
             {
+                return "0.00";
             }
             return "0.00";
         }

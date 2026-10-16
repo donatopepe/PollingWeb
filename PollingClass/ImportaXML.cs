@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Database;
 
 namespace PollingClass
 {
@@ -130,7 +131,7 @@ namespace PollingClass
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                PollingExceptionHandler.Esegui(ex);
             }
 
             

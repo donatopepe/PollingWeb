@@ -55,44 +55,32 @@ namespace Database.TableInterface
 
         public SqlDataAdapter BuildCommand(SqlDataAdapter adapter)
         {
-            try
+            if (adapter == null) throw new ArgumentNullException(nameof(adapter));
+            using (var build = SqlClientFactory.CreateCommandBuilder(adapter))
             {
-                SqlCommandBuilder build = SqlClientFactory.CreateCommandBuilder(adapter);
+            build.RefreshSchema();
 
-                build.RefreshSchema();
-
-                var timeout = adapter.SelectCommand.Connection is null
-                    ? DatabaseInfo.DefaultCommandTimeoutSeconds
-                    : adapter.SelectCommand.CommandTimeout > 0
-                        ? adapter.SelectCommand.CommandTimeout
-                        : DatabaseInfo.DefaultCommandTimeoutSeconds;
-                if (build.DataAdapter.SelectCommand != null)
-                    adapter.SelectCommand.CommandTimeout = timeout;
-
-                if (build.DataAdapter.InsertCommand != null)
-                {
-                    adapter.InsertCommand = build.GetInsertCommand();
-                    adapter.InsertCommand.CommandTimeout = timeout;
-                }
-
-                if (build.DataAdapter.UpdateCommand != null)
-                {
-                    adapter.UpdateCommand = build.GetUpdateCommand();
-                    adapter.UpdateCommand.CommandTimeout = timeout;
-                }
-
-                if (build.DataAdapter.DeleteCommand != null)
-                {
-                    adapter.DeleteCommand = build.GetDeleteCommand();
-                    adapter.DeleteCommand.CommandTimeout = timeout;
-                }
-            }
-            catch (Exception ex)
+            var timeout = adapter.SelectCommand.CommandTimeout > 0
+                ? adapter.SelectCommand.CommandTimeout
+                : DatabaseInfo.DefaultCommandTimeoutSeconds;
+            if (build.DataAdapter.SelectCommand != null) adapter.SelectCommand.CommandTimeout = timeout;
+            if (build.DataAdapter.InsertCommand != null)
             {
-                Console.WriteLine(ex.Message);
+                adapter.InsertCommand = build.GetInsertCommand();
+                adapter.InsertCommand.CommandTimeout = timeout;
             }
-
+            if (build.DataAdapter.UpdateCommand != null)
+            {
+                adapter.UpdateCommand = build.GetUpdateCommand();
+                adapter.UpdateCommand.CommandTimeout = timeout;
+            }
+            if (build.DataAdapter.DeleteCommand != null)
+            {
+                adapter.DeleteCommand = build.GetDeleteCommand();
+                adapter.DeleteCommand.CommandTimeout = timeout;
+            }
             return adapter;
+            }
         }
 
 

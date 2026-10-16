@@ -1913,6 +1913,38 @@ exit 0.
 
 **Prossimo task:** `C6 — Gestione errori e logging`.
 
+---
+
+## 2026-10-17T11:00Z — C6 Error handling e logging — DONE
+
+**Baseline riprodotto.** Scansioni su sorgenti iniziali: 28 `throw ex;` in DAL, catch vuoti nei helper, 14 `Console.WriteLine(ex.Message)` nei wrapper/domain. `Aggset` costruiva nuove eccezioni includendo SQL completo e messaggio del driver nel testo dell'errore.
+
+**Modifiche.** I TableAdapter e `Aggset` rilanciano con `throw;`, preservando stack; catch che fanno rollback/reject mantengono la recovery e rilanciano senza alterazione. `TableAdapter.BuildCommand` non stampa più né sopprime errori: l'errore di `SqlCommandBuilder` propaga. I catch vuoti nei helper sono stati sostituiti da fallback espliciti o gestione di eccezioni specifiche. I wrapper che stampavano su console inoltrano l'errore all'handler; `PollingExceptionHandler` emette `Trace.TraceError` con tipo e dettagli exception. `Aggset` usa eccezioni con inner exception e messaggio neutro, senza SQL interpolato. Aggiunti test per output dell'handler/null e preservazione dell'istanza/stack exception.
+
+**Evidenza reale (Linux, 2026-10-17).**
+
+```
+$ rg -n 'throw\\s+ex\\s*;|catch\\s*\\{\\s*\\}|Console\\.Write(Line)?\\(ex(\\.Message)?\\)' Database PollingClass --glob '*.cs' | grep -v '//'
+nessuna corrispondenza.
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build Database/Database.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+111 passati, 2 ignorati, 0 falliti.
+$ git diff --check
+exit 0.
+```
+
+Windows/macOS non verificati localmente; la soluzione completa continua a fallire su Website MSB4249.
+
+**Prossimo task:** `C7 — Config validata all'avvio`.
+
+
 
 
 

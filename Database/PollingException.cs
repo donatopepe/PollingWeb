@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 /// <summary>
 /// Descrizione di riepilogo per PollingException
@@ -50,6 +51,8 @@ namespace Database
 
         public static string Esegui(Exception ex)
         {
+            if (ex == null) throw new ArgumentNullException(nameof(ex));
+            Trace.TraceError("Polling failure ({0}): {1}", ex.GetType().FullName, ex);
             string risultato = "";
             string tipo_errore = ex.GetType().ToString();
             switch (tipo_errore)

@@ -109,9 +109,9 @@ namespace Database.TableInterface
                 adapter.Fill(dataset.Tables[NomeTabella]);
 
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -142,7 +142,7 @@ namespace Database.TableInterface
             }
             catch (Exception ex)
             {
-                throw (new Exception("Eseguicomando: " + comando+ " "+ex.Message));
+                throw new InvalidOperationException("Eseguicomando failed.", ex);
             }
 
         }
@@ -159,7 +159,7 @@ namespace Database.TableInterface
             }
             catch (Exception ex)
             {
-                throw (new Exception("EseguiQuery: " + comando + " " + ex.Message));
+                throw new InvalidOperationException("EseguiQuery failed.", ex);
             }
 
         }

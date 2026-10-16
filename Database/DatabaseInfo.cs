@@ -84,13 +84,24 @@ namespace Database.Base
             if (disposed) return;
             if (transazione != null)
             {
-                try { transazione.Rollback(); }
-                catch (DbException) { }
+                TryRollbackForDispose();
                 transazione.Dispose();
                 transazione = null;
             }
             if (connessione != null) connessione.Dispose();
             disposed = true;
+        }
+
+        private void TryRollbackForDispose()
+        {
+            try
+            {
+                transazione.Rollback();
+            }
+            catch (DbException)
+            {
+                // The connection is disposed immediately after; do not mask an active exception.
+            }
         }
 
         private void ThrowIfDisposed()

@@ -201,7 +201,6 @@ namespace PollingClass
           }
           catch (Exception ex)
           {
-            Console.WriteLine(ex.Message);
             PollingExceptionHandler.Esegui(ex);
             //this.AggiornaStato("3", ex.Message);
           }
@@ -283,7 +282,7 @@ namespace PollingClass
                   }
                   catch (Exception ex)
                   {
-                    Console.WriteLine(ex.Message);
+                    PollingExceptionHandler.Esegui(ex);
 
                   }
 
@@ -371,7 +370,7 @@ namespace PollingClass
       }
       catch (Exception ex)
       {
-        //Console.WriteLine(ex.Message);
+        //PollingExceptionHandler.Esegui(ex);
         Log_Errori.ScriviLOGPROCEDURE(this.codice_istituto, this.IdProcesso, "AggiornaFornitori errore " + ex.Message);
         tsk.InviaMail(false, "private void AggiornaFornitori() " + ex.Message);
         PollingExceptionHandler.Esegui(ex);
