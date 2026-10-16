@@ -239,12 +239,19 @@ git count-objects -v              # atteso: count=0, garbage=0, size 0
    - Cancellare i file dal repository pubblico; confermare con il titolare del trattamento
      la necessità di notifica se i dati erano riconducibili a persone fisiche.
 6. **Storia Git**
-   - La riscrittura **locale** è stata eseguita (`T0.10`): la storia non contiene più alcun
-     valore sensibile (verificato su 164 blob, 0 corrispondenze).
-   - **Prima di pubblicare** il repository va sostituito il contenuto remoto: la storia con
-     i segreti è ancora quella presente su GitHub (`master` @ `6b01bfa`). La procedura è in
-     `docs/RELEASING.md` §2.
-   - **Azione obbligatoria:** ruotare i segreti (punti 1–3) **prima** della pubblicazione.
+   - La riscrittura è stata eseguita (`T0.10`) e **pubblicata**: `main` sostituisce `master`,
+     che è stato eliminato. La storia nuova non contiene alcun valore sensibile (verificato
+     su 170 blob, 0 corrispondenze; 0 anche nei messaggi di commit).
+   - ⚠️ **Limite accertato e non risolto:** dopo il push, il commit con i segreti **resta
+     recuperabile per SHA** dal remoto. Verificato il 2026-10-16:
+     `git fetch origin <sha-vecchio>` risponde ancora correttamente. Non esistono più ref che
+     lo puntano, ma GitHub non esegue una compattazione immediata degli oggetti
+     irraggiungibili. Chi ha accesso alla repository e conosce lo SHA può ancora leggerli.
+   - Per chiudere davvero il punto servono, in ordine di efficacia:
+     1. **rotazione** dei segreti (punti 1–3): rende inutile qualunque copia residua;
+     2. richiesta a **GitHub Support** di compattazione degli oggetti orfani della repository;
+     3. in alternativa, **cancellare e ricreare** la repository (accettabile qui: nessun
+        fork, nessuna issue, un solo collaboratore, nessun dato da preservare).
    - **Azione consigliata:** abilitare *secret scanning* e *push protection* sul repository
      (richiede piano GitHub Pro o repository pubblico).
 

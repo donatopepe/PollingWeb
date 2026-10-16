@@ -110,9 +110,36 @@ Azioni da completare sul repository remoto:
 
 - abilitare **secret scanning** e **push protection**;
 - abilitare l'alerting delle dipendenze;
-- se necessario, richiedere a GitHub la rimozione dei riferimenti orfani rimasti
-  raggiungibili per SHA;
-- verificare che non esistano **fork** con la storia vecchia.
+- verificare che non esistano **fork** con la storia vecchia;
+- **verificare che gli oggetti orfani non siano più recuperabili** (vedi sotto).
+
+### Verifica post-push degli oggetti orfani (obbligatoria)
+
+Eseguire il push **non** rende subito irraggiungibili gli oggetti della storia precedente:
+GitHub non compatta immediatamente e il commit vecchio resta recuperabile per SHA.
+
+```bash
+# sostituire <sha-vecchio> con il commit radice della storia precedente
+git fetch origin <sha-vecchio>
+# se il fetch riesce, gli oggetti sono ANCORA leggibili dal remoto
+```
+
+Verificato il 2026-10-16 sul repo di riferimento: il fetch del commit radice **riusciva**
+ancora, a ref rimossi. Conseguenze operative:
+
+1. **la rotazione dei segreti è l'unica mitigazione garantita**: va fatta a prescindere;
+2. per la rimozione effettiva chiedere a **GitHub Support** la compattazione della
+   repository, indicando gli SHA da eliminare;
+3. in alternativa, **cancellare e ricreare** la repository e ripubblicare la storia pulita.
+
+⚠️ Dopo una verifica con `git fetch <sha>`, **ripulire il repository locale**:
+l'operazione scarica gli oggetti vecchi e li rende presenti in `.git`.
+
+```bash
+rm -f .git/FETCH_HEAD
+git reflog expire --expire=now --all
+git gc --prune=now
+```
 
 ⚠️ La riscrittura non cancella le copie già effettuate da chi aveva accesso (clone locali,
 backup, macchine di sviluppo). È il motivo per cui la rotazione delle credenziali è

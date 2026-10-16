@@ -692,3 +692,75 @@ il rischio.
 `T0.8` (deploy riproducibile), che sbloccano il track cross-platform.
 
 **Blocchi.** Nessuno.
+
+## 2026-10-16T12:00Z — T0.10 (seguito) — pubblicazione e limite degli oggetti orfani
+
+**Stato remoto prima.** `gh repo view` → **`visibility: private`**, `isFork: false`,
+`defaultBranchRef: master`, un solo collaboratore (il proprietario), 0 fork, nessuna
+security analysis. `git ls-remote` → `HEAD` e `refs/heads/master` = `6b01bfa`.
+
+Ho quindi **corretto la documentazione**: fino a quel momento affermava che la repository era
+pubblica dal 2023. Era falso. I segreti non sono stati esposti al pubblico. Sopravvalutare una
+violazione è un errore quanto sottovalutarla: la prima porta a decisioni sbagliate, la seconda
+a ignorare il rischio. Le correzioni sono nel commit
+`docs: correggi l'affermazione di esposizione pubblica dei segreti`, e i messaggi di commit
+sono stati riscritti con `git filter-branch --msg-filter` per eliminare la stessa frase errata
+dalla storia.
+
+**Pubblicazione.**
+
+```
+$ git push -u origin main                    # nuovo ramo, nessun force necessario
+$ gh repo edit donatopepe/PollingWeb --default-branch main
+$ git push origin --delete master
+ - [deleted]  master
+$ git ls-remote origin
+9e11839...  HEAD
+9e11839...  refs/heads/main                  # unico ref: la storia con i segreti non è più puntata
+```
+
+**Limite accertato — il punto che conta.** Il commit con i segreti **resta recuperabile per
+SHA**:
+
+```
+$ git fetch origin 6b01bfa9c39b92d156f0eaff5501498d37c5c56d
+ * branch  6b01bfa9...  -> FETCH_HEAD        # riesce ancora, a ref rimossi
+```
+
+Non esistendo più ref che lo puntano, non è raggiungibile "navigando" la repository, ma chi ha
+accesso e conosce lo SHA può ancora leggerlo. GitHub non compatta immediatamente gli oggetti
+irraggiungibili. **Il push risolve il problema della pubblicazione imminente, non quello della
+rimozione definitiva.** Documentato in `docs/SECURITY-FINDINGS.md` §5 e in
+`docs/RELEASING.md` §2, con le tre strade: rotazione (garantita), richiesta a GitHub Support,
+cancellazione e ricreazione della repository (qui accettabile: 0 fork, 0 issue, 1 collaboratore).
+
+**Errore mio, durante la verifica.** Il `git fetch <sha>` appena descritto ha **scaricato gli
+oggetti vecchi nel repository locale**, reintroducendo i segreti in `.git`. Me ne sono accorto
+subito: ripulito con
+
+```
+$ rm -f .git/FETCH_HEAD
+$ git reflog expire --expire=now --all && git gc --prune=now
+$ git cat-file -e 6b01bfa9...   -> assente
+```
+
+e la procedura di pulizia è ora scritta in `docs/RELEASING.md`, perché è una trappola in cui
+ricadrà chiunque faccia la stessa verifica.
+
+**Verifica finale.**
+
+```
+commit raggiungibili: 3 (radice sanificata + 2 commit di registro)
+blob con pattern del record di audit: 0 su 170
+pattern nei messaggi di commit: 0
+oggetti non raggiungibili: 0 (count=0, garbage=0)
+.git: 17,03 MiB -> 616 KiB
+refs locali: refs/heads/main -> 9e11839
+refs remoti: HEAD, refs/heads/main -> 9e11839
+```
+
+**Prossimo.** `T0.9` — nota di disclosure in `SECURITY.md` con la procedura di rotazione;
+poi `T0.7`/`T0.8`. Il loop cron viene riattivato.
+
+**Blocchi.** Nessuno. Attenzione operativa: la rotazione delle credenziali è **ancora da
+fare** ed è ora l'unica mitigazione garantita.
