@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PollingWeb — logo segnaposto neutro.
+
+  Copyright (c) 2026 PollingWeb contributors
+  SPDX-License-Identifier: MIT
+
+  Sostituisce il logo dell'istituto rimosso in T0.4: era un marchio registrato di
+  terze parti e non ridistribuibile con licenza MIT.
+  Chi installa PollingWeb per un ente può sostituire questo file con il proprio logo,
+  mantenendo il nome `logo.svg` (o aggiornando il riferimento in Polling_web.master).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 56" role="img"
+     aria-label="PollingWeb">
+  <title>PollingWeb</title>
+  <desc>Logo segnaposto neutro del progetto PollingWeb.</desc>
+
+  <!-- Simbolo: frecce circolari che rappresentano il polling ciclico dei flussi SAP. -->
+  <g fill="none" stroke="#2c3e50" stroke-width="3" stroke-linecap="round">
+    <path d="M28 10 a18 18 0 1 1 -12.7 5.3"/>
+    <path d="M15.3 9.6 v8 h8"/>
+  </g>
+  <circle cx="28" cy="28" r="5" fill="#2c3e50"/>
+
+  <text x="60" y="37"
+        font-family="Segoe UI, Helvetica, Arial, sans-serif"
+        font-size="22" font-weight="600" fill="#2c3e50">PollingWeb</text>
+</svg>

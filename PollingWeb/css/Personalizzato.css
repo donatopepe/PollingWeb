@@ -1,0 +1,94 @@
+﻿body {
+}
+.chart_dashboard
+{ 
+    width:100%;
+}
+
+@font-face {
+  font-family: 'RetailEan13';
+  src: url('../TEST/EAN-13.ttf')  format(truetype);
+  font-weight: normal;
+  font-style: normal;
+}
+
+.barcode{
+    display: inline-block;
+    font-family: RetailEan13;
+}
+
+
+
+.button_seleziona, button_filtra
+{ 
+
+background-color: #449d44;
+    color: #fff;    
+    padding: .5em 1.5em;
+    font-size:0.9em;
+	border: none;
+	outline:none;
+	border-radius: 5%;
+    }
+
+.button_cancella
+{ 
+
+background-color: #ff0000;
+    color: #fff;    
+    padding: .5em 1.5em;
+    font-size:0.9em;
+	border: none;
+	outline:none;
+	border-radius: 5%;
+    }
+@media(max-width:2000px){
+
+    .modal-footer:after {
+        display:none;
+        content: " ";   }
+    
+    .widget {
+    /*    width: 33.33%;*/
+    }
+
+    
+}
+@media(max-width:800px){
+
+    .fatturato{
+        width: 100%;
+        padding: 10em 2em;
+        }
+}
+@media (max-width: 640px){
+    .header-left {
+        width: 50%;
+        float: left;
+    }
+}
+
+@media(max-width:480px){
+    .header-left {
+        width: 100%;
+        float: left;
+    }
+
+    .main-page 
+    {
+           margin-top:2em;
+    }
+ 
+
+    .chart_dashboard
+    { 
+        width:100%;
+        height:200px;
+    }
+    
+    .button_filtra
+    {         
+        margin-top:0.1em;
+    }
+
+}

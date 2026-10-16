@@ -1,0 +1,109 @@
+# =============================================================================
+# .gitignore — PollingWeb
+# =============================================================================
+# Regola: nel repository entrano solo sorgenti, script, configurazioni .example
+# e documentazione. NIENTE artefatti di build, segreti, dati reali o file utente.
+# =============================================================================
+
+# ---------------------------------------------------------------- Build output
+**/[Bb]in/
+**/[Oo]bj/
+[Bb]uild/
+[Pp]ublish/
+[Pp]recompiledWeb/
+*.dll
+*.exe
+*.pdb
+*.refresh
+*.tlog
+*.lastbuildstate
+
+# ------------------------------------------------------- NuGet / package restore
+packages/
+*.nupkg
+*.snupkg
+**/packages.lock.json
+.project
+.nuget/
+
+# ---------------------------------------------------------------- Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.dbmdl
+*.jfm
+*.Cache
+*.vspscc
+*.vssscc
+TestResults/
+[Bb]in/TestResults/
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+launchSettings.json
+
+# ------------------------------------------------------------------- MSBuild/VS
+*.binlog
+*.log
+*.tlog
+*.obj
+*.pkgdef
+
+# ------------------------------------------------------------------- SQL projects
+*.dbmdl
+*.jfm
+*.sqlproj.user
+*.schema.sql
+*.refactorlog
+
+# --------------------------------------------------------------- Config locale
+# I file di configurazione "veri" (Web.config, app.config) restano versionati ma
+# SANIFICATI (soli placeholder), con accanto i template .example.
+# Vengono ignorati solo gli override locali contenenti segreti reali.
+Web.config.local
+App.config.local
+app.config.local
+*.ConnectionStrings.config
+*.connectionStrings.config
+*.Secret.config
+*.secrets
+*.secret
+.env
+.env.*
+!.env.example
+
+# ------------------------------------------------------------------ Dati e log
+samples/private/
+samples/**/*.private.*
+samples/**/*.real.*
+App_Data/logs/
+App_Data/uploads/
+App_Data/temp/
+*.bak
+*.tmp
+*.temp
+*.cache
+*.dmp
+*~
+
+# ------------------------------------------------------------------- Scheduler
+# Stato del loop agentico: locale, mai condiviso.
+.pi-loop.json
+.pi-loop.json.lock
+
+# ------------------------------------------------------------------- OS / editor
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.swp
+*.swo
+.vscode/
+.idea/
+*.code-workspace

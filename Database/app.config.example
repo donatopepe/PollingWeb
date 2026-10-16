@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ============================================================================
+  app.config.example — modello commentato per la libreria Database (legacy)
+  ============================================================================
+  Copiare in `Database/app.config` e sostituire i placeholder, oppure fornire i
+  valori come variabili d'ambiente.
+
+  Riferimento: docs/CONFIGURATION.md · docs/INSTALL.md
+  ============================================================================
+-->
+<configuration>
+    <configSections>
+    </configSections>
+
+    <connectionStrings>
+        <!--
+          Il nome della chiave è la concatenazione di:
+            <GeneratedClassNamespace>.<GeneratedClassName>.<NomeImpostazione>
+          generata da Visual Studio in Database/Properties/Settings.Designer.cs.
+          Rinominarla obbliga a rigenerare Settings.Designer.cs e Settings.settings.
+
+          PollingConnectionString  → database applicativo
+              tabelle: TaskService, LogTaskService, ListaTriggerTemp, DimProcessi,
+                       DimStato, DimDayquartz, TargetSC00G100, Tool, LogProcedure
+              vista:   ViewTaskService
+
+          eProcurementConnectionString → database di acquisto
+              tabelle/viste usate dalle stored procedure di flusso RDA/ODA e ordini SAP
+        -->
+        <add name="Database.Properties.Settings.PollingConnectionString"
+            connectionString="Server=${POLLING_DB_SERVER};Database=Polling;User Id=${POLLING_DB_USER};$1=[REDACTED];"
+            providerName="System.Data.SqlClient" />
+
+        <add name="Database.Properties.Settings.eProcurementConnectionString"
+            connectionString="Server=${POLLING_DB_SERVER};Database=eProcurement;User Id=${POLLING_DB_USER};$1=[REDACTED];"
+            providerName="System.Data.SqlClient" />
+    </connectionStrings>
+
+    <startup>
+        <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5"/>
+    </startup>
+</configuration>

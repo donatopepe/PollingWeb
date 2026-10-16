@@ -1,0 +1,89 @@
+PollingWeb
+Copyright (c) 2026 PollingWeb contributors
+
+================================================================================
+LICENZA DEL PROGETTO
+================================================================================
+
+Il software di questo repository è distribuito con licenza MIT. Il testo completo è
+in `LICENSE`.
+
+================================================================================
+ATTRIBUZIONE STORICA E MARCHI
+================================================================================
+
+Questo progetto è nato come applicazione interna di polling e-procurement per un
+istituto di credito italiano e ne portava il nome, il logo e alcuni riferimenti di
+dominio. In preparazione della pubblicazione con licenza MIT:
+
+  * il logo dell'istituto è stato rimosso (era un marchio registrato di terze parti,
+    non ridistribuibile) e sostituito da `PollingWeb/images/logo.svg`, segnaposto
+    neutro rilasciato con la stessa licenza MIT del progetto;
+  * i riferimenti testuali al nome dell'istituto e al suo dominio sono stati rimossi
+    dal codice, dalla configurazione e dagli asset (task `T0.4`);
+  * l'immagine del logo che compariva nel corpo delle email di notifica è stata
+    rimossa dal template (`PollingClass/MailSede.cs`), perché puntava a un dominio
+    esterno e a un marchio di terzi.
+
+L'attribuzione qui sopra è l'unico riferimento storico mantenuto, a fini di
+tracciabilità. Nulla in questo repository implica approvazione, sponsorizzazione o
+affiliazione da parte dell'istituto menzionato.
+
+I nomi di prodotto, i marchi e i loghi eventualmente citati in questo documento
+appartengono ai rispettivi titolari e sono usati solo a fini descrittivi.
+
+================================================================================
+COMPONENTI DI TERZE PARTI
+================================================================================
+
+Il progetto usa le librerie elencate di seguito. Il file `docs/LICENSING.md`
+(previsto dal task `D10`) è la fonte autorevole: contiene versioni, licenze
+verificate e l'esito dei controlli di compatibilità con la MIT.
+
+Dipendenze .NET (gestite da NuGet)
+
+  Quartz.NET 2.1.2                        Apache License 2.0
+  Common.Logging 2.1.2                    Apache License 2.0
+  DocumentFormat.OpenXml 2.7.1            MIT
+
+  ⚠️ LinqToExcel 1.11.0 e le librerie Remotion (Remotion, Remotion.Data.Linq,
+     Remotion.Interfaces) 1.13.52.2 sono distribuite con licenza LGPL-2.1.
+     La dipendenza è incompatibile con l'obiettivo "solo licenze permissive":
+     è pianificata la rimozione in favore di DocumentFormat.OpenXml (già in uso).
+     Vedi task `X1.3` del piano.
+
+Asset front-end
+
+  Bootstrap 3.3.4                         MIT
+  Font Awesome 4.0.3                      CSS: MIT — Font: SIL OFL 1.1
+  jQuery 1.11.1                           MIT
+  animate.css                             MIT
+  Chart.js                                MIT
+  clndr                                   MIT
+  jqvmap                                  MIT
+  jquery.nicescroll                       MIT
+  classie.js                              MIT
+
+  ⚠️ Sono presenti 20 file `PollingWeb/js/*_warning.htm` che sono **pagine di blocco
+     di McAfee Web Gateway**, salvate per errore al posto dei download originali.
+     Non sono licenziate per la redistribuzione e non hanno alcuna funzione
+     applicativa: vengono rimosse nel task `T0.6`.
+
+Database
+
+  Microsoft SQL Server schema e stored procedure: opera dell'utente, distribuite con
+  la licenza MIT del progetto. L'uso di SQL Server è soggetto alla licenza Microsoft.
+
+================================================================================
+NOTA SULLE DIPENDENZE
+================================================================================
+
+Gli asset front-end elencati sono versioni storiche. Prima del rilascio `v1.0.0` il
+task `D10` deve:
+
+  1. verificare ogni licenza direttamente nella distribuzione originale;
+  2. confermare l'assenza di dipendenze copyleft;
+  3. allineare questo file e `docs/LICENSING.md` all'elenco effettivo delle
+     dipendenze distribuite.
+
+Fino a quel momento questo `NOTICE` va considerato provvisorio.

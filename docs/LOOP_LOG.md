@@ -1,0 +1,586 @@
+# LOOP LOG — PollingWeb remediation
+
+Registro append-only delle iterazioni del loop.
+
+Formato riga:
+`## <timestamp UTC> — <TASK ID> <titolo> — <stato>`
+poi: contesto, modifiche, evidenza (comando + output), prossimo task, blocchi.
+
+---
+
+## 2026-xx-xx T00 — Studio iniziale e pianificazione — DONE
+
+**Contesto.** Repository `github.com/donatopepe/PollingWeb` (branch `master`, singolo
+commit `6b01bfa` del 2023-01-16). Soluzione .NET Framework 4.5: `Database`,
+`PollingClass`, `PollingWeb` (Website project) + due database project SQL
+(`DatabaseSQL`, `Polling`).
+
+**Cosa è stato accertato (dettaglio in `PLAN.md` §2).**
+
+- `Database` e `PollingClass` compilano su net48 con dotnet 8 + reference assemblies
+  (`/tmp/pb`): 0 errori, 5 warning (variabili inutilizzate).
+- `PollingClass/Check_RdA.cs` è codice VB→C# rotto e orfano: unico errore di build
+  (`CS1525` a 82,53). Escludendolo la build passa.
+- `PollingWeb` è un Website project con `CodeFile=` e classi `partial` senza
+  dichiarazioni dei controlli → non compilabile senza generare `.designer.cs`.
+- Credenziali reali hardcoded e già pubbliche: `Web.config`, `Database/app.config`,
+  `Database/Properties/Settings.Designer.cs`, `Database/bin/*/Database.dll.config`.
+- Dati reali nel repository: `script_eprocurement_donato.sql` (15.732 `INSERT`),
+  `SC00G100_inizio.TXT` (anagrafiche fornitori + P.IVA), `BDG_MCC.xlsx`.
+- SQL injection in `Database/DataType.cs` (`FiltroCampi.BuildWhere`, concatenazione) e
+  in `PollingWeb/TaskService.aspx.cs` (`SelectCommand` concatenato).
+- Nessun `.gitignore`: `bin/`, `obj/`, `packages/` (68 MB), `.vs/` tracciati
+  (123 file su 382).
+- Nessun README, LICENSE, test, CI.
+
+**Deliverable prodotti.**
+
+- `PLAN.md` — piano con 47 task, DoD, dipendenze, rischi, 11 criteri di accettazione.
+- `PROMPT.md` — prompt ingegnerizzato con vincoli duri e algoritmo di iterazione.
+- `docs/LOOP_LOG.md` — questo registro.
+- Loop cron creato per l'esecuzione incrementale.
+
+**Evidenza.**
+
+```
+$ /opt/dotnet/dotnet build   # /tmp/pb/PollingClass, net48
+Compilazione completata.  0 errori, 5 warning
+$ git ls-remote origin
+6b01bfa...  refs/heads/master
+```
+
+**Prossimo.** `T0.1` — inventario segreti in `docs/SECURITY-FINDINGS.md`.
+
+**Blocchi.** Nessuno. Nota: le credenziali sono compromesse dal 2023 (storia pubblica) →
+rotazione a carico dell'ente, vedi `T0.9`.
+
+---
+
+## 2026-10-16T09:4xZ — T0.1 Inventario segreti — DONE
+
+**Contesto.** Serve una fotografia completa e classificata di segreti e dati sensibili prima
+di qualunque intervento di sanificazione, per non dimenticare occorrenze e per poter misurare
+l'azzeramento (`T0.2`–`T0.4`).
+
+**Modifiche.**
+- `docs/SECURITY-FINDINGS.md` (nuovo) — 8 classi di finding (S1–S8) con gravità, file:riga,
+  comandi di riproduzione, soglia di superamento e piano di rotazione credenziali.
+
+**Evidenza (comandi eseguiti e output).**
+
+> Nei comandi seguenti `$PATTERNS` è l'alternanza dei valori sensibili, letta dal record di
+> audit offline: `PATTERNS="$(paste -sd'|' "$AUDIT_DIR/secret-patterns.txt")"`.
+> I valori non sono riportati in questo registro (vedi `docs/RELEASING.md`).
+
+```
+$ grep -rn "WITH PASSWORD" DatabaseSQL/Security PollingDB/Security | wc -l
+2
+$ grep -rn "$PATTERNS" PollingWeb/Web.config Database/app.config \
+    Database/Properties/Settings.Designer.cs Database/Properties/Settings.settings \
+    Database/bin PollingClass/bin PollingWeb/Bin | wc -l
+22
+$ grep -rn "<legacy-login>" --include=*.cs . | wc -l
+1
+$ grep -rnoE "$PATTERNS" $(git ls-files | grep -v DocumentFormat.OpenXml.xml) | wc -l
+87
+$ grep -c "INSERT" script_eprocurement_donato.sql
+15732
+```
+
+**Finding rilevanti emersi.**
+- S1: due `CREATE LOGIN` con password in chiaro, `CHECK_POLICY = OFF` e `SID` esplicito
+  (`DatabaseSQL/Security/<legacy-login>_1.sql`, `PollingDB/Security/<legacy-login>_1.sql`).
+- S3: coppia `<legacy-login>` / `<REDACTED>` su un host interno in commento in `ParserFatture.cs:186`.
+- S4: 58 delle 87 occorrenze sono in `*/obj/` (artefatti) → il `.gitignore` di `T0.5` ne
+  rimuove la maggior parte dal versionamento.
+- S6: `MailSede` non autentica realmente l'SMTP (credenziali placeholder) → non è un leak,
+  ma un difetto funzionale da correggere in fase 2.
+
+**Prossimo.** `T0.5` — `.gitignore` + `.gitattributes` (prerequisito che riduce subito S4).
+
+**Blocchi.** Nessuno.
+
+## 2026-10-16T10:0xZ — T0.5 .gitignore + .gitattributes — DONE
+
+**Contesto.** 148 artefatti di build (`.vs/`, `*/bin/`, `*/obj/`, `packages/`) e 6 file
+utente (`*.user`, `*.suo`) erano versionati; 58 delle 87 occorrenze S4 (hostname interni)
+venivano proprio da `*/obj/*FileListAbsolute.txt`. Nessuna regola di normalizzazione dei
+line ending.
+
+**Verifica preliminare dei line ending** (per non introdurre una renormalizzazione di massa):
+
+```
+$ git ls-files --eol | awk '{print $1, $2}' | sort | uniq -c
+    268 i/lf w/lf      # sorgenti già LF in index e working tree
+    105 i/-text w/-text # rilevati binari (UTF-16: i 3 dump SQL)
+     13 i/none w/none   # vuoti
+```
+
+Nessun file sorgente era CRLF → `* text=auto` non produce renormalizzazione.
+
+**Modifiche.**
+- `.gitignore` (nuovo) — build output, NuGet, Visual Studio, SQL project, config locali,
+  dati/log, stato del loop (`.pi-loop.json`), OS/editor.
+- `.gitattributes` (nuovo) — `* text=auto`; forzatura a `text` per `.sln`/`.csproj`/`.sqlproj`/
+  `.props`/`.targets` e per configurazioni XML (contengono BOM UTF-8 e non devono essere
+  mai classificati binari); `binary` esplicito per DLL/immagini/archivi; `-text` di guardia
+  per i 3 dump SQL UTF-16 ancora presenti fino a `T0.3`.
+- De-tracking (senza cancellare dal disco) di `.vs/`, `Database/bin`, `Database/obj`,
+  `PollingClass/bin`, `PollingClass/obj`, `PollingWeb/Bin`, `DatabaseSQL/obj`, `packages/`
+  e dei 6 file utente.
+
+**Evidenza.**
+
+```
+$ git ls-files | grep -cE '^(\.vs/|.*/[Bb]in/|.*/[Oo]bj/|packages/)'
+0
+$ git ls-files | wc -l
+234                     # era 382 → -148 artefatti
+$ mkdir -p obj/Simulazione bin/Simulazione && touch obj/Simulazione/gen.cs bin/Simulazione/App.dll Database/Foo.csproj.user
+$ git check-ignore -v obj/Simulazione/gen.cs bin/Simulazione/App.dll Database/Foo.csproj.user
+.gitignore:10:**/[Oo]bj/   obj/Simulazione/gen.cs
+.gitignore:9:**/[Bb]in/    bin/Simulazione/App.dll
+.gitignore:31:*.user       Database/Foo.csproj.user
+$ PATH=/opt/dotnet:$PATH dotnet build Database/Database.csproj
+error MSB3644: gli assembly di riferimento per .NETFramework,Version=v4.5 non sono stati trovati  # atteso: risolto da T1.1
+$ git ls-files --others --exclude-standard
+.gitattributes
+.gitignore              # nessun artefatto di build fra i non tracciati → OK
+```
+
+Il fallimento `MSB3644` è **atteso** e non è imputabile a T0.5: la conversione a `net48`
+con `Microsoft.NETFramework.ReferenceAssemblies` è il task `T1.1`.
+
+**Prossimo.** `T0.2` — esternalizzazione della configurazione (azzera S2 e S4 nei sorgenti).
+
+**Blocchi.** Nessuno. Nota per `T0.3`: `bin/`, `obj/`, `packages/`, `.vs/`, `*.user` sono
+già de-tracciati; restano da rimuovere i dati reali (S5) e la cartella `Importa log di schema/`.
+
+## 2026-10-16T10:15Z — REV.2 Piano: track cross-platform — DONE (task di revisione)
+
+**Contesto.** Nuovo requisito esplicito: il progetto deve essere **cross-platform**. La
+revisione 1 del piano vincolava il runtime ad ASP.NET WebForms su .NET Framework 4.8 / IIS,
+quindi obiettivo, vincoli e fasi andavano riscritti, non solo estesi.
+
+**Analisi di portabilità eseguita prima di decidere** (dettaglio in `PLAN.md` §2.2):
+
+```
+$ grep -rn "HttpContext\.Current\|HostingEnvironment\|MapPath\|BuildManager" --include=*.cs Database PollingClass
+(nessun risultato)                        -> P1: dominio già disaccoppiato dal web
+
+$ grep -rn "System\.Windows\|Dispatcher\|DependencyObject" --include=*.cs Database PollingClass
+(nessun risultato)                        -> P5: WindowsBase in PollingClass.csproj è inutile
+
+$ grep -rn "class Colore\|FontSerif\|Aggset\.Color" --include=*.cs
+Database/DataType.cs: class Colore / class FontSerif
+PollingClass/Check_RdA.cs                -> P6: System.Drawing usato SOLO dal file rotto da eliminare
+
+$ grep -rn "System.Web.Services.WebService" --include=*.cs PollingClass
+Import_Budget.cs Ordini_Sap.cs LeggiFornitore.cs ImportFatture.cs
+                                          -> P3: unico blocco reale (ASMX non esiste su .NET 8)
+```
+
+**Decisione architetturale.**
+- Track A (prioritario): librerie SDK-style multi-target `net48;net8.0` → `PollingWorker`
+  (.NET 8 + Quartz 3.x) + `PollingApi` (ASP.NET Core al posto dei 4 ASMX) → il **motore** gira
+  su Linux/macOS/Windows senza IIS.
+- Track B (Fase 4): UI portata a Razor Pages (`PollingWeb.Core`) per la parità completa.
+- Legacy: `net48`/IIS conservato come *legacy mode* documentata (`docs/LEGACY.md`), non bloccante.
+
+**Modifiche.**
+- `PLAN.md` riscritto: revisione 2, obiettivo cross-platform, vincolo n.4 sostituito, nuovo
+  §2.2 (analisi di portabilità P1–P12) con decisione architetturale e diagramma, fasi
+  ristrutturate in **X1–X4** (cross-platform), **C** (correttezza), **T** (test), **D** (docs),
+  **R** (release); **64 task**, **15 criteri di accettazione** (AC3/AC4/AC10/AC13 nuovi e
+  specifici per il cross-platform); ordine di esecuzione aggiornato; mappatura T1.x → X1.x.
+- `PROMPT.md`: ruolo e obiettivo aggiornati, vincoli rinumerati (il divieto di .NET Core è
+  diventato "il port cross-platform è la direzione"), aggiunto l'obbligo di verificare entrambi
+  i TFM e il divieto di dichiarare verificato ciò che non è stato eseguito.
+- Loop cron ricreato (vecchio ID `599076ee` cancellato → nuovo ID `a6950558`) perché il
+  vecchio prompt citava AC1–AC11.
+
+**Evidenza.**
+
+```
+$ grep -oE '\*\*(T0\.[0-9]+|X[0-9]\.[0-9]+|C[0-9]+|T[0-9]+|D[0-9]+|R[0-9]+)\b' PLAN.md | sort -u | wc -l
+64
+$ grep -cE '^- \[ \] \*\*AC' PLAN.md   # criteri di accettazione
+15
+$ grep -cE '^- \[x\]' PLAN.md            # task gia' verificati
+2
+$ cron_list
+[a6950558] every 15 minutes (*/15 * * * *)
+  Next: 16/10/2026, 10:30:00 | recurring, durable
+```
+
+**Nota vincolante registrata nel piano.** Il loop non deve dichiarare verificati macOS e
+Windows: non sono disponibili in questo ambiente. Per quei task l'unico evidence ammesso è la
+CI multi-OS (X1.6). Il limite è dichiarato in `PLAN.md` §5 e in `PROMPT.md` vincolo 9.
+
+**Prossimo.** `T0.2` — esternalizzazione configurazione (azzera S2 e S4 nei sorgenti e redige
+gli hostname interni citati in `PLAN.md`/`PROMPT.md`/`docs/LOOP_LOG.md`).
+
+**Blocchi.** Nessuno.
+
+## 2026-10-16T10:30Z — T0.2 Esternalizzazione configurazione — DONE
+
+**Contesto.** Credenziali DB, hostname interni e URL TFS erano hardcoded in 20 file tracciati
+(S2, S3, S4 di `docs/SECURITY-FINDINGS.md`). Il repository diventa pubblico: nessun file
+versionato deve contenere valori reali.
+
+**Riproduzione iniziale.**
+
+```
+$ git grep -El "$PATTERNS"   # PATTERNS dal record di audit offline
+20 file (incl. 2 binari *.dbmdl, PollingWeb.sln, Security/*.sql, Settings.*)
+```
+
+**Modifiche.**
+
+| File | Intervento |
+|------|-----------|
+| `PollingWeb/Web.config` | placeholder `${POLLING_DB_SERVER}` / `${POLLING_DB_USER}` / `${POLLING_DB_PASSWORD}` / `${POLLING_SMTP_HOST}`; header esplicativo |
+| `PollingWeb/Web.config.example` | **nuovo** — modello commentato con il significato di ogni chiave |
+| `Database/app.config` | placeholder; commento sul naming `Database.Properties.Settings.*` |
+| `Database/app.config.example` | **nuovo** — modello commentato |
+| `Database/Properties/Settings.Designer.cs` | `DefaultSettingValueAttribute("")` per entrambe le impostazioni |
+| `Database/Properties/Settings.settings` | `ConnectionString` vuota e `<Value>` vuoto |
+| `PollingWeb.sln` | rimossa la sezione `TeamFoundationVersionControl` e le righe `Scc*` (URL TFS interno) |
+| `PollingClass/ParserFatture.cs` | rimossa la riga commentata con utente/password legacy (S3) |
+| `PollingClass/Check_RdA.cs` | letterale IP sostituito con `<DB_HOST>` (file comunque rimosso in T0.6) |
+| `PollingWeb/App_Data/PublishProfiles/FolderProfile.pubxml` | `D:\<path-interno>` → `publish\PollingWeb` (S7) |
+| `*/Security/<legacy-login>_1.sql` → `01-create-app-login.sql` | **rinominato**; password da variabile sqlcmd; `CHECK_POLICY = ON`; SID esplicito rimosso |
+| `*/Security/<legacy-login>.sql` → `02-create-app-user.sql` | **rinominato**; login da variabile sqlcmd; idempotente |
+| `*/Security/Permissions.sql` | `GRANT CONNECT TO [$(PollingAppLogin)]` |
+| `PollingDB.sqlproj` | percorsi `Build Include` aggiornati + `SqlCmdVariable` `PollingAppLogin` / `PollingAppPassword` (password senza default → deploy fail-closed) |
+| `DatabaseSQL/*.dbmdl`, `PollingDB/*.dbmdl` | **de-tracciati** (binari, coperti da `.gitignore`) |
+| `PLAN.md`, `PROMPT.md`, `docs/LOOP_LOG.md` | hostname/credenziali redatti con placeholder; i valori sono sostituiti da placeholder; le evidenze leggono i pattern dal record di audit offline |
+
+**Hardening contestuale sulla sicurezza (S1).** `CHECK_POLICY = OFF` → `ON`, `SID` esplicito
+rimosso, password non più nel repository: è la mitigazione di S1, non un refactor.
+
+**Bug reale trovato dal build.** Il primo `Database/app.config` conteneva righe separatore
+`-----------------` dentro un commento XML: `MSB3249: An XML comment cannot contain '--'`.
+Rilevato dal build, non a occhio. Corretto e poi validati tutti i file XML toccati con un
+parser reale (`xml.etree.ElementTree`).
+
+**Evidenza.**
+
+```
+$ git grep -nE "$PATTERNS" -- . ':(exclude)docs/SECURITY-FINDINGS.md'
+(nessun output) ; exit=1                      # 0 risultati fuori dall'inventario
+
+$ git grep -cE "$PATTERNS" -- docs/SECURITY-FINDINGS.md
+0
+```
+
+> Dopo `T0.10` la stessa ricerca dà 0 risultati anche **dentro** `docs/SECURITY-FINDINGS.md`:
+> l'inventario è stato redatto e i 21 riferimenti sono diventati placeholder.
+
+```
+$ dotnet build Database/Database.sdk.csproj        -f net48   # harness /tmp/t02
+Compilazione completata.  Avvisi: 0   Errori: 0
+$ dotnet build PollingClass/PollingClass.sdk.csproj -f net48
+Compilazione completata.  Avvisi: 5   Errori: 0
+
+$ python3 -c "import xml.etree.ElementTree as ET; ET.parse('<file>')"   # su Web.config,
+  Web.config.example, app.config, app.config.example, Settings.settings, PollingDB.sqlproj
+  FolderProfile.pubxml                        # tutti validi (PollingWeb.sln non e' XML)
+
+$ grep -c 'GlobalSection(' PollingWeb.sln / -c 'EndGlobalSection'   -> 4 / 4
+$ grep -c '^Project(' PollingWeb.sln      / -c '^EndProject$'       -> 3 / 3
+$ grep -c 'Scc' PollingWeb.sln                                       -> 0
+
+$ git ls-files | wc -l
+234          # -2 (*.dbmdl de-tracciati), +6 (nuovi file/sostituzioni)
+```
+
+Coerenza chiavi: il codice legge `ConnectionStrings["PollingConnectionString"]`,
+`ConnectionStrings["PollingEprocurement"]`, `AppSettings["smtpServer"]`; tutte presenti in
+`Web.config` con i nomi invariati → nessuna rottura a runtime.
+
+**Non incluso (deferito, non dimenticato).**
+
+- `providerName="System.Data.EntityClient"` su stringhe SqlClient (F14) → **C7**.
+- `debug="true"` e `customErrors mode="Off"` lasciati come nell'originale → **C7**
+  (cambiare il comportamento a runtime non è compito dello svuotamento dei segreti).
+- Risoluzione automatica dei `${...}` da variabili d'ambiente → **X1.4** (configurazione
+  astratta). Oggi i placeholder vanno sostituiti al deploy.
+- Hardening completo dei permessi minimi → **T0.8**.
+
+**Prossimo.** `T0.3` — rimozione dei dati reali e creazione di `samples/` sintetici.
+
+**Blocchi.** Nessuno.
+
+## 2026-10-16T10:45Z — T0.3 Rimozione dati reali + samples/ — DONE
+
+**Contesto.** Il repository conteneva 14,3 MB di dati di terzi: due dump con **15.732
+istruzioni `INSERT`** di produzione, l'anagrafica fornitori reale con P.IVA e codici fiscali,
+un'estrazione di budget, due tracciati SAP reali e due log di import schema con nomi di
+macchine e utenti di sviluppo. Questi file sono incompatibili con la pubblicazione.
+
+**Scoperta rilevante (schema drift) — il motivo per cui non ho cancellato il dump e basta.**
+
+Prima di rimuovere `script_polling.sql` ho confrontato gli oggetti che contiene con quelli
+presenti nei progetti SSDT:
+
+```
+$ comm -23 <oggetti nel dump> <oggetti nel progetto>
+Flusso_Ordini_SAP_old
+RDA_Esiti_LastOutput_OnLine
+Tbl_Export_SAP_OnLine
+```
+
+Due di questi sono **usati dal codice applicativo**
+(`Database/TableAdapterRDA_Esiti_LastOutput_OnLine.cs`, `Database/TableAdapterTbl_Export_SAP_OnLine.cs`,
+`PollingClass/Ordini_Sap.cs`, `PollingClass/Import_Budget.cs`) ma **non esistevano in nessun
+progetto SQL**: cancellare il dump avrebbe perso la loro DDL per sempre. Estratte quindi in
+`PollingDB/dbo/Tables/RDA_Esiti_LastOutput_OnLine.sql` e `Tbl_Export_SAP_OnLine.sql`
+(+ copia in `DatabaseSQL/`, in attesa del consolidamento di `T0.7`), con le colonne verificate
+una per una contro il dump. `Flusso_Ordini_SAP_old` è una stored procedure obsoleta e non
+referenziata: non ripristinata, conservata nel record di audit offline.
+
+**Modifiche.**
+
+| Intervento | Dettaglio |
+|---|---|
+| Rimossi | `script_eprocurement_donato.sql` (12,7 MB), `script_polling_donato.sql` (1,3 MB), `SC00G100_inizio.TXT` (254 KB), `BDG_MCC.xlsx`, `_047_1047_oda_input.#00`, `_063_1063_rda_input.#00`, `*/Importa log di schema/*.log`, `script_polling.sql` (3,3 MB) |
+| Recuperati | 2 tabelle mancanti → `DatabaseSQL/` e `PollingDB/dbo/Tables/`, con `<Build Include>` nel `PollingDB.sqlproj` |
+| Nuovi campioni | `samples/README.md`, `samples/sap/{README.md,oda_esiti_input.sample,rda_input.sample,SC00G100.sample.txt}`, `samples/budget/{README.md,BDG_sample.xlsx}`, `samples/tools/make-budget-sample.py`, `samples/seed/seed.sql` |
+
+**Verifiche eseguite sui campioni (non solo "creati").**
+
+Il campione XLSX è generato da script (deterministico, nessun binario opaco) e **aperto con la
+stessa libreria del codice applicativo**, replicando la logica di `ReadExcelFileDOM`:
+
+```
+[IST][CDR][VOCE][BDGRILASCI][BDGRESIDUO][CODFONDO][DATARIF]
+[1][DEMO01][V0001][1000.00][1000.00][FONDO-A][2024-01-01]
+OK righe=5 celle=35 sharedStringsIrrisolte=0
+```
+
+`sharedStringsIrrisolte=0` dimostra che la `SharedStringTable` è corretta: senza di essa il
+parser produrrebbe stringhe vuote. Validati anche tutti i membri XML dello zip.
+
+Il campione `SC00G100.sample.txt` è stato costruito **dal codice di lettura**, non a
+intuizione: `LeggiFornitore.cs` mappa `values[1]=Cfor, [2]=Ragione_Sociale, …, [7]=Piva|Codfis`,
+accetta 9 campi con `|` iniziale e 8 senza (anteponendolo). Il campione contiene 4 righe a
+9 campi e 1 a 8 campi. Verificato con `len(line.split('|'))`.
+
+**Evidenza.**
+
+```
+$ git ls-files -z | xargs -0 du -cb | tail -1        # contenuto tracciato
+2508750        # era 5854377 -> -3,3 MB
+$ du -sh --exclude=.git --exclude=packages --exclude=.vs --exclude=bin --exclude=obj .
+3,2M           # < 5 MB, obiettivo della DoD
+$ grep -c INSERT script_eprocurement_donato.sql      # prima
+15732          # ora il file non esiste
+$ python3 -c "import xml.etree.ElementTree as ET; ET.parse('PollingDB/PollingDB.sqlproj')"
+(nessun errore)
+$ grep -rhoE '[0-9]{11,17}' samples/ | sort -u
+00000000000000000 00000000001 00000000002 00000000003 00000000004 00000000005
+```
+
+**Non verificato — dichiarato.** `samples/seed/seed.sql` **non è stato eseguito** su un'istanza
+SQL Server: non era disponibile in questa iterazione. Sintassi e conteggio colonne dei `MERGE`
+sono stati controllati a mano (14=14 per `TaskService`, 9=9 per `TargetSC00G100`, cast espliciti
+sui tipi, `WITH (HOLDLOCK)` su tutti). L'esecuzione reale è demandata a `T0.8`/`T3.1`, che
+introducono il container SQL Server. Il dialetto `³` del tracciato fornitori non è coperto dai
+campioni (richiede un file in code page 1252): lacuna dichiarata in `samples/sap/README.md`.
+
+**Prossimo.** `T0.4` — de-branding; poi `T0.10` (riscrittura storia), richiesto esplicitamente
+dall'utente e ora eseguibile perché dati e credenziali sono fuori dal tree.
+
+**Blocchi.** Nessuno.
+
+## 2026-10-16T11:00Z — T0.6 Pulizia file morti — DONE
+
+**Contesto.** Il repository conteneva file non compilati, duplicati obsoleti e — scoperta
+durante il lavoro — **20 asset di terze parti non ridistribuibili**.
+
+**Trovato durante l'ispezione.** I 20 file `PollingWeb/js/1x_warning.htm` … `3x_warning.htm`
+non sono JavaScript: sono **pagine di blocco di McAfee Web Gateway**, salvate al posto dei
+download originali durante lo sviluppo (contengono il logo McAfee e "A file has been blocked
+by a file-filtering rule"). Non sono licenziate per la redistribuzione e non hanno alcuna
+funzione applicativa: nessun file le referenzia.
+
+**Modifiche.** 53 file rimossi (239 → 186 tracciati).
+
+| Categoria | File |
+|---|---|
+| Codice rotto | `PollingClass/Check_RdA.cs` (conversione VB→C# incompleta, fuori dal `.csproj`, unico errore di build se incluso) |
+| Duplicati obsoleti | 24 × `PollingWeb/App_Code/*.exclude` |
+| CSS duplicato | `PollingWeb/css/style - Copia.css` |
+| Asset di terzi | 20 × `PollingWeb/js/*_warning.htm` (pagine di blocco McAfee) |
+| Placeholder vuoti | `Procedure1.sql`, `Procedure2.sql`, `Script1.sql`, `Script2.sql` |
+| Codice irraggiungibile | `PollingWeb/App_Code/TEST_QUARTZ.cs` (web service senza `.asmx`) |
+| Template non usato | `PollingWeb/job_scheduling_data_2_0.xsd` |
+| Ricodifica | `sript_quartz.sql` (UTF-16, nome con refuso) → **`sql/quartz-schema.sql`** (UTF-8, con header di provenienza) |
+
+**Verifica preliminare: nessuno era referenziato.** Prima di rimuovere, per ciascuno:
+
+```
+$ git grep -l "_warning"      -- . | grep -v '_warning.htm'   -> (nessuno)
+$ git grep -l "TEST_QUARTZ"   -- . | grep -v 'App_Code/'      -> (nessuno; nessun .asmx)
+$ git grep -l "style - Copia" -- .                            -> (solo PLAN.md)
+$ git grep -l "job_scheduling_data_2_0" -- .                  -> (nessuno)
+$ grep -n "Check_RdA\|Script1\|Script2\|Procedure1\|Procedure2" *.csproj *.sqlproj  -> (nessuno)
+```
+
+**Evidenza.**
+
+```
+$ git ls-files | wc -l
+186                        # era 239
+$ grep -c "CREATE TABLE" sql/quartz-schema.sql
+11                         # tabelle QRTZ_* conservate
+$ file sql/quartz-schema.sql
+UTF-8 (with BOM)           # era UTF-16
+$ git grep -nE 'Check_RdA|TEST_QUARTZ|job_scheduling_data_2_0|style - Copia|Procedure[12]|Script[12]\.sql|_warning\.htm|sript_quartz' \
+      -- . ':(exclude)PLAN.md' ':(exclude)PROMPT.md' ':(exclude)docs/LOOP_LOG.md'
+(nessun output) ; exit=1
+$ dotnet build Database.sdk.csproj     -f net48   -> 0 errori
+$ dotnet build PollingClass.sdk.csproj -f net48   -> 0 errori
+```
+
+**Perché l'evidenza esclude i documenti di lavoro.** `PLAN.md`, `PROMPT.md` e
+`docs/LOOP_LOG.md` devono necessariamente nominare ciò che è stato rimosso: un `git grep`
+"= 0" su tutto l'albero sarebbe impossibile da soddisfare e quindi una falsa verifica. La
+verifica è quindi esplicita sui file **diversi** dai documenti di lavoro. Se in futuro si
+deciderà di pubblicarli (decisione demandata a `R6`), andranno redatti.
+
+**Nota su `sql/`.** La struttura è provvisoria: lo schema applicativo è ancora duplicato in
+`DatabaseSQL/` (il cui `.sqlproj` non include nulla: file orfani) e `PollingDB/` (l'unico che
+compila). Il consolidamento è `T0.7`. Descritto in `sql/README.md` perché è esattamente il
+tipo di ambiguità che ha quasi fatto perdere due tabelle in `T0.3`.
+
+**Prossimo.** `T0.11` — rimozione degli identificatori derivati dall'azienda (`PollingException*`
+168 occorrenze, `Polling*`, directory e progetto SQL), introdotto dopo la richiesta
+esplicita dell'utente: il progetto pubblico non deve contenere alcun riferimento all'azienda,
+nemmeno negli identificatori di codice.
+
+**Blocchi.** Nessuno.
+
+## 2026-10-16T11:05Z — T0.4 De-branding — DONE
+
+**Contesto.** Il progetto portava il marchio dell'istituto per cui era stato sviluppato: logo
+registrato, nome nel testo del template email, email aziendali e personali hardcoded, path di
+sviluppatore con nome utente.
+
+**Modifiche.**
+- `PollingWeb/images/<bank-logo>.png` **rimosso** (marchio registrato di terzi, non
+  ridistribuibile con licenza MIT) → nuovo `PollingWeb/images/logo.svg`, segnaposto neutro
+  rilasciato con la stessa licenza del progetto.
+- `Polling_web.master`: `src` aggiornato a `logo.svg`, `alt="PollingWeb"`, `<title>` da
+  `<acronimo istituto> - Admin Panel` a `PollingWeb - Admin Panel`.
+- `PollingClass/MailSede.cs`: rimosso dal corpo delle email il `<img>` che puntava a
+  `http://www.<dominio-istituto>/.../logo_*.gif` — un asset di terzi servito da un dominio
+  esterno.
+- `PollingClass/ParserFatture.cs`, `PollingClass/Check_RdA.cs`: rimosse email aziendali
+  (`EProcurement@…`) e **dati personali** (indirizzo email di una persona) usati come
+  destinatari hardcoded.
+- `PollingClass/ImportaXML.cs`, `PollingWeb/Default.aspx.cs`: rimossi path assoluti con
+  nome utente di sviluppatore (`C:\Users\<nome>\Desktop\...`) e riferimenti al progetto
+  personale.
+- **`NOTICE`** (nuovo): attribuzione storica **generica** (nessun nome dell'istituto), marchi
+  di terzi dichiarati come tali, inventario delle licenze con evidenza della dipendenza
+  copyleft da rimuovere (`X1.3`), e la nota che il file è provvisorio fino a `D10`.
+- **`docs/RELEASING.md`** (nuovo): record di audit, procedura di riscrittura della storia,
+  checklist di pubblicazione, versioning.
+
+**Evidenza.**
+
+```
+$ PAT="$(paste -sd'|' "$AUDIT_DIR/secret-patterns.txt")"
+$ git grep -ilE "$PAT" -- . ':(exclude)NOTICE'
+(nessun output) ; exit=1
+```
+
+Il pattern è composto a runtime dal record di audit: **il nome dell'istituto, il suo dominio
+e il nome del logo non compaiono in nessun file del repository**, inclusi i documenti che
+descrivono la rimozione. `NOTICE` è l'unica eccezione ammessa: contiene l'attribuzione
+storica senza nominare l'istituto.
+
+**Nota metodologica.** Anche la riga di evidenza di `PLAN.md` è stata riscritta per leggere i
+pattern dal record di audit invece di contenerli: un'evidenza che si auto-soddisfa (o che si
+auto-fallisce) non è un'evidenza.
+
+**Prossimo.** `T0.11` — identificatori derivati dall'azienda.
+
+**Blocchi.** Nessuno.
+
+## 2026-10-16T11:20Z — T0.11 Identificatori aziendali — DONE
+
+**Contesto.** Richiesta esplicita dell'utente: nel progetto pubblico non deve esistere alcun
+riferimento all'azienda, **nemmeno negli identificatori di codice**. L'abbreviazione compare
+168 volte nel framework di eccezioni, 42 in `Polling*` (database, chiavi di connessione,
+directory di progetto), più variabili e riferimenti in documenti e pagine.
+
+**Modifiche.** Rinominati (mappatura completa nel record di audit offline):
+
+| Categoria | Da → A |
+|---|---|
+| Framework eccezioni | 4 tipi con prefisso dell'azienda → `PollingException`, `PollingExceptionType`, `PollingExceptionHandler`, `GestisciPollingException`; file `Database/PollingException.cs` |
+| Chiavi di connessione | chiave senza suffisso → `PollingConnectionString`; variante `DB` → `PollingConnectionStringDirect` |
+| Database | nome del database applicativo → `Polling` |
+| Progetto SQL | directory → `PollingDB/`, progetto → `PollingDB.sqlproj` (`Name`, `RootNamespace`, `AssemblyName`) |
+| Variabili | 2 variabili interne con l'abbreviazione → `dbInfoPolling`, `DemoPolling` |
+
+La mappatura completa **vecchio → nuovo** e' nel record di audit offline (`REDACTED-VALUES.md`): i vecchi identificatori non compaiono in questo
+repository, perche' sono essi stessi il riferimento all'azienda che il
+task rimuove.
+
+Contestualmente corretti i 4 `.asmx`: l'attributo `CodeBehind="~/App_Code/*.cs"` puntava a file
+inesistenti (erano già `.exclude`, e in `T0.6` la cartella è stata rimossa). Rimosso
+l'attributo: la classe si risolve dall'assembly `PollingClass.dll` in `Bin`, come previsto dal
+progetto Website.
+
+**Metodo.** Rinominazione con `git ls-files -z | xargs -0 sed` (a prova di spazi nei
+percorsi — un primo tentativo con `$(...)` non quotato si è rotto su
+`dbo/Stored Procedures/*.sql` ed è stato rifatto). Ordine delle sostituzioni scelto per
+evitare collisioni di prefisso: la chiave con suffisso `DB` prima di quella senza, il
+file di progetto prima del nome del database, i tipi di eccezione piu' specifici prima
+di quello generico.
+
+**Attenzione a una falsa pista.** `git grep -i popolare` segnala 18 occorrenze di
+"METODI PER POPOLARE IL DATASET": è l'italiano *popolare* = riempire, non il nome
+dell'istituto. Nessun intervento.
+
+**Evidenza.**
+
+```
+$ git grep -c "$OLD_IDENTIFIERS" -- .   -> 0 occorrenze
+      # OLD_IDENTIFIERS = alternanza dei vecchi identificatori, dal record di audit
+$ PAT="$(paste -sd'|' "$AUDIT_DIR/secret-patterns.txt")"
+$ git grep -inE "$PAT" -- . ':(exclude)NOTICE'   -> exit 1 (0 risultati)
+
+# coerenza fornitori/consumatori della chiave di connessione
+definizioni (.config/.settings/.Designer.cs/.xsd)  -> 13
+consumatori .aspx (SqlDataSource)                  -> 13
+consumatori .cs                                    -> 4
+$ git grep -c "eProcurementConnectionString" -- ...
+  Settings.Designer.cs:3  Settings.settings:1  app.config:1  dtsTabelle.xsd:1   # invariata
+
+# classi di eccezione
+classi dichiarate: 2    file che le usano: 15
+
+$ dotnet build Database.sdk.csproj     -f net48 -> 0 errori
+$ dotnet build PollingClass.sdk.csproj -f net48 -> 0 errori
+$ python3 -c "ET.parse(...)" su 4 file di progetto -> XML validi
+```
+
+**Limite dichiarato.** I riferimenti negli `.aspx` non sono verificabili con un build finché
+il progetto web non è compilabile (`X1.7`/`X4.2`). La verifica è il **grep incrociato**
+(13 definizioni / 13 consumatori): forte, ma non equivalente a una compilazione. Va
+confermata quando il progetto web entrerà in build.
+
+**Conseguenza operativa da documentare.** Il nome del database applicativo è cambiato: un
+ambiente esistente richiede `ALTER DATABASE ... MODIFY NAME` o una nuova istanza. Va scritto
+in `CHANGELOG.md` e in `docs/INSTALL.md` (entrambi previsti nei task `D1`/`D2`), e in
+`scripts/db-deploy.sh` (`T0.8`) che dovrà creare `Polling`.
+
+**Prossimo.** `T0.10` — riscrittura della storia Git, ora eseguibile: credenziali, dati,
+marchio e identificatori sono fuori dall'albero.
+
+**Blocchi.** Nessuno.

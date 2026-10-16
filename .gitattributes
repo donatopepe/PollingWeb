@@ -1,0 +1,106 @@
+# =============================================================================
+# .gitattributes — PollingWeb
+# =============================================================================
+# Obiettivo: comportamento deterministico dei line ending fra Windows (sviluppo,
+# IIS, Visual Studio) e Linux (CI, test).
+#
+# Regola generale: Git rileva automaticamente testo/binario; i file di progetto
+# e di soluzione sono forzati a testo perché Windows/Visual Studio li riscrive
+# spesso e non devono mai finire marcati come binari.
+# =============================================================================
+
+# Rilevamento automatico: normalizza i line ending a LF nel repository.
+* text=auto
+
+# ------------------------------------------------- File di progetto e soluzione
+# Forzati a testo (contengono BOM UTF-8). Normalizzati a LF nel repository;
+# al checkout vengono emessi secondo core.eol / core.autocrlf (CRLF su Windows).
+*.sln        text
+*.csproj     text
+*.vbproj     text
+*.fsproj     text
+*.vcxproj    text
+*.sqlproj    text
+*.dbproj     text
+*.props      text
+*.targets    text
+*.filters    text
+
+# --------------------------------------------------------- Configurazione (XML)
+*.config     text
+*.settings   text
+*.pubxml     text
+*.xsd        text
+*.xsc        text
+*.xss        text
+*.xml        text
+*.xslt       text
+*.edmx       text
+
+# --------------------------------------------------- Sorgenti e markup WebForms
+*.cs         text
+*.aspx       text
+*.ascx       text
+*.asmx       text
+*.ashx       text
+*.asax       text
+*.master     text
+*.css        text
+*.js         text
+*.map        text
+*.json       text
+*.md         text
+*.txt        text
+*.yml        text
+*.yaml       text
+*.ps1        text
+*.sh         text eol=lf
+*.bat        text eol=crlf
+*.cmd        text eol=crlf
+
+# ---------------------------------------------------------------- Documentazione
+LICENSE      text
+NOTICE       text
+CHANGELOG.md text
+
+# ------------------------------------------------------ Binari: mai convertiti
+*.dll        binary
+*.exe        binary
+*.pdb        binary
+*.lib        binary
+*.so         binary
+*.so.*       binary
+*.a          binary
+*.nupkg      binary
+*.snupkg     binary
+*.zip        binary
+*.7z         binary
+*.gz         binary
+*.tar        binary
+*.png        binary
+*.jpg        binary
+*.jpeg       binary
+*.gif        binary
+*.bmp        binary
+*.ico        binary
+*.svgz       binary
+*.ttf        binary
+*.woff       binary
+*.woff2      binary
+*.eot        binary
+*.pdf        binary
+*.xls        binary
+*.xlsx       binary
+*.doc        binary
+*.docx       binary
+*.pfx        binary
+*.snk        binary
+*.mdf        binary
+*.ldf        binary
+
+# ------------------------------- Legacy: dump SQL UTF-16 rimossi
+# I dump UTF-16 sono stati rimossi in T0.3 e T0.6. Se ne reintroduci uno, marcalo
+# esplicitamente `-text`: `* text=auto` lo rileverebbe come binario solo per caso.
+
+# ------------------------------------------------------------------- Diff driver
+*.sql        diff
