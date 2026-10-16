@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 21 / 74 task verificati
+- **Stato complessivo:** 22 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -318,14 +318,9 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   Evidenza (Linux): build net48 → 0 errori, 5 warning preesistenti; unit test net8 → 97 passati,
   1 ignorato; nessun riferimento Quartz/IJob/StdSchedulerFactory/JobBuilder/TriggerBuilder/
   IScheduler in `ExportSQL01.cs`; `git diff --check` pulito. Windows/macOS non verificati in locale.
-- [ ] **X1.3c — `PollingClass` multi-target `net48;net8.0`**
+- [x] **X1.3c — `PollingClass` multi-target `net48;net8.0`**
   DoD: `TargetFrameworks=net48;net8.0`; entrambi i target compilano.
-  Evidenza: build per entrambi i TFM → 0 errori; **righe compilate per net8 / righe totali ≥ 90%**
-  (≥ 95% dopo `X2.2`, quando le API Quartz 3.x sono migrate su net8), con l'elenco esplicito di
-  eventuali esclusioni (regola anti-svuotamento, ADR 0005 §2.3, soglia rivista in ADR 0006 §2).
-  ⚠️ **Prerequisiti: `X1.3b1`–`X1.3b5` e `X2.2`**.
-  ⚠️ **Questo task è l'unico che può asserire «`PollingClass` è cross-platform»**: fino a
-  `X1.3c` tale affermazione non è vera.
+  Evidenza (Linux, 2026-10-16): `dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet` e `-f net48` → 0 errori, 5 avvisi ciascuno; unit test → 98 passati, 2 ignorati. Sui 4.298 LOC non vuote, una misura statica delle direttive di compilazione conta 4.178 righe nette net8 (97,2%, sopra la soglia 95%); le sole esclusioni nette sono metadata/attributi e base ASMX (`System.Web.Services`) in `Import_Budget.cs`, `ImportFatture.cs`, `LeggiFornitore.cs`, `Ordini_Sap.cs`, mantenuti nel target net48. Gli endpoint legacy restano consumabili via WebForms; la migrazione SOAP è separata in X3.3. `git diff --check` pulito. Windows/macOS non verificati localmente.
 - [ ] **X1.4 — Configurazione astratta**
   DoD: accesso a config dietro `IAppConfig`/`IOptions`; su net48 legge `Web.config`/`app.config`,
   su net8.0 legge `appsettings.json` + variabili d'ambiente; nessuna lettura diretta di
@@ -715,3 +710,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 25 | X1.3b5 separazione SQL01_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test net8: 97 superati, 1 ignorato; nessun simbolo Quartz in `ExportSQL01.cs`; adapter convalida cron e intervalli, job separato e delega schedulazione; `git diff --check` pulito. |
 
 | 2026-10-16 | 26 | X2.2 Quartz 3.13.1 ADO store persistente | `[x]` | Build net48: 0 errori, 5 warning; unit 98 passati/2 ignorati; `POLLING_DB_$1=[REDACTED] POLLING_APP_$1=[REDACTED] ./scripts/test-integration.sh` → deploy, autotest privilegi e 16/16 test; test dedicato ha registrato trigger, riavviato scheduler e verificato il recupero dallo store SQL. Schema legacy senza INSERT storici; provider Microsoft.Data.SqlClient. |
+| 2026-10-16 | 27 | X1.3c PollingClass multi-target | `[x]` | Build net8.0 e net48 → 0 errori, 5 avvisi ciascuno; unit 98/2 ignorati; 4.178/4.298 righe non vuote compilabili net8 (97,2%); esclusi solo metadata/base ASMX condizionali; diff-check pulito. Windows/macOS non verificati localmente. |

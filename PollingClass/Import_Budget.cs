@@ -7,8 +7,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+#if NETFRAMEWORK
 using System.Web;
+#endif
+#if NETFRAMEWORK
 using System.Web.Services;
+#endif
 using PollingClass;
 
 
@@ -17,12 +21,19 @@ namespace PollingClass
     /// <summary>
     /// Descrizione di riepilogo per Import_Budget
     /// </summary>
+    #if NETFRAMEWORK
     [WebService(Namespace = "http://tempuri.org/")]
+#endif
+    #if NETFRAMEWORK
     [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+#endif
     // Per consentire la chiamata di questo servizio Web dallo script utilizzando ASP.NET AJAX, rimuovere il commento dalla riga seguente. 
     // [System.Web.Script.Services.ScriptService]
 
-    public class ImportBudget : System.Web.Services.WebService
+    public class ImportBudget
+#if NETFRAMEWORK
+        : System.Web.Services.WebService
+#endif
     {
         private dtsTabelle dts = new dtsTabelle();
         DatabaseInfo dbInfo;
@@ -40,7 +51,9 @@ namespace PollingClass
         {
         }
 
+        #if NETFRAMEWORK
         [WebMethod]
+#endif
         public string ImportaBudget_FirstStart(string codist, string idprocesso)
         {
             return this.ImportaBudget_FirstStart(codist, idprocesso, false);

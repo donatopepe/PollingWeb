@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+#if NETFRAMEWORK
 using System.Web;
+#endif
+#if NETFRAMEWORK
 using System.Web.Services;
+#endif
 using Database;
 using Database.TableInterface;
 using Database.Base;
@@ -17,11 +21,18 @@ namespace PollingClass
     /// <summary>
     /// Descrizione di riepilogo per OrdiniSAP
     /// </summary>
+    #if NETFRAMEWORK
     [WebService(Namespace = "http://tempuri.org/")]
+#endif
+    #if NETFRAMEWORK
     [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+#endif
     // Per consentire la chiamata di questo servizio Web dallo script utilizzando ASP.NET AJAX, rimuovere il commento dalla riga seguente. 
     // [System.Web.Script.Services.ScriptService]
-    public class Ordini_Sap : System.Web.Services.WebService
+    public class Ordini_Sap
+#if NETFRAMEWORK
+        : System.Web.Services.WebService
+#endif
     {
 
         private dtsTabelle dts = new dtsTabelle();
@@ -44,7 +55,9 @@ namespace PollingClass
         {
         }
 
+        #if NETFRAMEWORK
         [WebMethod]
+#endif
         public string ScriviRDA(string istituto)
         {
             //this.codice_istituto = codist;
@@ -61,7 +74,9 @@ namespace PollingClass
         }
 
 
+        #if NETFRAMEWORK
         [WebMethod]
+#endif
         public string ScriviOrdini(string ist)
         {
             this.codice_istituto = ist;
@@ -79,7 +94,9 @@ namespace PollingClass
         }
 
 
+        #if NETFRAMEWORK
         [WebMethod]
+#endif
         public string Invia_file_Sap_FirstStart(string codist, string idprocesso,string tipoExport)
         {
             return this.Invia_file_Sap_FirstStart(codist, idprocesso, false, tipoExport);
@@ -106,7 +123,9 @@ namespace PollingClass
         }
 
 
+        #if NETFRAMEWORK
         [WebMethod]
+#endif
         public string Invia_file_Sap_Onetime(string codist, string idprocesso,string tipoExport)
         {
             string messaggio = "";
@@ -146,7 +165,9 @@ namespace PollingClass
         }
 
 
+        #if NETFRAMEWORK
         [WebMethod]
+#endif
         public string Leggi_Esito_Sap_FirstStart(string codist, string idprocesso)
         {
             return this.Leggi_Esito_Sap_FirstStart(codist, idprocesso, false);
@@ -171,7 +192,9 @@ namespace PollingClass
 
         }
 
+        #if NETFRAMEWORK
         [WebMethod]
+#endif
         public string Leggi_Esito_Sap_Onetime(string codist, string idprocesso)
         {
             //return this.Leggi_Esito_Sap(codist, idprocesso, true);        

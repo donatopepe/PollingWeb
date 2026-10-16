@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Quartz;
+using PollingClass;
 using Xunit;
 
 namespace PollingWeb.UnitTests

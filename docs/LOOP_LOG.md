@@ -1595,6 +1595,29 @@ Il test persistente crea job/trigger sintetici sul DB Quartz, riavvia lo schedul
 
 ---
 
+## 2026-10-16T18:xxZ — X1.3c PollingClass multi-target — DONE
+
+**Modifica.** `PollingClass.csproj` multi-target `net48;net8.0`. Per net8 vengono esclusi condizionalmente solo i metadata, attributi, metodi SOAP e base class ASMX che richiedono `System.Web.Services`; il target net48 li mantiene per la compatibilità legacy. Aggiunta la namespace import mancante nel test factory Quartz. Nessuna logica di dominio modificata. X3.3 resta incaricato della migrazione dei client SOAP.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet
+(exit 0; 0 errori, 5 avvisi)
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --no-restore --nologo -v quiet
+(exit 0; 0 errori, 5 avvisi)
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --nologo -v quiet
+Superato! Non superati: 0. Superati: 98. Ignorati: 2. Totale: 100.
+$ git diff --check
+(exit 0)
+```
+
+Misura: 4.178/4.298 righe non vuote compilabili per net8 (97,2%, sopra la soglia 95%). I 120 conteggi non compilabili sono i soli blocchi di attributi/ereditarietà e attributi WebMethod relativi agli endpoint ASMX in `Import_Budget.cs`, `ImportFatture.cs`, `LeggiFornitore.cs`, `Ordini_Sap.cs`, conservati integralmente per net48. Windows/macOS non verificati localmente; la soluzione completa WebForms non compilata.
+
+**Prossimo task:** `X1.1 — Layout soluzione + Directory.Build.props`.
+
+---
+
 ## 2026-10-16T16:xxZ — X1.3b4 Separazione Ordini_Scheduler/Quartz — DONE
 
 **Modifica.** `Ordini_Scheduler` delega FirstStart e i due polling (invio/esito) a `IOrdiniSchedulingGateway`. Aggiunti `PollingClass/OrdiniQuartzGateway.cs` e `PollingClass/JobOrdini.cs` (i due job restano distinti); `Ordini_Sap.cs` non contiene più riferimenti Quartz. L'adapter conserva identità di job/trigger, routing Invio/Esito, `tipoExport` solo per l'invio, cron feriale, override, JobDataMap e trigger immediate/interval con priorità legacy. Separata policy validazione cron, interval e routing.

@@ -3,10 +3,8 @@
   <!--
     PollingClass — logica di dominio (task X1.3).
 
-    Target UNICO net48 in questa fase. Il multi-target net48;net8.0 è X1.3c e richiede
-    prima X1.3b (estrazione delle classi Quartz dai servizi ASMX) e i successivi porting
-    degli endpoint che dipendono da System.Web.Services. Quartz 3.x è ora il provider del
-    job store persistente (task X2.2), ma il target net8 resta bloccato dagli ASMX legacy.
+    Il target net8 esclude l'infrastruttura SOAP ASMX legacy, mantenuta intatta su net48.
+    Gli endpoint verranno migrati separatamente con X3.3 e le UI WebForms restano legacy.
 
     Perché SDK-style già ora: il csproj classico dichiarava v4.5 senza targeting pack,
     quindi il progetto non si compilava su nessun sistema che non fosse Windows con il
@@ -14,7 +12,7 @@
     la build è riproducibile su Linux, macOS e Windows.
   -->
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFrameworks>net48;net8.0</TargetFrameworks>
     <AssemblyName>PollingClass</AssemblyName>
     <RootNamespace>PollingClass</RootNamespace>
     <LangVersion>7.3</LangVersion>
@@ -41,13 +39,13 @@
 
   <ItemGroup>
     <!-- API web e servizi SOAP legacy: presenti solo su .NET Framework (fatto P3) -->
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Web" Condition="'$(TargetFramework)' == 'net48'" />
+    <Reference Include="System.Web.Services" Condition="'$(TargetFramework)' == 'net48'" />
     <!-- Non implicito nei progetti SDK-style (fatto riscontrato in X1.2) -->
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.ComponentModel.DataAnnotations" Condition="'$(TargetFramework)' == 'net48'" />
+    <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == 'net48'" />
+    <Reference Include="System.Xml.Linq" Condition="'$(TargetFramework)' == 'net48'" />
+    <Reference Include="System.Data.DataSetExtensions" Condition="'$(TargetFramework)' == 'net48'" />
   </ItemGroup>
 
   <ItemGroup>

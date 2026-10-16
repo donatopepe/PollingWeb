@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+#if NETFRAMEWORK
 using System.Web;
+#endif
+#if NETFRAMEWORK
 using System.Web.Services;
+#endif
 using Database;
 using Database.TableInterface;
 using Database.Base;
@@ -20,11 +24,18 @@ namespace PollingClass
   /// <summary>
   /// Descrizione di riepilogo per LeggiFornitore
   /// </summary>
-  [WebService(Namespace = "http://tempuri.org/")]
-  [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+  #if NETFRAMEWORK
+    [WebService(Namespace = "http://tempuri.org/")]
+#endif
+  #if NETFRAMEWORK
+    [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+#endif
 // Per consentire la chiamata di questo servizio Web dallo script utilizzando ASP.NET AJAX, rimuovere il commento dalla riga seguente. 
 // [System.Web.Script.Services.ScriptService]
-  public class LeggiFornitore : System.Web.Services.WebService
+  public class LeggiFornitore
+#if NETFRAMEWORK
+  : System.Web.Services.WebService
+#endif
   {
     //private TableAdapterLogTaskService tbiLogTaskService;
     //private TableAdapterTaskService tbiTaskService;
@@ -56,7 +67,9 @@ namespace PollingClass
 
 
 
-    [WebMethod]
+    #if NETFRAMEWORK
+        [WebMethod]
+#endif
     public string FirstStartFornitori_nuovo(string codist, string idprocesso)
     {
       return FirstStartFornitori_nuovo(codist, idprocesso, false);
@@ -89,7 +102,9 @@ namespace PollingClass
     }
 
 
-    [WebMethod]
+    #if NETFRAMEWORK
+        [WebMethod]
+#endif
     public string LetturaForONETIME_nuovo(string codist, string idprocesso)
     {
       string messaggio = "";
