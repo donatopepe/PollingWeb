@@ -1494,7 +1494,29 @@ seconda volta: vale la pena ricordarlo, e l'ho annotato nel file stesso.
 il sito WebForms, non compilabile in CI (`MSB4249`, fatto `P13`). I due progetti si lanciano
 singolarmente; l'esecuzione unificata arriva con `X1.7`.
 
-**Prossimo.** `X1.3b` — estrazione della logica dei 4 ASMX e isolamento di `Prog_Quartz`, ora che
-esiste la rete di sicurezza (66 test) che `T1` doveva fornire.
+**Prossimo.** `X1.3b1` — separazione Quartz in `Fornitori_Scheduler`.
 
-**Blocchi.** `T0.13` in attesa della DDL dall'ambiente di origine. Nessun altro.
+**Blocchi.** `T0.13` in attesa della DDL dall'ambiente di origine.
+
+---
+
+## 2026-10-16T16:xxZ — X1.3b1 Separazione Fornitori_Scheduler/Quartz — DONE
+
+**Modifica.** Estratta la policy di composizione cron in `PollingClass/FornitoriSchedulePolicy.cs`; introdotto `IFornitoriSchedulingGateway` e implementazione Quartz 2.x in `PollingClass/FornitoriQuartzGateway.cs`; spostato il job Quartz in `PollingClass/JobFornitori.cs`. `Fornitori_Scheduler` conserva le firme esistenti e delega al gateway (costruttore parametrico disponibile per sostituzione/test). La policy conserva la forma cron esistente; l'adapter Quartz conserva identità, mappa dati, override e scheduling one-time/interval. Aggiunti test unitari per cron e range/validazione.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --nologo -v quiet
+Compilazione completata. Avvisi: 5. Errori: 0.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --nologo -v quiet
+Superato! Non superati: 0. Superati: 65. Ignorati: 1. Totale: 66.
+$ grep -nE '\\b(Quartz|IJob|StdSchedulerFactory|JobBuilder|TriggerBuilder|IScheduler)\\b' PollingClass/Prog_Quartz.cs
+(nessuna corrispondenza)
+$ git diff --check
+(exit 0)
+```
+
+**Limiti.** `PollingClass` resta `net48`; la build è stata eseguita su Linux con reference assemblies. Windows/macOS non verificati in locale. `PollingWeb.sln` non è stata compilata: il Website WebForms resta un blocker noto. La scansione dei 16 pattern riservati ha dato 0 match nei file tracciati e 0 nei blob raggiungibili.
+
+**Prossimo task:** `X1.3b2 — ImportFatture_Scheduler`.

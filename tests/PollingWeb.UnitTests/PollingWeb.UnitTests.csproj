@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Database\Database.csproj" />
+    <ProjectReference Include="..\..\PollingClass\PollingClass.csproj" />
   </ItemGroup>
 
 </Project>
