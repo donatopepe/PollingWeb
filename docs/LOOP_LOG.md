@@ -1591,7 +1591,42 @@ Totale test: 16; Ignorati: 16; exit 0.
 
 Il test persistente crea job/trigger sintetici sul DB Quartz, riavvia lo scheduler con lo stesso nome e verifica il recupero dallo store SQL, poi pulisce i record. L'esecuzione passa dal test d'integrazione (`LeastPrivilegeTests`), non dalla suite unit senza connessione. Nessuna immagine Docker aggiunta. Windows/macOS non verificati localmente; la soluzione WebForms non compilata. Decisioni/configuration sono registrate in `docs/adr/0007-quartz-3-persistent-store.md`.
 
-**Prossimo task:** `X1.3c — multi-target net48;net8.0 e misura delle righe compilate`.
+**Prossimo task:** `X1.1 — Layout soluzione + Directory.Build.props`.
+
+---
+
+## 2026-10-16T18:40Z — X1.1 Layout props/package management — DONE
+
+**Problema riprodotto / atteso.** Prima: i tre file di build centralizzati non esistevano; LangVersion/Nullable e versioni dei pacchetti erano duplicate nei csproj. Dopo: le proprietà e versioni devono derivare dai file root; restore/build dei progetti SDK deve restare funzionante; la soluzione deve elencare solo i progetti effettivamente esistenti.
+
+**Modifiche.** Aggiunti `Directory.Build.props` (LangVersion, Nullable, Deterministic, Version), `Directory.Packages.props` (Central Package Management per i 9 package ID effettivamente usati) e `Directory.Build.targets` (ContinuousIntegrationBuild quando `CI=true`). Rimossi i valori duplicati dai quattro csproj SDK; aggiornato il moniker Website in soluzione a .NET Framework 4.8; allineato il commento test al multi-target già disponibile; escluso `.codegraph/` locale da Gitignore.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ dotnet msbuild Database/Database.csproj -getProperty:LangVersion -getProperty:Version -getProperty:Nullable -getProperty:Deterministic
+LangVersion=7.3; Version=1.0.0; Nullable=disable; Deterministic=true
+$ dotnet sln PollingWeb.sln list
+Database, PollingClass, PollingWeb (Website), PollingWeb.IntegrationTests, PollingWeb.UnitTests
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --nologo -v quiet
+$ dotnet build Database/Database.csproj -f net48 --no-restore --nologo -v quiet
+$ dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --no-restore --nologo -v quiet
+Tutte le quattro build: exit 0, 0 errori, 0 avvisi.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+98 passati, 2 ignorati, 0 falliti.
+$ dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet
+16 ignorati, 0 falliti (DB non configurato in questa esecuzione).
+$ dotnet restore PollingWeb.sln --nologo
+exit 1: MSB4249 per il Website WebForms, limite noto pre-X1.7.
+$ git diff --check
+exit 0.
+```
+
+La soluzione contiene i progetti esistenti: i due classici test e le due librerie, oltre al sito Website legacy. Non si dichiara build verde dell'intera soluzione; Windows/macOS non verificati localmente.
+
+**Prossimo task:** `X1.4 — Configurazione astratta`.
+
 
 ---
 

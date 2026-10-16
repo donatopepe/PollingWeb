@@ -16,23 +16,19 @@
         # oppure, che fa entrambe le cose:
         ./scripts/test-integration.sh
 
-    Nota: nel commento non compare l'opzione con i due trattini, perché due trattini
-    consecutivi non sono ammessi in un commento XML (MSB4025). È lo stesso inciampo
-    già corretto in Database/app.config durante T0.2.
+    Nota: i commenti XML evitano doppi trattini consecutivi (MSB4025).
   -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>7.3</LangVersion>
-    <Nullable>disable</Nullable>
     <IsPackable>false</IsPackable>
     <RootNamespace>PollingWeb.IntegrationTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
-    <PackageReference Include="xunit" Version="2.9.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
-    <PackageReference Include="Quartz" Version="3.13.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Quartz" />
   </ItemGroup>
 
   <ItemGroup>

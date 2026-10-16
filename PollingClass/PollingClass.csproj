@@ -15,26 +15,23 @@
     <TargetFrameworks>net48;net8.0</TargetFrameworks>
     <AssemblyName>PollingClass</AssemblyName>
     <RootNamespace>PollingClass</RootNamespace>
-    <LangVersion>7.3</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>disable</Nullable>
-    <Deterministic>true</Deterministic>
     <!-- Non genera un file di configurazione: la config arriva dall'applicazione ospite -->
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Assembly di riferimento di .NET Framework: build su qualunque sistema operativo -->
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
     <!-- Un solo provider dati, come in Database (ADR 0004 §1) -->
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
     <!-- Quartz 3.x: JobStoreTX persistente su SQL Server, task X2.2 -->
-    <PackageReference Include="Quartz" Version="3.13.1" />
-    <PackageReference Include="Quartz.Serialization.Json" Version="3.13.1" />
+    <PackageReference Include="Quartz" />
+    <PackageReference Include="Quartz.Serialization.Json" />
     <!-- Lettura/scrittura XLSX: cross-platform, MIT. Sostituisce la precedente
          dipendenza XLSX (LGPL, Windows-only) rimossa in X1.3. -->
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.7.1" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
   </ItemGroup>
 
   <ItemGroup>

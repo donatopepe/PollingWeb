@@ -14,10 +14,7 @@
     <TargetFrameworks>net48;net8.0</TargetFrameworks>
     <AssemblyName>Database</AssemblyName>
     <RootNamespace>Database</RootNamespace>
-    <LangVersion>7.3</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>disable</Nullable>
-    <Deterministic>true</Deterministic>
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
     <!--
       SYSLIB0051: proviene solo da Database/dtsTabelle.Designer.cs, il DataSet tipizzato
@@ -40,11 +37,11 @@
 
   <ItemGroup>
     <!-- Assembly di riferimento di .NET Framework: permettono il target net48 su Linux -->
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
     <!-- Un solo provider dati per entrambi i target (ADR 0004 §1) -->
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
     <!-- ApplicationSettingsBase e ConfigurationManager per net8.0 -->
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
 
   <ItemGroup>

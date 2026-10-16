@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 22 / 74 task verificati
+- **Stato complessivo:** 23 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -247,7 +247,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 > Assorbe i task T1.1–T1.7 della revisione 1 (mappatura in nota a fine fase).
 
-- [ ] **X1.1 — Layout soluzione + `Directory.Build.props`**
+- [x] **X1.1 — Layout soluzione + `Directory.Build.props`**
   DoD: `Directory.Build.props` centralizza `LangVersion`, `Nullable`, `Deterministic` e la
   versione; `Directory.Packages.props` (Central Package Management); `Directory.Build.targets`
   per regole comuni; `PollingWeb.sln` allineata ai **progetti esistenti**.
@@ -711,3 +711,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | 2026-10-16 | 26 | X2.2 Quartz 3.13.1 ADO store persistente | `[x]` | Build net48: 0 errori, 5 warning; unit 98 passati/2 ignorati; `POLLING_DB_$1=[REDACTED] POLLING_APP_$1=[REDACTED] ./scripts/test-integration.sh` → deploy, autotest privilegi e 16/16 test; test dedicato ha registrato trigger, riavviato scheduler e verificato il recupero dallo store SQL. Schema legacy senza INSERT storici; provider Microsoft.Data.SqlClient. |
 | 2026-10-16 | 27 | X1.3c PollingClass multi-target | `[x]` | Build net8.0 e net48 → 0 errori, 5 avvisi ciascuno; unit 98/2 ignorati; 4.178/4.298 righe non vuote compilabili net8 (97,2%); esclusi solo metadata/base ASMX condizionali; diff-check pulito. Windows/macOS non verificati localmente. |
+| 2026-10-16 | 28 | X1.1 layout/props/central packages | `[x]` | Root props restituiscono LangVersion 7.3, Version 1.0.0, Nullable disable, Deterministic true; central versions attive con restore per i quattro csproj SDK; build Database e PollingClass net48/net8 0 errori; unit 98/2 ignored, integrazione 16 ignorati senza DB; `dotnet sln list` elenca i 5 progetti presenti. La soluzione mantiene il Website legacy; build completa fuori scope prima di X1.7. |
