@@ -1693,6 +1693,41 @@ Il login applicativo non è configurato, quindi i 9 test che lo richiedono sono 
 
 **Prossimo task:** `X1.6 — CI multi-OS`.
 
+---
+
+## 2026-10-16T20:00Z — X1.6 CI multi-OS — DONE
+
+**Baseline.** `.github/workflows/ci.yml`, `actionlint`, `act` e `yamllint` assenti. Evidenza attesa: workflow valido con matrix Ubuntu/macOS/Windows, build entrambi i TFM delle librerie, test unit, integration SQL Server Ubuntu.
+
+**Modifica.** Aggiunto `.github/workflows/ci.yml`: job build/test su `ubuntu-latest`, `macos-latest`, `windows-latest`, setup .NET 8, restore, build Database/PollingClass `net48` + `net8.0` e unit tests. Job SQL Server su Ubuntu usa il service container e i secrets configurati per il deploy/test; il job è condizionato alla presenza delle due credenziali necessarie, senza fallback hardcoded.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ python3 -c 'import yaml; d=yaml.safe_load(open(".github/workflows/ci.yml")); print(d["jobs"]["build-and-test"]["strategy"]["matrix"]["os"]); print(list(d["jobs"]))'
+YAML parse OK; matrix [ubuntu-latest, macos-latest, windows-latest]; jobs build-and-test, integration.
+$ dotnet restore tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj
+exit 0.
+$ dotnet build Database/Database.csproj -f net48 --no-restore --configuration Release
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --configuration Release
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --no-restore --configuration Release
+$ dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --configuration Release
+Tutte le build: exit 0, 0 errori.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --configuration Release
+101 passati, 2 ignorati, 0 falliti.
+$ dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --configuration Release
+exit 0, 0 errori.
+$ dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --configuration Release
+17 ignorati, 0 falliti (nessuna credenziale DB esposta nell'ambiente di questa verifica).
+$ git diff --check
+exit 0.
+```
+
+Non eseguiti `act`/`actionlint` né run remoto; macOS e Windows non verificati localmente, la CI multi-OS va confermata dal run GitHub successivo.
+
+**Prossimo task:** `X1.7 — Website project legacy fuori dal build CI`.
+
+
 
 
 

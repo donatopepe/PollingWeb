@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and unit tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore libraries and unit tests
+        run: |
+          dotnet restore Database/Database.csproj
+          dotnet restore PollingClass/PollingClass.csproj
+          dotnet restore tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj
+      - name: Build Database (net48 and net8.0)
+        run: |
+          dotnet build Database/Database.csproj -f net48 --no-restore --configuration Release
+          dotnet build Database/Database.csproj -f net8.0 --no-restore --configuration Release
+      - name: Build PollingClass (net48 and net8.0)
+        run: |
+          dotnet build PollingClass/PollingClass.csproj -f net48 --no-restore --configuration Release
+          dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --configuration Release
+      - name: Unit tests
+        run: dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --configuration Release
+
+  integration:
+    name: SQL Server integration (Ubuntu)
+    if: ${{ secrets.POLLING_DB_PASSWORD != '' && secrets.POLLING_APP_PASSWORD != '' }}
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_PID: Developer
+          MSSQL_SA_PASSWORD: ${{ secrets.POLLING_DB_PASSWORD }}
+        ports:
+          - 14330:1433
+        options: >-
+          --health-cmd "timeout 1 bash -c '</dev/tcp/localhost/1433' || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Prepare synthetic database schema
+        env:
+          POLLING_DB_SERVER: localhost,14330
+          POLLING_DB_USER: sa
+          POLLING_DB_PASSWORD: ${{ secrets.POLLING_DB_PASSWORD }}
+          POLLING_APP_PASSWORD: ${{ secrets.POLLING_APP_PASSWORD }}
+        run: |
+          dotnet restore tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj
+          ./scripts/db-deploy.sh --with-seed
+      - name: Integration tests
+        env:
+          POLLING_DB_SERVER: localhost,14330
+          POLLING_DB_USER: sa
+          POLLING_DB_PASSWORD: ${{ secrets.POLLING_DB_PASSWORD }}
+          POLLING_APP_PASSWORD: ${{ secrets.POLLING_APP_PASSWORD }}
+        run: dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --configuration Release
