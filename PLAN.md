@@ -6,10 +6,11 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 15 / 70 task verificati
-- **Revisione piano:** 4 (2026-10-16) — `X1.3` ridotto alla parte verificabile; il multi-target si
-  scompone in `X1.3b` (dopo `T1`) e `X1.3c` (dopo `X1.3b` e `X2.2`); introdotta la **regola
-  anti-svuotamento**. Motivo in [`docs/adr/0005`](docs/adr/0005-multitarget-perimeter-and-refactoring-safety-net.md)
+- **Stato complessivo:** 15 / 74 task verificati
+- **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
+  (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
+  per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
+  Motivo in [`docs/adr/0006`](docs/adr/0006-quartz-coupling-measurement-correction.md)
 - **Revisione piano:** 3 (2026-10-16) — `X1.1` ristretto e spostato dopo `X1.2`/`X1.3`;
   DoD di `X1.2` e `X1.5` corrette. Motivo in [`docs/adr/0004`](docs/adr/0004-build-layout-and-multitargeting.md)
 - **Prompt operativo:** [`PROMPT.md`](PROMPT.md)
@@ -277,21 +278,24 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   dall'evidenza, perché documentarne la rimozione fa parte del compito.
   *Ristretto da ADR 0005: il 55% dell'assembly (2.905 righe su 5.246 — tutti i flussi di
   dominio) non è compilabile per net8 per via di Quartz 2.1.2 e `System.Web.Services`.*
-- [ ] **X1.3b — Estrazione della logica dei 4 ASMX e isolamento di `Prog_Quartz`**
-  DoD: la logica di `Import_Budget`, `ImportFatture`, `LeggiFornitore`, `Ordini_Sap` è in classi
-  di servizio platform-neutral; i wrapper `.asmx` restano deleganti e compilano solo per net48;
-  `Prog_Quartz` è dietro un'interfaccia, così `X2.2` può sostituire Quartz 3.x senza toccare i
-  chiamanti.
-  Evidenza: build net48 → 0 errori; test unit per ogni classe di servizio estratta, verdi.
-  ⚠️ **Prerequisito: `T1`.** Sono 2.201 righe di codice stateful (campi `codice_istituto`,
-  `IdProcesso`, `OneTime` condivisi fra superficie web e logica): senza test, una regressione di
-  comportamento non sarebbe rilevabile da «compila». ADR 0005 §1.3.
+- [ ] **X1.3b1 — Separazione schedulazione/Quartz in `Fornitori_Scheduler`**
+  DoD: il calcolo della schedulazione (lettura di `TaskService`, espressione cron, giorni) è in
+  una classe platform-neutral; l'invocazione di Quartz è in un adattatore net48-only; l'interfaccia
+  verso i chiamanti è dichiarata e non cita simboli Quartz. **Implementazione di riferimento** per
+  `X1.3b2`–`X1.3b5` (ADR 0006 §3).
+  Evidenza: `dotnet build PollingClass/PollingClass.csproj -f net48` → 0 errori; test unitari del
+  calcolo cron (che prima non era testabile) verdi; `git grep -nE 'Quartz|IJob|StdSchedulerFactory'
+  -- PollingClass` = 0 nei file di dominio.
+- [ ] **X1.3b2 — `ImportFatture_Scheduler`** — stessa DoD e stesso pattern di `X1.3b1`.
+- [ ] **X1.3b3 — `ImportBudget_Scheduler`** — idem.
+- [ ] **X1.3b4 — `Ordini_Scheduler`** — idem, con due trigger (invio ed esito).
+- [ ] **X1.3b5 — `SQL01_Scheduler`** — idem.
 - [ ] **X1.3c — `PollingClass` multi-target `net48;net8.0`**
   DoD: `TargetFrameworks=net48;net8.0`; entrambi i target compilano.
-  Evidenza: build per entrambi i TFM → 0 errori; **righe compilate per net8 / righe totali ≥ 95%**,
-  con l'elenco esplicito di eventuali esclusioni (regola anti-svuotamento, ADR 0005 §2.3).
-  ⚠️ **Prerequisiti: `X1.3b` e `X2.2`** (finché Quartz 2.x è una dipendenza, il 55% del codice
-  non può stare nel target net8).
+  Evidenza: build per entrambi i TFM → 0 errori; **righe compilate per net8 / righe totali ≥ 90%**
+  (≥ 95% dopo `X2.2`, quando Quartz 3.x è disponibile anche su net8), con l'elenco esplicito di
+  eventuali esclusioni (regola anti-svuotamento, ADR 0005 §2.3, soglia rivista in ADR 0006 §2).
+  ⚠️ **Prerequisiti: `X1.3b1`–`X1.3b5` e `X2.2`**.
   ⚠️ **Questo task è l'unico che può asserire «`PollingClass` è cross-platform»**: fino a
   `X1.3c` tale affermazione non è vera.
 - [ ] **X1.4 — Configurazione astratta**
@@ -548,11 +552,11 @@ T0.2 → T0.3 → T0.4 → T0.6 → T0.11 → T0.9
   → T0.7 → T0.12 → T0.8              # schema unico, schema eProcurement, deploy riproducibile
   #   T0.13 (4 tabelle Tab_SC00S100_*) e' BLOCCATO in attesa della DDL dall'ambiente di origine:
   #   non blocca il resto della pipeline, va sbloccato quando la DDL e' disponibile.
-  → X1.2 → X1.3 → T1 → X1.3b → X2.2 → X1.3c → X1.1 → X1.4 → X1.5 → X1.6 → X1.7
-  #   ordine rivisto da ADR 0004 e 0005:
+  → X1.2 → X1.3 → T1 → X1.3b1 → X1.3b2 → X1.3b3 → X1.3b4 → X1.3b5 → X2.2 → X1.3c → X1.1 → X1.4 → X1.5 → X1.6 → X1.7
+  #   ordine rivisto da ADR 0004, 0005 e 0006:
   #     X1.1 dopo X1.2/X1.3  -> i props hanno senso solo su progetti SDK-style
-  #     T1 prima di X1.3b    -> il refactoring dei 4 ASMX (2.201 righe) richiede i test
-  #     X2.2 prima di X1.3c  -> Quartz 2.x tiene il 55% del codice fuori dal target net8
+  #     T1 prima di X1.3b*   -> il refactoring delle classi di schedulazione richiede i test
+  #     X2.2 prima di X1.3c  -> Quartz 2.x tiene le classi IJob fuori dal target net8
   #     X1.6/X1.7 pretendono la soluzione verde: e' li' che quell'evidenza diventa vera
   → C1 → C2 → C3 → C4 → C5 → C6 → C7 → C8 → C9 → C10
   → T1 → T2 → T3 → T4
@@ -668,3 +672,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 17 | revisione 4 del piano (ADR 0005) | `[x]` | misurato: **2.905 righe su 5.246 (55%)** di `PollingClass` non compilabili per net8 (Quartz 2.x + ASMX). `X1.3` ristretto; nuovi `X1.3b` (dopo `T1`) e `X1.3c` (dopo `X2.2`); introdotta la regola anti-svuotamento (righe net8/totali ≥ 95%) |
 | 2026-10-16 | 18 | X1.3 PollingClass SDK-style net48 + rimozione LGPL | `[x]` | `dotnet build PollingClass/PollingClass.csproj -f net48` → **0 errori** (5 avvisi preesistenti) su Linux; `remotion\|linqtoexcel` in codice/progetti/config → **0**; `WindowsBase` e `HintPath` verso `PollingWeb/Bin` → 0; `System.Data.SqlClient` in `PollingClass` → 0; Quartz e Common.Logging ora da NuGet |
 | 2026-10-16 | 19 | T1 infrastruttura test | `[x]` | **unit 50 superati / 1 ignorato** (difetto `C6` documentato); **integrazione 16 superati** con DB e **16 ignorati** senza DB (skip automatico, 0 falliti); `scripts/test-integration.sh` end-to-end → deploy + autotest permessi + test, tutto verde; `dotnet sln list` mostra 5 progetti |
+| 2026-10-16 | 20 | revisione 5 del piano (ADR 0006) | `[x]` | corretta la **mia** misura dell'ADR 0005: l'accoppiamento reale a Quartz è ~8% dell'assembly (215 righe di API su 1.430 righe di classi coinvolte), non il 55% dichiarato contando i *file*. Soglia `X1.3c` da 95% a **90%**; `X1.3b` scomposto in `X1.3b1`–`X1.3b5` |
