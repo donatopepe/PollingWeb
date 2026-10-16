@@ -1,13 +1,20 @@
 using System;
+using PollingClass;
 using System.Threading.Tasks;
 using Quartz;
-using PollingClass;
 using Xunit;
 
 namespace PollingWeb.UnitTests
 {
     public class QuartzPersistentSchedulerTests
     {
+        [Fact]
+        public void Quartz_connection_must_be_complete_before_scheduler_startup()
+        {
+            Assert.Throws<ArgumentException>(() => QuartzSchedulerFactory.ValidateQuartzConnectionString("not-a-connection-string"));
+            Assert.Throws<InvalidOperationException>(() => QuartzSchedulerFactory.ValidateQuartzConnectionString("Database=Quartz;"));
+        }
+
         [Fact]
         public void Scheduler_requires_explicit_database_connection()
         {

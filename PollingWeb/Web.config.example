@@ -59,12 +59,12 @@
     -->
     <add name="PollingEprocurement"
          connectionString="Server=${POLLING_DB_SERVER};Database=eProcurement;UID=${POLLING_DB_USER};$1=[REDACTED];"
-         providerName="System.Data.EntityClient"/>
+         providerName="System.Data.SqlClient"/>
 
     <!-- Database applicativo: TaskService, LogTaskService, TargetSC00G100, DimProcessi, ... -->
     <add name="PollingConnectionString"
          connectionString="Server=${POLLING_DB_SERVER};Database=Polling;UID=${POLLING_DB_USER};$1=[REDACTED];"
-         providerName="System.Data.EntityClient"/>
+         providerName="System.Data.SqlClient"/>
 
     <!-- Variante usata da System.Data.SqlClient diretto (sintassi in minuscolo supportata). -->
     <add name="PollingConnectionStringDirect"

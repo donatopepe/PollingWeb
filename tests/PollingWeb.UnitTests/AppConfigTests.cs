@@ -70,6 +70,25 @@ namespace PollingWeb.UnitTests
         }
 
         [Fact]
+        public void Connection_string_validation_requires_server_database_and_valid_syntax()
+        {
+            Assert.Throws<System.Configuration.ConfigurationErrorsException>(() => new AppConfig(
+                connectionStrings: new Dictionary<string, string> { ["PollingConnectionString"] = "Database=Polling;" },
+                useLegacyConfiguration: false).GetConnectionString("PollingConnectionString"));
+            Assert.Throws<System.Configuration.ConfigurationErrorsException>(() => new AppConfig(
+                connectionStrings: new Dictionary<string, string> { ["PollingConnectionString"] = "not-a-connection-string" },
+                useLegacyConfiguration: false).GetConnectionString("PollingConnectionString"));
+        }
+
+        [Fact]
+        public void Legacy_provider_name_is_validated()
+        {
+            Assert.Throws<System.Configuration.ConfigurationErrorsException>(() => AppConfig.ValidateProviderName(
+                "PollingConnectionString", "System.Data.EntityClient"));
+            AppConfig.ValidateProviderName("PollingConnectionString", "Microsoft.Data.SqlClient");
+        }
+
+        [Fact]
         public void Missing_value_returns_null_without_legacy_configuration()
         {
             var config = new AppConfig(useLegacyConfiguration: false);

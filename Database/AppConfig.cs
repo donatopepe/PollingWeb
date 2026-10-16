@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using System.Configuration;
+using Microsoft.Data.SqlClient;
 
 namespace Database.Configuration
 {
@@ -39,22 +40,49 @@ namespace Database.Configuration
             return builder.Build();
         }
 
+        public static void ValidateProviderName(string name, string providerName)
+        {
+            if (providerName != null && !string.Equals(providerName, "Microsoft.Data.SqlClient", StringComparison.Ordinal)
+                && !string.Equals(providerName, "System.Data.SqlClient", StringComparison.Ordinal))
+                throw new ConfigurationErrorsException("Connection string '" + name + "' must use the SQL Server provider.");
+        }
+
+        private static string ValidateSqlConnectionString(string name, string value, string providerName)
+        {
+            ValidateProviderName(name, providerName);
+            SqlConnectionStringBuilder builder;
+            try
+            {
+                builder = new SqlConnectionStringBuilder(value);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new ConfigurationErrorsException("Connection string '" + name + "' is invalid.", ex);
+            }
+
+            if (string.IsNullOrWhiteSpace(builder.DataSource) || string.IsNullOrWhiteSpace(builder.InitialCatalog))
+                throw new ConfigurationErrorsException("Connection string '" + name + "' must specify server and database.");
+            return value;
+        }
+
         public string GetConnectionString(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("A connection string name is required.", nameof(name));
             string value;
-            if (connectionStrings.TryGetValue(name, out value) && !string.IsNullOrWhiteSpace(value)) return value;
+            if (connectionStrings.TryGetValue(name, out value) && !string.IsNullOrWhiteSpace(value))
+                return ValidateSqlConnectionString(name, value, null);
 
             value = configuration?["ConnectionStrings:" + name];
-            if (!string.IsNullOrWhiteSpace(value)) return value;
+            if (!string.IsNullOrWhiteSpace(value)) return ValidateSqlConnectionString(name, value, null);
 
             value = Environment.GetEnvironmentVariable("ConnectionStrings__" + name);
-            if (!string.IsNullOrWhiteSpace(value)) return value;
+            if (!string.IsNullOrWhiteSpace(value)) return ValidateSqlConnectionString(name, value, null);
 
             if (useLegacyConfiguration)
             {
                 var setting = System.Configuration.ConfigurationManager.ConnectionStrings[name];
-                if (setting != null && !string.IsNullOrWhiteSpace(setting.ConnectionString)) return setting.ConnectionString;
+                if (setting != null && !string.IsNullOrWhiteSpace(setting.ConnectionString))
+                    return ValidateSqlConnectionString(name, setting.ConnectionString, setting.ProviderName);
             }
             return null;
         }

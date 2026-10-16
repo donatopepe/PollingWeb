@@ -9,15 +9,27 @@ namespace PollingClass
     public static class QuartzSchedulerFactory
     {
         public static IAppConfig Configuration { get; set; } = new AppConfig();
+        public static void ValidateQuartzConnectionString(string value)
+        {
+            var builder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(value);
+            if (string.IsNullOrWhiteSpace(builder.DataSource) || string.IsNullOrWhiteSpace(builder.InitialCatalog))
+                throw new InvalidOperationException("Quartz SQL connection must specify server and database.");
+        }
+
         public static IScheduler Create(string connectionString = null, string instanceName = "PollingWebScheduler")
         {
             if (string.IsNullOrWhiteSpace(instanceName))
                 throw new ArgumentException("Scheduler instance name is required.", nameof(instanceName));
             var resolved = connectionString;
+            if (!string.IsNullOrWhiteSpace(resolved))
+                ValidateQuartzConnectionString(resolved);
             if (string.IsNullOrWhiteSpace(resolved))
             {
-                resolved = Environment.GetEnvironmentVariable("POLLING_QUARTZ_CONNECTION")
-                    ?? Configuration.GetConnectionString("QuartzConnectionString");
+                resolved = Environment.GetEnvironmentVariable("POLLING_QUARTZ_CONNECTION");
+                if (string.IsNullOrWhiteSpace(resolved))
+                    resolved = Configuration.GetConnectionString("QuartzConnectionString");
+                else
+                    ValidateQuartzConnectionString(resolved);
             }
             if (string.IsNullOrWhiteSpace(resolved))
                 throw new InvalidOperationException("Quartz connection is not configured. Set POLLING_QUARTZ_CONNECTION or QuartzConnectionString.");

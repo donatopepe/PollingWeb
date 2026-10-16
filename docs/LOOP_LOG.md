@@ -1944,6 +1944,17 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Prossimo task:** `C7 — Config validata all'avvio`.
 
+---
+
+## 2026-10-17T11:30Z — C7 Config validata all'avvio — COMPLETATO
+
+**Baseline:** `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, errore `MSB4249` sul Website WebForms; limite già noto e documentato. `Web.config` e `Web.config.example` contenevano provider `System.Data.EntityClient` per connection string SQL plain.
+
+**Modifica:** `Database/AppConfig.cs` valida i provider legacy SQL Server e syntax/attributi server+database per ogni fonte di connection string; `PollingClass/QuartzSchedulerFactory.cs` valida connection string esplicite Quartz prima di creare lo scheduler. Corrette le due voci DB in `PollingWeb/Web.config` e `.example` a `System.Data.SqlClient`; nessun host default.
+
+**Verifica reale:** `dotnet build Database/Database.csproj -f net8.0` e `-f net48` → exit 0; `dotnet build PollingClass/PollingClass.csproj -f net8.0` e `-f net48` → exit 0. `dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet` → superato, 114 passati/2 ignorati. `git diff --check` → exit 0. La build solution resta bloccata da MSB4249 (WebForms legacy).
+
+
 
 
 
