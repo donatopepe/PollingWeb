@@ -40,7 +40,8 @@ SAP ──file──► cartella sorvegliata ──► motore di polling ──�
 | `Database` | accesso dati (DataSet tipizzati, TableAdapter, filtri) | .NET Framework 4.8 → **multi-target `net48;net8.0` in corso** |
 | `PollingClass` | logica di dominio: parser tracciati, flussi, job, email | idem |
 | `PollingWeb` | interfaccia di amministrazione (11 pagine + 4 web service ASMX) | ASP.NET WebForms — **legacy**, in conversione a Razor Pages |
-| `sql/PollingDB/` | schema SQL Server del database applicativo (tabelle, viste, procedure, funzioni, security) | T-SQL — **fonte unica di verità** |
+| `sql/PollingDB/` | schema del database applicativo (9 tabelle, 1 vista, 3 funzioni, 8 procedure, security) | T-SQL — **fonte unica di verità** |
+| `sql/eProcurement/` | schema del database di acquisto (15 tabelle, 1 vista, 1 funzione) | T-SQL |
 | `sql/Quartz/` | schema del job store ADO di Quartz.NET | T-SQL |
 | `scripts/db-deploy.sh` | applica lo schema a qualunque istanza SQL Server, senza Visual Studio | Bash + `sqlcmd` |
 | `sql/` | schema del job store Quartz e, a regime, fonte unica dello schema | T-SQL |
@@ -78,7 +79,7 @@ PROMPT.md          prompt operativo del loop di lavorazione
 | [`docs/SECURITY-FINDINGS.md`](docs/SECURITY-FINDINGS.md) | inventario di sicurezza |
 | [`docs/RELEASING.md`](docs/RELEASING.md) | rilascio, record di audit, checklist |
 | [`sql/README.md`](sql/README.md) | stato dello schema SQL e come applicarlo |
-| [`sql/eProcurement/README.md`](sql/eProcurement/README.md) | schema **mancante**: il repository non è distribuibile senza (task `T0.12`) |
+| [`sql/eProcurement/README.md`](sql/eProcurement/README.md) | schema recuperato in sola DDL, con i controlli anti-dati eseguiti |
 | [`docs/adr/0001-sql-schema-source-of-truth.md`](docs/adr/0001-sql-schema-source-of-truth.md) | perché `sql/` è la fonte unica e perché i progetti SSDT non lo sono |
 | [`samples/README.md`](samples/README.md) | dati sintetici e regole per aggiungerne |
 
@@ -96,12 +97,17 @@ Lo **schema del database è deployabile e verificato**:
 docker compose up -d                                    # SQL Server 2022, cross-platform
 POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --with-seed
 #   exit 0, idempotente (verificato su due esecuzioni consecutive)
-#   Polling: 11 tabelle, 1 vista, 3 funzioni, 8 procedure
-#   Quartz : 11 tabelle QRTZ_*
+#   Polling     :  9 tabelle, 1 vista, 3 funzioni, 8 procedure
+#   eProcurement: 15 tabelle, 1 vista, 1 funzione, 5 FK, 22 default
+#   Quartz      : 11 tabelle QRTZ_*
 ```
 
-⚠️ Il database `eProcurement` resta **vuoto**: il suo schema non è versionato
-(16 oggetti su 19 referenziati dal codice). Vedi [`sql/eProcurement/README.md`](sql/eProcurement/README.md).
+Lo schema completo è versionato in [`sql/`](sql/README.md) e il deploy è idempotente:
+due esecuzioni consecutive danno lo stesso risultato.
+
+⚠️ Restano **4 tabelle** usate da `ParserFatture.cs` (`Tab_SC00S100_*`) che non esistono in
+nessuna fonte disponibile: vanno recuperate dall'ambiente di origine. Vedi
+[`sql/README.md`](sql/README.md).
 
 ## Stato della build (verificato, non ipotetico)
 

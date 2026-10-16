@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 10 / 66 task verificati
+- **Stato complessivo:** 11 / 68 task verificati
 - **Prompt operativo:** [`PROMPT.md`](PROMPT.md)
 - **Log iterazioni:** [`docs/LOOP_LOG.md`](docs/LOOP_LOG.md)
 
@@ -188,7 +188,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   DoD: una sola fonte di verità per lo schema (`sql/PollingDB/`, `sql/eProcurement/`, `sql/Quartz/`),
   `DatabaseSQL/` e `PollingDB/` consolidati; ADR `docs/adr/0001-sql-schema-source-of-truth.md`.
   Evidenza: deploy idempotente su container con exit 0.
-- [ ] **T0.12 — Recupero dello schema `eProcurement` (solo DDL)**
+- [x] **T0.12 — Recupero dello schema `eProcurement` (solo DDL)**
   DoD: gli oggetti `eProcurement` referenziati dal codice sono versionati in `sql/eProcurement/`.
   Estrazione **solo DDL** dallo snapshot nel record di audit offline, scartando integralmente
   ogni `INSERT`; verifica che il risultato non contenga dati reali né pattern del record di audit;
@@ -197,6 +197,15 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   Evidenza: `sql/eProcurement/` contiene ≥ 16 oggetti; `scripts/db-deploy.sh` mostra
   `tabelle=N>0` su `eProcurement`; scansione dei pattern di audit sul nuovo contenuto = 0;
   ADR 0001 §4 aggiornata (A1, A2 chiusi).
+- [ ] **T0.13 — Recupero delle 4 tabelle `Tab_SC00S100_*`**
+  DoD: la DDL di `Tab_SC00S100_1Ord`, `Tab_SC00S100_1Ord_R`, `Tab_SC00S100_2Fatt`,
+  `Tab_SC00S100_2Fatt_R` è versionata in `sql/eProcurement/`. Sono usate da
+  `PollingClass/ParserFatture.cs` e non esistono in nessuno schema versionato **né nello
+  snapshot di origine** (ADR 0001 §4, A6): la DDL va recuperata dall'ambiente di origine.
+  Evidenza: 4 file presenti; deploy con `tabelle=19`; scansione anti-dati = 0.
+  ⚠️ **Richiede accesso all'ambiente di origine del cliente.** Se non è disponibile, il task
+  va marcato `[!]` con il motivo, non chiuso a intuito: ricostruire colonne e tipi dai soli
+  riferimenti nel codice sarebbe congetturale.
 - [ ] **T0.8 — Script di deploy DB riproducibile**
   DoD: `scripts/db-deploy.sh` crea `Polling`, `eProcurement`, `Quartz` su un'istanza SQL Server
   con utente applicativo a privilegi minimi; niente utenti/password reali; idempotente.
@@ -359,6 +368,14 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   DoD: `MailSede` autentica realmente via configurazione; invio testato con server finto
   (Papercut/SMTP4Dev in Docker); nessuna credenziale placeholder.
   Evidenza: integration test di invio su server SMTP containerizzato.
+- [ ] **C11 — Qualificare `RDA_Esiti` in `Esiti_Ordini_SAP.sql`**
+  DoD: l'istruzione `INSERT INTO RDA_Esiti` (non qualificata) è corretta. La procedura gira
+  sulla connessione applicativa ma la tabella risiede in `eProcurement`: a runtime fallisce con
+  `Invalid object name 'RDA_Esiti'`, e il difetto non emerge alla creazione per name resolution
+  differita. Scegliere con evidenza fra qualificare (`eProcurement.dbo.RDA_Esiti`) o spostare
+  la tabella, e documentare la scelta.
+  Evidenza: test di integrazione che esegue la procedura su schema deployato senza errori.
+  Fonte: ADR 0001 §4 (A7), scoperto in `T0.12`.
 
 ### Fase 6 — Test (T)
 
@@ -470,7 +487,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 ```
 T0.2 → T0.3 → T0.4 → T0.6 → T0.11 → T0.9
-  → T0.7 → T0.12 → T0.8             # schema unico, schema eProcurement, deploy riproducibile
+  → T0.7 → T0.12 → T0.13 → T0.8       # schema unico, schemi mancanti, deploy riproducibile
   → X1.1 → X1.2 → X1.3 → X1.4 → X1.5 → X1.6 → X1.7
   → C1 → C2 → C3 → C4 → C5 → C6 → C7 → C8 → C9 → C10
   → T1 → T2 → T3 → T4
@@ -578,3 +595,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 9 | T0.10 riscrittura storia Git | `[x]` | 164/164 blob senza pattern; 1 commit raggiungibile; `.git` 17,03 MiB → 608 KiB; `git bundle verify` OK |
 | 2026-10-16 | 10 | T0.9 disclosure + rotazione | `[x]` | `SECURITY.md` (7 sezioni) e `docs/SECURITY-FINDINGS.md` §5; 11 link relativi verificati esistenti; `git grep` pattern di audit su README/SECURITY/LICENSE/NOTICE → 0 |
 | 2026-10-16 | 11 | T0.7 schema unico + ADR 0001 | `[x]` | 2 alberi SQL identici (26 file) → 1; `DatabaseSQL/` eliminato (0 `<Build Include>`); deploy `recreate` due volte → exit 0; Polling 11 tabelle/1 vista/3 funzioni/8 procedure, Quartz 11 tabelle QRTZ_; `ViewTaskService` → 3 righe; `eProcurement` → 0 tabelle (gap → T0.12) |
+| 2026-10-16 | 12 | T0.12 schema eProcurement (solo DDL) | `[x]` | 17 oggetti estratti, 15.728 `INSERT` scartati (12.435 KB → 25 KB); deploy `tabelle=15 viste=1 funzioni=1 FK=5 default=22 PK=13` = **identico all'origine**; pattern di audit = 0; `StripHTML` e `ViewEstrazioneRdARdE` eseguibili |

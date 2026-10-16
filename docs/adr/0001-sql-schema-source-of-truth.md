@@ -102,13 +102,15 @@ Conseguenze osservate, non ipotizzate:
 
 ## 4. Problemi aperti (tracciati, non risolti da questa ADR)
 
-| # | Problema | Task |
-|---|----------|------|
-| A1 | Lo schema `eProcurement` non è versionato: 16 oggetti su 19 mancanti. Recuperabile come **solo DDL** dallo snapshot conservato nel record di audit offline (`script_eprocurement_donato.sql`), scartando le 15.732 istruzioni `INSERT` di dati reali | `T0.12` |
-| A2 | Collocazione ambigua di `RDA_Esiti_LastOutput_OnLine` e `Tbl_Export_SAP_OnLine`: definite nel progetto del database applicativo, ma referenziate come `eProcurement.dbo.*` dalle procedure | `T0.12` |
-| A3 | Nessun meccanismo di migrazione incrementale: gli script sono `CREATE` e non `CREATE OR ALTER`. Serve una strategia (script numerati, strumento di migrazione, o DACPAC) | da pianificare |
-| A4 | Lo schema Quartz è quello di Quartz.NET 2.x e andrà verificato contro lo schema ufficiale della versione adottata nell'upgrade | `X2.2` |
-| A5 | Lo script non crea indici non-cluster o statistiche dichiarate nei dump originali, se presenti | da verificare in `T0.12` |
+| # | Problema | Stato |
+|---|----------|-------|
+| A1 | Lo schema `eProcurement` non era versionato: 16 oggetti su 19 mancanti | ✅ **chiuso** da `T0.12`: 17 oggetti recuperati in sola DDL, fedeltà verificata (15 tabelle, 1 vista, 1 funzione, 13 PK, 5 FK, 22 default) |
+| A2 | Collocazione ambigua di `RDA_Esiti_LastOutput_OnLine` e `Tbl_Export_SAP_OnLine` | ✅ **chiuso** da `T0.12`: appartengono a `eProcurement`, spostate lì e rimosse da `sql/PollingDB/`. Prove: le procedure le referenziano sempre come `eProcurement.dbo.*`; i TableAdapter che le usano ricevono `new DatabaseInfo(true)`, cioè la connessione eProcurement |
+| A5 | Indici non-cluster o statistiche dichiarati nei dump ma non ripresi | ✅ **chiuso** da `T0.12`: lo snapshot non ne conteneva nessuno (`CREATE INDEX` = 0); la fedeltà è confermata dai conteggi a fronte di quelli di origine |
+| A6 | **4 tabelle usate da `PollingClass/ParserFatture.cs` non esistono in nessuno schema versionato né nello snapshot**: `Tab_SC00S100_1Ord`, `Tab_SC00S100_1Ord_R`, `Tab_SC00S100_2Fatt`, `Tab_SC00S100_2Fatt_R`. La DDL non è disponibile da nessuna fonte nel record di audit: va recuperata dall'ambiente di origine | da pianificare |
+| A7 | **Difetto latente**: `Esiti_Ordini_SAP.sql` esegue `INSERT INTO RDA_Esiti` non qualificata, ma la procedura gira sulla connessione applicativa e la tabella sta in `eProcurement`. Fallisce a runtime con `Invalid object name`; non è rilevabile alla creazione per name resolution differita | fase `C` |
+| A3 | Nessun meccanismo di migrazione incrementale: gli script sono `CREATE` e non `CREATE OR ALTER` | da pianificare |
+| A4 | Lo schema Quartz è quello di Quartz.NET 2.x e va verificato contro lo schema ufficiale della versione adottata nell'upgrade | `X2.2` |
 
 ## 5. Alternative considerate
 
@@ -128,6 +130,7 @@ Eseguita il 2026-10-16 su SQL Server 2022 in container:
 $ POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --with-seed
   database: Polling, eProcurement, Quartz          (ricreati)
   schema applicativo: 23 file applicati            (11 tabelle, 3 funzioni, 1 vista, 8 procedure)
+  schema acquisti:    17 file applicati            (15 tabelle, 1 funzione, 1 vista)
   job store Quartz: quartz-schema.sql              (11 tabelle QRTZ_*)
   login applicativo: saltato (POLLING_APP_PASSWORD non impostata)
   dati di esempio: samples/seed/seed.sql           (sintetici)
@@ -137,9 +140,10 @@ $ (seconda esecuzione identica per idempotenza)
   exit 0
 
 # oggetti effettivamente presenti
-Polling : tabelle=11 viste=1 funzioni=3 procedure=8
-Quartz  : tabelle=11 (QRTZ_*)
-eProcurement: tabelle=0        <- conferma il problema aperto A1
+Polling     : tabelle=11 viste=1 funzioni=3 procedure=8
+Quartz      : tabelle=11 (QRTZ_*)
+eProcurement: tabelle=15 viste=1 funzioni=1 FK=5 default=22 PK=13
+              ^ identico allo snapshot di origine su tutti i conteggi
 
 # test funzionale: la vista del seed unisce TaskService e DimProcessi
 SELECT COUNT(*) FROM ViewTaskService;             -> 3
@@ -147,4 +151,7 @@ SELECT COUNT(*) FROM ViewTaskService;             -> 3
 # semanticamente sono "fine giornata" e "inizio giornata")
 dbo.Datini('2024-03-15') -> 2024-03-15 23:59:59.997
 dbo.Datfin('2024-03-15') -> 2024-03-15 00:00:00.000
+# test funzionale dello schema recuperato
+dbo.StripHTML('<p>Ciao <b>mondo</b></p>') -> ' Ciao  mondo'
+SELECT COUNT(*) FROM ViewEstrazioneRdARdE -> 0
 ```

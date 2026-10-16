@@ -163,17 +163,13 @@
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
     <!--
-      Tabelle recuperate in T0.3 dal dump legacy script_polling.sql: erano usate dal
-      codice ma assenti da ogni progetto SSDT (schema drift). Vedi docs/LOOP_LOG.md.
+      RDA_Esiti_LastOutput_OnLine e Tbl_Export_SAP_OnLine NON appartengono a questo
+      database: sono state spostate in ..\..\sql\eProcurement\dbo\Tables\
+      (task T0.12). Evidenza: le procedure di questo progetto le referenziano sempre
+      come eProcurement.dbo.*, e i TableAdapter che le usano ottengono la connessione
+      con new DatabaseInfo(true), cioe' quella di eProcurement.
+      Vedi docs/adr/0001-sql-schema-source-of-truth.md §4 (A2).
     -->
-    <Build Include="dbo\Tables\RDA_Esiti_LastOutput_OnLine.sql">
-      <AnsiNulls>On</AnsiNulls>
-      <QuotedIdentifier>On</QuotedIdentifier>
-    </Build>
-    <Build Include="dbo\Tables\Tbl_Export_SAP_OnLine.sql">
-      <AnsiNulls>On</AnsiNulls>
-      <QuotedIdentifier>On</QuotedIdentifier>
-    </Build>
     <Build Include="dbo\Views\ViewTaskService.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>

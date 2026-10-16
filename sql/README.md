@@ -6,14 +6,17 @@ scartate sono in [`docs/adr/0001-sql-schema-source-of-truth.md`](../docs/adr/000
 ```
 sql/
   PollingDB/            database applicativo
-    dbo/Tables/         11 tabelle
+    dbo/Tables/         9 tabelle
     dbo/Views/          1 vista
     dbo/Functions/      3 funzioni
     dbo/Stored Procedures/  8 procedure
     Security/           login, utente e permessi a privilegi minimi
     PollingDB.sqlproj   progetto SSDT — OPZIONALE, solo comodità su Windows
+  eProcurement/         database di acquisto
+    dbo/Tables/         15 tabelle
+    dbo/Views/          1 vista
+    dbo/Functions/      1 funzione
   Quartz/               schema del job store ADO di Quartz.NET (11 tabelle QRTZ_*)
-  eProcurement/         database di acquisto — schema NON versionato, vedi il README
   deploy/               ordine di applicazione e note di deploy
 ```
 
@@ -57,6 +60,7 @@ funzione `emit_sql`. Se si aggiunge un altro percorso di deploy, tenere presente
 
 | Cosa | Stato |
 |------|-------|
-| Schema del database `eProcurement` | **assente**: 16 oggetti su 19 referenziati dal codice non sono versionati. Vedi [`eProcurement/README.md`](eProcurement/README.md) |
+| Schema del database `eProcurement` | ✅ versionato in `sql/eProcurement/` (17 oggetti, sola DDL) dal task `T0.12`. Vedi il suo [`README.md`](eProcurement/README.md) |
+| 4 tabelle usate da `ParserFatture.cs` (`Tab_SC00S100_*`) | **assenti da ogni fonte**: non erano nemmeno nello snapshot di origine. Vanno recuperate dall'ambiente di origine (ADR 0001 §4, A6) |
 | Migrazioni incrementali | assenti: gli script sono `CREATE`, non `CREATE OR ALTER`. Il deploy è per istanza nuova (`recreate` o `apply` su database vuoto) |
-| Indici e statistiche non-cluster | da verificare: potrebbero non essere stati catturati nei dump di origine |
+| Indici non-cluster | non presenti nello schema di origine, quindi non mancanti per costruzione (verificato in `T0.12`) |

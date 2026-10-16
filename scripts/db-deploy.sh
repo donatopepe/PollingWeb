@@ -125,7 +125,7 @@ ok()   { printf '    ok   %s\n' "$*"; }
 # ------------------------------------------------------- 1. database
 DATABASES="Polling eProcurement Quartz"
 
-step "1/5 database ($MODE)"
+step "1/6 database ($MODE)"
 for db in $DATABASES; do
     if [ "$MODE" = "recreate" ]; then
         run_query master "IF DB_ID(N'$db') IS NOT NULL BEGIN ALTER DATABASE [$db] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [$db]; END; CREATE DATABASE [$db];" >/dev/null
@@ -140,7 +140,7 @@ done
 # Ordine: tabelle -> funzioni -> viste -> stored procedure.
 # Le stored procedure non validano gli oggetti referenziati alla creazione
 # (name resolution differita), quindi l'ordine conta solo per tabelle/viste.
-step "2/5 schema applicativo -> Polling"
+step "2/6 schema applicativo -> Polling"
 apply_dir() {
     local db="$1" dir="$2"
     [ -d "$dir" ] || return 0
@@ -153,8 +153,16 @@ for sub in dbo/Tables dbo/Functions dbo/Views "dbo/Stored Procedures"; do
     apply_dir "Polling" "$SQL_DIR/PollingDB/$sub"
 done
 
-# ------------------------------------------------------- 3. schema Quartz
-step "3/5 schema del job store -> Quartz"
+# ------------------------------------------------------- 3. schema eProcurement
+# Ordine: tabelle -> funzioni -> viste. Lo schema e' ricostruito dalla sola DDL
+# dello snapshot storico (task T0.12): nessun dato reale e' versionato.
+step "3/6 schema acquisti -> eProcurement"
+for sub in dbo/Tables dbo/Functions dbo/Views; do
+    apply_dir "eProcurement" "$SQL_DIR/eProcurement/$sub"
+done
+
+# ------------------------------------------------------- 4. schema Quartz
+step "4/6 schema del job store -> Quartz"
 if [ -f "$SQL_DIR/Quartz/quartz-schema.sql" ]; then
     run_sql Quartz "$SQL_DIR/Quartz/quartz-schema.sql" >/dev/null
     ok "quartz-schema.sql"
@@ -162,8 +170,8 @@ else
     echo "    ATTENZIONE: sql/Quartz/quartz-schema.sql assente" >&2
 fi
 
-# ------------------------------------------------------- 4. sicurezza
-step "4/5 login, utente e permessi"
+# ------------------------------------------------------- 5. sicurezza
+step "5/6 login, utente e permessi"
 if [ -z "$APP_PASSWORD" ]; then
     echo "    saltato: POLLING_APP_PASSWORD non impostata (nessuna credenziale inventata)"
     echo "    per creare il login applicativo:"
@@ -182,8 +190,8 @@ else
     done
 fi
 
-# ------------------------------------------------------- 5. dati sintetici
-step "5/5 dati di esempio"
+# ------------------------------------------------------- 6. dati sintetici
+step "6/6 dati di esempio"
 if [ "$WITH_SEED" = "yes" ]; then
     run_sql Polling "$SAMPLES_DIR/seed/seed.sql" >/dev/null
     ok "samples/seed/seed.sql (dati SINTETICI, mai dati reali)"

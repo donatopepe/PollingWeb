@@ -933,3 +933,109 @@ record di audit offline.
 
 **Blocchi.** Nessuno. Il container `pollingweb-mssql` resta attivo per le iterazioni
 successive; i dati sono in `/home/public/.pollingweb-mssql` (fuori dal repository, ext4).
+
+## 2026-10-16T13:20Z — T0.12 Recupero dello schema eProcurement (solo DDL) — DONE
+
+**Contesto.** `T0.7` ha reso `sql/` la fonte unica di verità, ma ha anche reso visibile che il
+database `eProcurement` non era versionato: 19 oggetti referenziati dal codice, 16 assenti. Il
+deploy riusciva (SQL Server non valida gli oggetti referenziati alla creazione) e produceva un
+database vuoto. Il sistema non era distribuibile nella sua interezza.
+
+**Fonte.** Lo schema esisteva solo nello snapshot `script_eprocurement_donato.sql`, rimosso dal
+repository in `T0.3` perché conteneva 15.732 `INSERT` di dati reali. Recuperato **dal record di
+audit offline** (`full-history.bundle`), clonato in `/tmp/legacy` — **fuori dal repository**,
+come da procedura in `docs/RELEASING.md` §1.
+
+**Metodo: scartare i dati *prima* di scrivere.** L'estrattore divide lo script in batch
+delimitati da `GO`, li classifica e scarta i dati **prima** di comporre qualunque file. Non
+esiste un percorso in cui un `INSERT` venga scritto e poi rimosso: i batch `INSERT` non
+arrivano mai alla fase di scrittura.
+
+```
+batch scartati: INSERT=15728  SET IDENTITY_INSERT=4  extprop=8  USE=1
+DROP CONSTRAINT attribuiti alle tabelle: 27
+batch mantenuti: 100   batch orfani: 0
+oggetti scritti: 17  (= 15 tabelle, 1 vista, 1 funzione)
+sorgente 12.435 KB  ->  risultato 25 KB
+```
+
+**Tre errori miei, trovati verificando e non assumendo.**
+
+1. **`SET IDENTITY_INSERT` finiva dentro il file della vista.** Quei batch accompagnano i
+   blocchi di dati e non sono `INSERT`; non essendo filtrati, venivano attribuiti all'oggetto
+   corrente. La scansione `grep -ric INSERT out/` ha restituito 4 occorrenze *dentro*
+   `ViewEstrazioneRdARdE.sql`: senza quella verifica avrei committato righe di dati in un file
+   di schema. Aggiunto `IDENTITY_RE`.
+2. **27 `DROP CONSTRAINT` finivano fra gli "orfani"** e venivano persi, perché precedono
+   qualunque commento di oggetto. Attribuiti alla tabella di destinazione (parsando il nome
+   dall'istruzione), non scartati: servono a rendere lo schema riapplicabile.
+3. **`DROP VIEW` e `DROP FUNCTION` non erano condizionati**, quindi fallivano su database
+   nuovo — lo stesso difetto già corretto nello script Quartz in `T0.7`. Il primo tentativo di
+   protezione non ha funzionato perché il batch *inizia con un commento*, quindi `^` ancorato
+   all'inizio del batch non lo intercettava. Corretto esaminando ogni riga e preservando il
+   commento.
+
+Bonus della stessa natura: la prima protezione generava
+`OBJECT_ID(N'...', 'FN', N'IF', N'TF')` — `OBJECT_ID` accetta **un solo** argomento di tipo.
+Sostituita con la forma senza tipo.
+
+**Un `grep` che mi ha quasi fatto sbagliare.** Avevo concluso che i vincoli fossero assenti
+dallo snapshot: `grep -c 'ADD CONSTRAINT'` dava 0. Il dump usa `ADD  CONSTRAINT` con **due
+spazi**. Rifatta la verifica con whitespace flessibile: 27 `ADD CONSTRAINT`, 5 `FOREIGN KEY`,
+22 `DEFAULT`, 13 `PRIMARY KEY` inline. Il pattern matching con spaziatura fissa su SQL
+generato è una trappola: sarebbe stato un falso allarme costoso (avrei "ricostruito" vincoli
+già presenti).
+
+**A2 risolta con due prove convergenti.** `RDA_Esiti_LastOutput_OnLine` e
+`Tbl_Export_SAP_OnLine` appartengono a `eProcurement`:
+
+1. le stored procedure le referenziano **sempre** qualificate `eProcurement.dbo.*`;
+2. i TableAdapter che le usano ricevono `new DatabaseInfo(true)`, e il parametro `true`
+   seleziona `StringaConnessioneEproc`.
+
+Spostate in `sql/eProcurement/dbo/Tables/`, rimosse da `sql/PollingDB/` e dal suo `.sqlproj`.
+
+**Fedeltà verificata, non dichiarata.**
+
+```
+                                    snapshot   dopo il deploy
+tabelle                                    15   15
+viste                                       1    1
+funzioni                                    1    1
+chiavi primarie                            13   13
+chiavi esterne                              5    5
+vincoli DEFAULT                            22   22
+indici non-cluster                          0    0        (quindi A5 chiusa: non mancanti)
+
+./scripts/db-deploy.sh --with-seed   ->  EXIT=0
+./scripts/db-deploy.sh --with-seed   ->  EXIT=0   (idempotente)
+dbo.StripHTML('<p>Ciao <b>mondo</b></p>')  ->  ' Ciao  mondo'
+SELECT COUNT(*) FROM ViewEstrazioneRdARdE  ->  0
+```
+
+**Controlli anti-dati sul contenuto committato.**
+
+```
+pattern del record di audit (host, login, password, marchi)  -> 0
+INSERT / SET IDENTITY_INSERT                                 -> 0
+email, partite IVA                                           -> 0
+DEFAULT presenti                                             -> (0), (1), getdate(), ('Y')
+```
+
+**Nuovi problemi aperti, emersi dal lavoro.**
+
+- **A6 → T0.13**: 4 tabelle usate da `ParserFatture.cs` (`Tab_SC00S100_1Ord`, `_1Ord_R`,
+  `_2Fatt`, `_2Fatt_R`) non esistono in nessuno schema versionato **né nello snapshot**. La
+  DDL non è disponibile da nessuna fonte: serve l'ambiente di origine. Task marcato come
+  dipendente dall'esterno: **non** va chiuso ricostruendo colonne a intuito.
+- **A7 → C11**: `Esiti_Ordini_SAP.sql` esegue `INSERT INTO RDA_Esiti` non qualificata, ma la
+  procedura gira sulla connessione applicativa e la tabella sta in `eProcurement`. A runtime:
+  `Invalid object name 'RDA_Esiti'`. Difetto preesistente, non nascosto dal deploy.
+
+**Pulizia.** `/tmp/legacy` conteneva lo snapshot completo con i 15.732 `INSERT` di dati reali e
+il clone della storia pre-riscrittura: rimosso a fine iterazione.
+
+**Prossimo.** `T0.8` — `scripts/db-deploy.sh` a livello di produzione: utente a privilegi
+minimi, verifica di idempotenza in `apply`, e chiusura dei punti A3 (migrazioni).
+
+**Blocchi.** Nessuno.
