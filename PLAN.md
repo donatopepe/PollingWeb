@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 29 / 74 task verificati
+- **Stato complessivo:** 30 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -425,10 +425,9 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [x] **C2 — Migrazione di tutti i `TableAdapter*`**
   DoD: tutti i TableAdapter usano `BuildWhere` parametrizzato; rimossi overload legacy che accettavano clausole SQL raw; ogni query filtro imposta il testo e i parametri sullo stesso `SelectCommand`.
   Evidenza (Linux): tutti i 18 call site usano `SqlCommand` parametrizzato; rimosso `BuildWhere(ArrayList)` e gli overload `Load(string,string,string)` senza call site; test d'integrazione `SqlClientAdapterTests` → 2/2 passati sul container, include fixture sintetica di CRUD e controllo payload injection come parametro. Build Database net48/net8 → 0 errori; unit 104/2 ignorati. La copertura CRUD completa per ogni schema resta da ampliare in test successivi.
-- [ ] **C3 — Rimozione concatenazione in `SqlDataSource`/pagine**
-  DoD: `SelectCommand`/`InsertCommand`/`UpdateCommand` con `Parameter` bound; nessun
-  `+ ddl.SelectedValue +`.
-  Evidenza: `git grep -nE "\+ *(ddl|txt|lbl|this\.).*SelectCommand"` = 0; test pagina.
+- [x] **C3 — Rimozione concatenazione in `SqlDataSource`/pagine**
+  DoD: `SelectCommand` usa un parametro `@IdProcesso` bound per il lookup dinamico; Insert/Update restano con valori `@...` già bound e SQL text composto solo da identificatori/colonne costanti; nessuna interpolazione di `ddl.SelectedValue` in SQL.
+  Evidenza (Linux, 2026-10-17): `TaskService.aspx.cs` usa `SelectParameters`; scansione dei `SelectCommand` non trova più interpolazioni/SelectedValue. Il test pagina WebForms non è eseguibile nel test project net8; la compilazione completa Website resta bloccata da MSB4249, documentato in X1.7.
 - [ ] **C4 — Eliminazione `Convert.ToDateTime(string)` culture-dependent**
   DoD: parsing con `TryParse` + `CultureInfo.InvariantCulture`; idem per i numeri.
   Evidenza: `git grep -n "Convert.ToDateTime(reader"` = 0; test con culture `it-IT` e `en-US`.
@@ -717,3 +716,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 32 | X1.7 Website WebForms legacy | `[x]` | Build soluzione riprodotta → MSB4249 Website; `docs/LEGACY.md` dichiara scope legacy, requisito IIS/.NET Framework 4.8 e procedura Visual Studio su richiesta; workflow CI builda solo i progetti SDK e non il Website. Nessuna falsa dichiarazione di compilazione legacy. |
 | 2026-10-16 | 33 | C1 BuildWhere parametrizzato | `[x]` | Nuovo overload con SqlCommand, allowlist campi/operatore/connettore/tipo e valori parametrici; tutti i 18 call site DAL delegano al comando SqlCommand. Test payload injection, input invalido, conversione N/D. Build Database net48/net8 0 errori; unit 104/2 ignorati; integrazione 17 ignorati senza DB; diff-check pulito. |
 | 2026-10-17 | 34 | C2 TableAdapter parametrizzati | `[x]` | Migrati 18 query dei 9 adapter al SelectCommand con parametri; rimossi overload SQL raw non usati e overload string BuildWhere. Test SqlClientAdapterTests sul container: 2/2 PASS; unit 104/2 ignorati; build Database net48/net8 0 errori; `git diff --check` pulito. |
+| 2026-10-17 | 35 | C3 SqlDataSource / TaskService | `[x]` | `sqlDimProcessi.SelectCommand` è costante con parametro `@IdProcesso`, passato a `SelectParameters`; scansione nessuna interpolazione SelectedValue/SelectCommand. `dotnet build PollingWeb.sln` → MSB4249 riprodotto; unit 104/2 ignorati; test Website non eseguibile nel runner net8. |

@@ -309,7 +309,9 @@ public partial class TaskService : System.Web.UI.Page
             
             if (Session["Flag_TaskService"].ToString()=="0")
             {
-                this.sqlDimProcessi.SelectCommand = "select * from DimProcessi where IdProcesso='" + this.ddlIdProcessi.SelectedValue + "'";
+                this.sqlDimProcessi.SelectCommand = "SELECT * FROM DimProcessi WHERE IdProcesso = @IdProcesso";
+                this.sqlDimProcessi.SelectParameters.Clear();
+                this.sqlDimProcessi.SelectParameters.Add("IdProcesso", TypeCode.String, this.ddlIdProcessi.SelectedValue);
                 DataView dw = (DataView) this.sqlDimProcessi.Select(new DataSourceSelectArguments());
                 this.txtTipoTask.Text = dw[0]["Tipo"].ToString();
 

@@ -1824,6 +1824,34 @@ I test d'integrazione verificano fixture SQL sintetica CRUD e il CommandText/par
 
 **Prossimo task:** `C3 — Rimozione concatenazione in SqlDataSource/pagine`.
 
+---
+
+## 2026-10-17T09:30Z — C3 Query parametrizzate in TaskService WebForms — DONE
+
+**Baseline riprodotto.** `rg` trovava `TaskService.aspx.cs` con `SelectCommand = "..." + ddlIdProcessi.SelectedValue + ...`, che interpolava input del controllo nel SQL. Le query `InsertCommand`/`UpdateCommand` usano già placeholder `@...` e `Parameter` bound; le query markup sono statiche.
+
+**Modifica.** Il lookup ora imposta `SELECT * FROM DimProcessi WHERE IdProcesso = @IdProcesso`, pulisce `SelectParameters` e aggiunge il valore mediante parametro stringa. Nessun cambiamento di contratto o logica funzionale.
+
+**Evidenza reale (Linux, 2026-10-17).**
+
+```
+$ rg -n 'SelectCommand\\s*=.*\\+|SelectCommand.*SelectedValue|\\+.*ddl.*SelectedValue' PollingWeb --glob '*.cs' --glob '*.aspx'
+nessuna interpolazione SQL con SelectedValue; resta solo l'uso di SelectedValue per identità Quartz, non per query.
+$ rg -n 'InsertCommand\\s*=.*\\+|UpdateCommand\\s*=.*\\+' PollingWeb --glob '*.cs'
+solo concatenazione di frammenti SQL statici; valori sono placeholder con Parameter bound.
+$ dotnet build PollingWeb.sln --nologo -v quiet
+exit 1: MSB4249 Website WebForms (blocker noto).
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+104 passati, 2 ignorati, 0 falliti.
+$ git diff --check
+exit 0.
+```
+
+La pagina WebForms non può essere compilata/eseguita dai test net8; il test pagina è bloccato dal Website legacy MSB4249. Windows/macOS non verificati localmente.
+
+**Prossimo task:** `C4 — Eliminazione Convert.ToDateTime(string) culture-dependent`.
+
+
 
 
 
