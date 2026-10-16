@@ -402,22 +402,6 @@ namespace Database
             return where.ToString();
         }
 
-        [Obsolete("Use BuildWhere(ArrayList, SqlCommand) and execute with parameters.")]
-        public static string BuildWhere(ArrayList filtroPar)
-        {
-            var command = new Microsoft.Data.SqlClient.SqlCommand();
-            var clause = BuildWhere(filtroPar, command);
-            foreach (Microsoft.Data.SqlClient.SqlParameter parameter in command.Parameters)
-            {
-                var literal = parameter.Value is string
-                    ? "'" + parameter.Value.ToString().Replace("'", "''") + "'"
-                    : parameter.Value is DateTime
-                        ? "Convert(datetime,'" + ((DateTime)parameter.Value).ToString("yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) + "',126)"
-                        : Convert.ToString(parameter.Value, System.Globalization.CultureInfo.InvariantCulture);
-                clause = clause.Replace(parameter.ParameterName, literal);
-            }
-            return clause;
-        }
 
         #endregion
 

@@ -126,26 +126,9 @@ namespace Database.TableInterface
 
             string select = "Select * from " + this.NomeTabella + " with (nolock) ";
 
-            string where = this.BuildWhere(array);
-            where = where != "" ? " where " + where : "";
-
-            this.adapter.SelectCommand.CommandText = select + where;
-
-            this.FillDataTable();
-
-            return (this.dataset.Tables[this.NomeTabella].Rows.Count);
-        }
-
-
-        public int Load(string tabelle, string where, string campi)
-        {
-
-            string select = "Select " + campi + " from " + tabelle + " with (nolock) ";
-
-
-            where = where != "" ? "where " + where : where;
-
-            this.adapter.SelectCommand.CommandText = select + where;
+            this.adapter.SelectCommand.Parameters.Clear();
+            var where = FiltroCampi.BuildWhere(array, this.adapter.SelectCommand);
+            this.adapter.SelectCommand.CommandText = select + (where.Length == 0 ? string.Empty : " where " + where);
 
             this.FillDataTable();
 
@@ -269,10 +252,9 @@ namespace Database.TableInterface
 
             string select = "Select * from " + this.NomeTabella + " with (nolock) ";
 
-            string where = this.BuildWhere(array);
-            where = where != "" ? " where " + where : "";
-
-            this.adapter.SelectCommand.CommandText = select + where;
+            this.adapter.SelectCommand.Parameters.Clear();
+            var where = FiltroCampi.BuildWhere(array, this.adapter.SelectCommand);
+            this.adapter.SelectCommand.CommandText = select + (where.Length == 0 ? string.Empty : " where " + where);
 
             this.reader = this.adapter.SelectCommand.ExecuteReader();
 

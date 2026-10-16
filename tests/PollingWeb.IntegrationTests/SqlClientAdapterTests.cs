@@ -1,4 +1,7 @@
 using System;
+using System.Collections;
+using Database;
+using Database.TableInterface;
 using Microsoft.Data.SqlClient;
 using Xunit;
 
@@ -6,6 +9,32 @@ namespace PollingWeb.IntegrationTests
 {
     public class SqlClientAdapterTests
     {
+        [Fact]
+        public void TableAdapter_select_command_keeps_injection_payload_as_data()
+        {
+            var adapter = new ExposedTableAdapter();
+            adapter.Initialize();
+            var filter = new FiltroCampi { Campo = "IdProcesso", Valore = "' OR 1=1 --", Tipo = "C" };
+            var sql = adapter.Where(new ArrayList { filter }, "SELECT IdProcesso FROM dbo.TaskService");
+
+            Assert.Contains("@p0", sql);
+            Assert.DoesNotContain("OR 1=1", sql.ToUpperInvariant());
+            Assert.Equal("' OR 1=1 --", adapter.Command.Parameters["@p0"].Value);
+        }
+
+        private sealed class ExposedTableAdapter : TableAdapter
+        {
+            public SqlCommand Command => adapter.SelectCommand;
+
+            public void Initialize()
+            {
+                adapter = new SqlDataAdapter();
+                adapter.SelectCommand = new SqlCommand();
+            }
+
+            public string Where(ArrayList filters, string selectSql) => BuildWhereClause(filters, selectSql);
+        }
+
         [RequiresDatabaseFact]
         public void SqlDataAdapter_and_CommandBuilder_round_trip_synthetic_row()
         {

@@ -47,6 +47,12 @@ namespace Database.TableInterface
             return FiltroCampi.BuildWhere(filters, adapter.SelectCommand);
         }
 
+        protected string BuildWhereClause(System.Collections.ArrayList filters, string selectSql)
+        {
+            var where = BuildWhere(filters);
+            return selectSql + (where.Length == 0 ? string.Empty : " where " + where);
+        }
+
         public SqlDataAdapter BuildCommand(SqlDataAdapter adapter)
         {
             try

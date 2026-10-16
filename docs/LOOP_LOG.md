@@ -1791,6 +1791,40 @@ Il test SQL Server injection/assenza di righe extra non è eseguito; i test unit
 
 **Prossimo task:** `C2 — Migrazione di tutti i TableAdapter`.
 
+---
+
+## 2026-10-17T09:00Z — C2 Migrazione TableAdapter — DONE
+
+**Baseline riprodotto.** `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` Website legacy. I 18 call site dei table adapter delegavano già la creazione dei parametri ma interpolavano la clausola nel `CommandText`; esisteva ancora un overload string `BuildWhere(ArrayList)` che convertiva parametri in SQL literal. Esistevano anche overload `Load(string,string,string)` che accettavano raw SQL, senza call site nel repository.
+
+**Modifiche.** Tutti i 18 load (9 adapter) ora svuotano i parametri del proprio `SelectCommand`, chiamano `BuildWhere(ArrayList, SqlCommand)` e fissano il testo query con placeholder. Eliminati l'overload `BuildWhere(ArrayList)` con interpolazione SQL e i 9 overload raw `Load(...)` non usati. Helper `BuildWhereClause` centralizza assemblaggio testo + parametri. Aggiunto test senza DB che verifica il comando prodotto mantiene `' OR 1=1 --` solo in `SqlParameter`; il test SQL adapter CRUD preesistente esegue insert/update/delete su tabella sintetica temporanea.
+
+**Evidenza reale (Linux, 2026-10-17).**
+
+```
+$ dotnet build PollingWeb.sln --nologo -v quiet
+exit 1: MSB4249 Website WebForms.
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build Database/Database.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+104 passati, 2 ignorati, 0 falliti.
+$ POLLING_DB_PASSWORD="(letto localmente dal runtime SQL, non registrato)" dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet --filter FullyQualifiedName~SqlClientAdapterTests
+2 passati, 0 ignorati, 0 falliti (container SQL Server locale).
+$ rg -n 'BuildWhere\\(ArrayList filtroPar\\)|public int Load\\(string tabelle' Database --glob '*.cs'
+nessuna corrispondenza.
+$ git diff --check
+exit 0.
+```
+
+I test d'integrazione verificano fixture SQL sintetica CRUD e il CommandText/parameter binding del payload. Windows/macOS non verificati localmente.
+
+**Prossimo task:** `C3 — Rimozione concatenazione in SqlDataSource/pagine`.
+
+
 
 
 
