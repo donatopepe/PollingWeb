@@ -25,13 +25,13 @@ Classificazione dei 21 file di `PollingClass` per dipendenza da API che non esis
 | `ExportSQL01.cs` | 449 | 20 | — |
 | `LeggiFornitore.cs` | 381 | — | 4 |
 | `Prog_Quartz.cs` | 255 | 25 | — |
-| **totale non compilabile per net8** | **2 905** | | |
-| **totale `PollingClass`** | **5 246** | | |
+| **totale storico non compilabile per net8 (misura per file)** | **2 905** | | |
+| **totale `PollingClass` allo snapshot iniziale** | **5 246** | | |
 
-**Il 55% dell'assembly non è compilabile per net8.** Non è una percentuale di dettaglio: quei
-file contengono **tutti i flussi di dominio** — invio ordini a SAP, import budget, import
-fatture, lettura fornitori, export. Il restante 45% sono parser, wrapper di stored procedure,
-logging e notifiche.
+**Nota aggiornata dopo X1.3b1–X1.3b5 e X2.2 (2026-10-16):** la stima per file attribuiva
+Quartz a tutte le righe dei file coinvolti. Le API Quartz sono state isolate in gateway/job
+separati e Quartz è stato aggiornato a 3.13.1; il limite restante a net8 è ora principalmente
+`System.Web.Services` nei wrapper legacy. La misura e le soglie corrette sono in ADR 0006.
 
 ### 1.2 Perché non è un problema di configurazione
 

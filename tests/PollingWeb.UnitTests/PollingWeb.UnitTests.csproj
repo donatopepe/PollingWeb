@@ -28,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Database\Database.csproj" />
     <ProjectReference Include="..\..\PollingClass\PollingClass.csproj" />
+    <PackageReference Include="Quartz" Version="3.13.1" />
   </ItemGroup>
 
 </Project>

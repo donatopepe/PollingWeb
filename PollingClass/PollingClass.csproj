@@ -4,9 +4,9 @@
     PollingClass — logica di dominio (task X1.3).
 
     Target UNICO net48 in questa fase. Il multi-target net48;net8.0 è X1.3c e richiede
-    prima X1.3b (estrazione della logica dai 4 wrapper ASMX) e X2.2 (Quartz 3.x):
-    misurato, il 55% di questo assembly (2.905 righe su 5.246) non è compilabile per
-    net8 perché dipende da Quartz 2.x e da System.Web.Services. Vedi ADR 0005.
+    prima X1.3b (estrazione delle classi Quartz dai servizi ASMX) e i successivi porting
+    degli endpoint che dipendono da System.Web.Services. Quartz 3.x è ora il provider del
+    job store persistente (task X2.2), ma il target net8 resta bloccato dagli ASMX legacy.
 
     Perché SDK-style già ora: il csproj classico dichiarava v4.5 senza targeting pack,
     quindi il progetto non si compilava su nessun sistema che non fosse Windows con il
@@ -31,8 +31,9 @@
     <!-- Un solo provider dati, come in Database (ADR 0004 §1) -->
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
-    <!-- Scheduling: Quartz 2.x, sostituito da Quartz 3.x in X2.2 -->
-    <PackageReference Include="Quartz" Version="2.1.2" />
+    <!-- Quartz 3.x: JobStoreTX persistente su SQL Server, task X2.2 -->
+    <PackageReference Include="Quartz" Version="3.13.1" />
+    <PackageReference Include="Quartz.Serialization.Json" Version="3.13.1" />
     <!-- Lettura/scrittura XLSX: cross-platform, MIT. Sostituisce la precedente
          dipendenza XLSX (LGPL, Windows-only) rimossa in X1.3. -->
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.7.1" />

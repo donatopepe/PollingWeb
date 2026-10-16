@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Database;
 using Quartz;
 
@@ -7,7 +8,7 @@ namespace PollingClass
     [PersistJobDataAfterExecution]
     public class JobSQL01 : IJob
     {
-        public void Execute(IJobExecutionContext context)
+        public Task Execute(IJobExecutionContext context)
         {
             try
             {
@@ -26,6 +27,7 @@ namespace PollingClass
                 Log_Errori.ScriviLOGPROCEDURE("", "", "errore Execute JobSQL01 " + ex.Message);
                 PollingExceptionHandler.Esegui(ex);
             }
+            return Task.CompletedTask;
         }
     }
 }

@@ -50,6 +50,14 @@ namespace PollingWeb.IntegrationTests
         internal static string AppConnectionString(string database = "Polling") =>
             Costruisci(AppUser, AppPassword, database);
 
+        internal static string QuartzConnectionString(string database = "Quartz")
+        {
+            var explicitQuartz = Environment.GetEnvironmentVariable("POLLING_QUARTZ_CONNECTION");
+            return string.IsNullOrWhiteSpace(explicitQuartz)
+                ? AppConnectionString(database)
+                : explicitQuartz;
+        }
+
         private static string Costruisci(string user, string password, string database) =>
             $"Server={Server};Database={database};User Id={user};$1=[REDACTED];" +
             "Connect Timeout=5;TrustServerCertificate=True;";

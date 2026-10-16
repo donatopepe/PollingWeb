@@ -1,5 +1,7 @@
 using System;
 using Microsoft.Data.SqlClient;
+using Quartz;
+using Quartz.Impl;
 using Xunit;
 
 namespace PollingWeb.IntegrationTests
@@ -86,9 +88,34 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresAppUserFact]
-        public void Puo_accedere_al_job_store_Quartz()
+        [Trait("Category", "Integration")]
+        public async System.Threading.Tasks.Task Quartz_3_persistent_store_restarts_with_trigger_state_preserved()
         {
-            Leggi<int>("Quartz", "SELECT COUNT(*) FROM dbo.QRTZ_LOCKS");
+            var connectionString = TestDatabase.QuartzConnectionString();
+            var schedulerName = "PollingWebIntegration" + Guid.NewGuid().ToString("N");
+            var scheduler = PollingClass.QuartzSchedulerFactory.Create(connectionString, schedulerName);
+            await scheduler.Start();
+            var jobKey = new JobKey("integration-probe", "integration");
+            var triggerKey = new TriggerKey("integration-trigger", "integration");
+            var job = JobBuilder.Create<PersistentProbeJob>().WithIdentity(jobKey).StoreDurably().Build();
+            await scheduler.AddJob(job, true);
+            var trigger = TriggerBuilder.Create().WithIdentity(triggerKey).ForJob(jobKey)
+                .StartAt(DateTimeOffset.UtcNow.AddHours(1)).Build();
+            await scheduler.ScheduleJob(trigger);
+            Assert.True(await scheduler.CheckExists(triggerKey));
+            await scheduler.Shutdown(true);
+
+            scheduler = PollingClass.QuartzSchedulerFactory.Create(connectionString, schedulerName);
+            await scheduler.Start();
+            Assert.True(await scheduler.CheckExists(triggerKey));
+            await scheduler.DeleteJob(jobKey);
+            await scheduler.Shutdown(true);
+        }
+
+        public sealed class PersistentProbeJob : IJob
+        {
+            public System.Threading.Tasks.Task Execute(IJobExecutionContext context) =>
+                System.Threading.Tasks.Task.CompletedTask;
         }
 
         [RequiresAppUserFact]

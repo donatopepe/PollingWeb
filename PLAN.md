@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 20 / 74 task verificati
+- **Stato complessivo:** 21 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -82,7 +82,7 @@ massimo 3 tentativi per task, poi il task passa a `BLOCKED` con motivo scritto.
 | P4 | Numerosi `using System.Web;` **non usati** (`Prog_Quartz.cs`, `Log_Errori.cs`, `MailSede.cs`, `PollingException.cs`) | ✅ Rimovibili senza effetti | `grep` = 0 usi |
 | P5 | Riferimento `WindowsBase` in `PollingClass.csproj` | ✅ **Non usato**: nessun `System.Windows`, `Dispatcher`, `DependencyObject` | `grep` = 0 |
 | P6 | `System.Drawing` presente solo in `Database/DataType.cs` (`class Colore`, `class FontSerif`) | ✅ Usato **solo** da `Check_RdA.cs` (file rotto, da eliminare) → `System.Drawing.Common` è Windows-only da .NET 6: va eliminato, non portato | `grep -rln "Aggset\.Color\|Colore\.\|FontSerif"` → solo `Check_RdA.cs` |
-| P7 | `Quartz 2.1.2` | ⚠️ target `net40` only → **obbligatorio** upgrade a Quartz 3.x su net8 | `packages/Quartz.2.1.2/lib/` |
+| P7 | `Quartz 2.1.2` (stato iniziale) | aggiornato a Quartz 3.13.1 in X2.2; i gateway legacy attendono le API async | `X2.2` verificato su SQL Server Linux; port net8 residuo in X1.3c |
 | P8 | `LinqToExcel` + `Remotion.*` (LGPL) | ⚠️ Windows-only (OLEDB) e licenza incompatibile → sostituzione già pianificata | `packages/LinqToExcel.1.11.0/lib/` |
 | P9 | Accesso dati via `System.Data.SqlClient` + `SqlDataAdapter`/`SqlCommandBuilder` + `DataSet` tipizzati | ✅ Portabile; su net8 usare `Microsoft.Data.SqlClient` (API quasi identica) | `Database/TableAdapter*.cs` |
 | P10 | `ConfigurationManager` per le connection string | ✅ Portabile con `System.Configuration.ConfigurationManager` NuGet; meglio astrarre su `IConfiguration` | `Database/DatabaseInfo.cs` |
@@ -276,8 +276,8 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   = 0 in codice, file di progetto e configurazione. I documenti (`NOTICE`, `SECURITY.md`,
   questo piano, il registro) nominano la dipendenza rimossa per registrarla: vanno esclusi
   dall'evidenza, perché documentarne la rimozione fa parte del compito.
-  *Ristretto da ADR 0005: il 55% dell'assembly (2.905 righe su 5.246 — tutti i flussi di
-  dominio) non è compilabile per net8 per via di Quartz 2.1.2 e `System.Web.Services`.*
+  *Stima iniziale ADR 0005 per intero file (non linee realmente dipendenti): Quartz è stato
+  aggiornato a 3.13.1 in X2.2; il perimetro non migrabile net8 ora è primariamente ASMX.*
 - [x] **X1.3b1 — Separazione schedulazione/Quartz in `Fornitori_Scheduler`**
   DoD: il calcolo dell'espressione cron è in `FornitoriSchedulePolicy` (platform-neutral); le
   chiamate Quartz sono in `FornitoriQuartzGateway`; `IFornitoriSchedulingGateway` costituisce il
@@ -289,7 +289,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   TriggerBuilder/IScheduler. Test della policy cron e del range orario verdi. Windows/macOS non
   verificati in locale.
 - [x] **X1.3b2 — `ImportFatture_Scheduler`**
-  DoD: policy di scheduling separata dal codice invoice-import; provider Quartz 2.x in
+  DoD: policy di scheduling separata dal codice invoice-import; provider Quartz in
   `ImportFattureQuartzGateway`; `JobImportFatture` separato; interfaccia provider condivisa con
   `X1.3b1`; firme pubbliche e semantica override/interval conservate.
   Evidenza (Linux): build `PollingClass` net48 → 0 errori, 5 warning preesistenti; unit test →
@@ -297,7 +297,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   TriggerBuilder/IScheduler in `ImportFatture.cs`; `git diff --check` pulito. Windows/macOS non
   verificati in locale.
 - [x] **X1.3b3 — `ImportBudget_Scheduler`**
-  DoD: `IFornitoriSchedulingGateway` per la superficie del servizio; Quartz 2.x isolato in
+  DoD: `IFornitoriSchedulingGateway` per la superficie del servizio; Quartz isolato in
   `ImportBudgetQuartzGateway`; `JobBudget` separato; firme esistenti mantenute; entry point del
   job resta `ImportBudget.Leggi_File(..., onetime)`.
   Evidenza (Linux): build net48 → 0 errori, 5 warning preesistenti; unit test net8 → 80 passati,
@@ -312,7 +312,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   1 ignorato; nessun simbolo Quartz in `Ordini_Sap.cs`; `git diff --check` pulito. Windows/macOS
   non verificati localmente.
 - [x] **X1.3b5 — `SQL01_Scheduler`**
-  DoD: `IFornitoriSchedulingGateway` per la superficie scheduler; Quartz 2.x isolato in
+  DoD: `IFornitoriSchedulingGateway` per la superficie scheduler; Quartz isolato in
   `SQL01QuartzGateway`; `JobSQL01` separato; firme pubbliche mantenute; cron giornaliero e
   polling interval delegati, con `onetime` conservato.
   Evidenza (Linux): build net48 → 0 errori, 5 warning preesistenti; unit test net8 → 97 passati,
@@ -321,7 +321,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [ ] **X1.3c — `PollingClass` multi-target `net48;net8.0`**
   DoD: `TargetFrameworks=net48;net8.0`; entrambi i target compilano.
   Evidenza: build per entrambi i TFM → 0 errori; **righe compilate per net8 / righe totali ≥ 90%**
-  (≥ 95% dopo `X2.2`, quando Quartz 3.x è disponibile anche su net8), con l'elenco esplicito di
+  (≥ 95% dopo `X2.2`, quando le API Quartz 3.x sono migrate su net8), con l'elenco esplicito di
   eventuali esclusioni (regola anti-svuotamento, ADR 0005 §2.3, soglia rivista in ADR 0006 §2).
   ⚠️ **Prerequisiti: `X1.3b1`–`X1.3b5` e `X2.2`**.
   ⚠️ **Questo task è l'unico che può asserire «`PollingClass` è cross-platform»**: fino a
@@ -357,10 +357,17 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   `dotnet PollingWorker.dll`; nessuna dipendenza da IIS; registra il progetto in `PollingWeb.sln`
   (requisito trasferito da `X1.1`, ADR 0004 §2.1).
   Evidenza: `dotnet run --project PollingWorker` avvia senza errori su Linux e Windows.
-- [ ] **X2.2 — Quartz 3.x con job store ADO su SQL Server**
-  DoD: upgrade da 2.1.2 a 3.x; `JobStoreTX` con `Microsoft.Data.SqlClient`; schema `QRTZ_` da
-  `sql/quartz-schema.sql`; misfire policy documentata; ADR `docs/adr/0002-quartz-scheduling.md`.
-  Evidenza: integration test che registra/recupera un trigger, riavvia lo scheduler e mantiene lo stato.
+- [x] **X2.2 — Quartz 3.x con job store ADO su SQL Server**
+  DoD: Quartz aggiornato a 3.13.1; `JobStoreTX` con provider `MicrosoftDataSqlClient`, JSON
+  serializer e schema QRTZ verificato; configurazione via `POLLING_QUARTZ_CONNECTION` o
+  `QuartzConnectionString`; misfire threshold 60 s, clustering disabilitato per deployment
+  singola istanza. Gli adapter restano sincroni per i chiamanti legacy; i job implementano la
+  firma asincrona Quartz 3. Persistenza provata con restart scheduler.
+  Evidenza reale (Linux): build net48 0 errori (5 warning preesistenti); unit 98 passati, 2
+  ignorati (test DB persistent-store collocato nei test d'integrazione); `scripts/test-integration.sh`
+  con SQL Server → 16/16 passati, incluso trigger persistente recuperato dopo restart; schema SQL
+  applicato dal deploy. Windows/macOS non verificati localmente. Dettagli/configurazione in
+  [`docs/adr/0007`](docs/adr/0007-quartz-3-persistent-store.md).
 - [ ] **X2.3 — Porting dei job**
   DoD: `JobFornitori`, `JobBudget`, `JobFatture`, `JobOrdiniSap`, `JobRDA` eseguiti dal worker con
   gli stessi parametri di `TaskService`; nessun `HttpContext`; log strutturato per job.
@@ -584,7 +591,7 @@ T0.2 → T0.3 → T0.4 → T0.6 → T0.11 → T0.9
   #   ordine rivisto da ADR 0004, 0005 e 0006:
   #     X1.1 dopo X1.2/X1.3  -> i props hanno senso solo su progetti SDK-style
   #     T1 prima di X1.3b*   -> il refactoring delle classi di schedulazione richiede i test
-  #     X2.2 prima di X1.3c  -> Quartz 2.x tiene le classi IJob fuori dal target net8
+  #     X2.2 prima di X1.3c  -> Quartz 3.x è provider scelto; X1.3c porta i job su net8
   #     X1.6/X1.7 pretendono la soluzione verde: e' li' che quell'evidenza diventa vera
   → C1 → C2 → C3 → C4 → C5 → C6 → C7 → C8 → C9 → C10
   → T1 → T2 → T3 → T4
@@ -637,7 +644,7 @@ su macOS/Windows ciò che non è stato eseguito lì.
 |---|---|---|
 | Credenziali nella storia Git di una repo privata, in via di pubblicazione | Alto | T0.10 storia nuova (fatto) + T0.9 rotazione obbligatoria **prima** della pubblicazione |
 | ASMX non supportato su .NET 8 | Alto | X3.3 ADR SOAP/CoreWCF prima di rimuovere gli endpoint citati |
-| Upgrade Quartz 2.1.2 → 3.x cambia API | Medio | X1.3 isola `Prog_Quartz` dietro interfaccia; X2.2 con test di persistenza |
+| Upgrade Quartz 2.1.2 → 3.x cambia API | Chiuso in X2.2 | Gateway/adapters aggiornati e test di persistenza SQL con restart scheduler |
 | `System.Data.SqlClient` vs `Microsoft.Data.SqlClient` (differenze di comportamento: `DataSet` typeless, timeout) | Medio | X1.5 adapter unico + T4 round-trip su entrambi i TFM |
 | Doppio target raddoppia le combinazioni di test | Medio | matrice CI + `Directory.Packages.props`; test condizionali per TFM |
 | UI: 11 pagine da portare a Razor Pages | Medio | X4.2 un task per pagina con tabella di parità funzionale |
@@ -697,7 +704,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 14 | T0.8 deploy con privilegi minimi | `[x]` | deploy `recreate` due volte → exit 0; **12 controlli di autotest** (8 positivi + 4 negativi); `sysadmin=0`, `db_owner=0` sui 3 database, nessun ruolo server, `CHECK_POLICY=1`; **0 oggetti dbo senza permesso** (drift check) |
 | 2026-10-16 | 15 | revisione 3 del piano (ADR 0004) | `[x]` | `X1.1` ristretto e spostato dopo `X1.2`/`X1.3`; DoD di `X1.2` e `X1.5` corrette; renderlo eseguibile era impossibile: i progetti citati non esistono e il build verde contraddice P13/P14 |
 | 2026-10-16 | 16 | X1.2 Database multi-target | `[x]` | `net48` 0 errori / 0 avvisi; `net8.0` 0 errori / 28 avvisi (tutti CA2200 = `throw ex;`, scope di C6); `System.Web` e `System.Drawing` in `Database` → 0; artefatti per entrambi i TFM; errori `MSB3644` sulla soluzione → 0 (restano solo 2 `MSB4249` del sito) |
-| 2026-10-16 | 17 | revisione 4 del piano (ADR 0005) | `[x]` | misurato: **2.905 righe su 5.246 (55%)** di `PollingClass` non compilabili per net8 (Quartz 2.x + ASMX). `X1.3` ristretto; nuovi `X1.3b` (dopo `T1`) e `X1.3c` (dopo `X2.2`); introdotta la regola anti-svuotamento (righe net8/totali ≥ 95%) |
+| 2026-10-16 | 17 | revisione 4 del piano (ADR 0005) | `[x]` | stima iniziale per file: 2.905/5.246 (55%) coinvolti da Quartz/ASMX; Quartz aggiornato in X2.2, perimetro ASMX residuo esplicitato in ADR 0006 e X1.3c |
 | 2026-10-16 | 18 | X1.3 PollingClass SDK-style net48 + rimozione LGPL | `[x]` | `dotnet build PollingClass/PollingClass.csproj -f net48` → **0 errori** (5 avvisi preesistenti) su Linux; `remotion\|linqtoexcel` in codice/progetti/config → **0**; `WindowsBase` e `HintPath` verso `PollingWeb/Bin` → 0; `System.Data.SqlClient` in `PollingClass` → 0; Quartz e Common.Logging ora da NuGet |
 | 2026-10-16 | 19 | T1 infrastruttura test | `[x]` | **unit 50 superati / 1 ignorato** (difetto `C6` documentato); **integrazione 16 superati** con DB e **16 ignorati** senza DB (skip automatico, 0 falliti); `scripts/test-integration.sh` end-to-end → deploy + autotest permessi + test, tutto verde; `dotnet sln list` mostra 5 progetti |
 | 2026-10-16 | 20 | revisione 5 del piano (ADR 0006) | `[x]` | corretta la **mia** misura dell'ADR 0005: l'accoppiamento reale a Quartz è ~8% dell'assembly (215 righe di API su 1.430 righe di classi coinvolte), non il 55% dichiarato contando i *file*. Soglia `X1.3c` da 95% a **90%**; `X1.3b` scomposto in `X1.3b1`–`X1.3b5` |
@@ -706,3 +713,5 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 23 | X1.3b3 separazione ImportBudget_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test net8: 80 superati, 1 ignorato; nessun simbolo Quartz nel file `Import_Budget.cs`; adapter verifica cron feriale, preserva il job `Leggi_File(..., onetime)`, override e scheduling immediato/intervallo; `git diff --check` pulito. |
 | 2026-10-16 | 24 | X1.3b4 separazione Ordini_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test net8: 90 superati, 1 ignorato; nessun simbolo Quartz in `Ordini_Sap.cs`; adapter conserva routing invio/esito, `tipoExport`, cron lun-ven, override e trigger one-time/interval; `git diff --check` pulito. |
 | 2026-10-16 | 25 | X1.3b5 separazione SQL01_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test net8: 97 superati, 1 ignorato; nessun simbolo Quartz in `ExportSQL01.cs`; adapter convalida cron e intervalli, job separato e delega schedulazione; `git diff --check` pulito. |
+
+| 2026-10-16 | 26 | X2.2 Quartz 3.13.1 ADO store persistente | `[x]` | Build net48: 0 errori, 5 warning; unit 98 passati/2 ignorati; `POLLING_DB_$1=[REDACTED] POLLING_APP_$1=[REDACTED] ./scripts/test-integration.sh` → deploy, autotest privilegi e 16/16 test; test dedicato ha registrato trigger, riavviato scheduler e verificato il recupero dallo store SQL. Schema legacy senza INSERT storici; provider Microsoft.Data.SqlClient. |

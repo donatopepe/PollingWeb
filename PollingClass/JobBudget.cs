@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Database;
 using Quartz;
 
@@ -7,7 +8,7 @@ namespace PollingClass
     [PersistJobDataAfterExecution]
     public class JobBudget : IJob
     {
-        public void Execute(IJobExecutionContext context)
+        public Task Execute(IJobExecutionContext context)
         {
             try
             {
@@ -20,6 +21,7 @@ namespace PollingClass
             {
                 PollingExceptionHandler.Esegui(ex);
             }
+            return Task.CompletedTask;
         }
     }
 }

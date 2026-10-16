@@ -1,17 +1,16 @@
 using System;
 using Quartz;
-using Quartz.Impl;
 
 namespace PollingClass
 {
-    /// <summary>Quartz 2.x adapter for order send and receipt jobs.</summary>
+    /// <summary>Quartz adapter for order send and receipt jobs.</summary>
     public sealed class OrdiniQuartzGateway : IOrdiniSchedulingGateway
     {
         public bool ScheduleDaily(string institutionCode, string processId, bool sendFile,
             string tipoExport, string cronExpression, bool overrideExisting)
         {
-            var scheduler = new StdSchedulerFactory().GetScheduler();
-            scheduler.Start();
+            var scheduler = QuartzSchedulerFactory.Create();
+            scheduler.Start().GetAwaiter().GetResult();
             IJobDetail job = sendFile
                 ? JobBuilder.Create<JobOrdini_SAP_Invio>().WithIdentity("JOB_" + processId + "_" + institutionCode, "IDG").Build()
                 : JobBuilder.Create<JobOrdini_SAP_Esito>().WithIdentity("JOB_" + processId + "_" + institutionCode, "IDG").Build();
@@ -26,9 +25,9 @@ namespace PollingClass
                 .WithIdentity("Trigger_" + processId + "_" + institutionCode, "IDG")
                 .WithSchedule(CronScheduleBuilder.AtHourAndMinuteOnGivenDaysOfWeek(
                     ParseHour(normalizedCron), ParseMinute(normalizedCron), weekdays)).Build();
-            if (overrideExisting && scheduler.CheckExists(trigger.Key)) scheduler.UnscheduleJob(trigger.Key);
-            if (scheduler.CheckExists(trigger.Key)) return false;
-            scheduler.ScheduleJob(job, trigger);
+            if (overrideExisting && scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult()) scheduler.UnscheduleJob(trigger.Key).GetAwaiter().GetResult();
+            if (scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult()) return false;
+            scheduler.ScheduleJob(job, trigger).GetAwaiter().GetResult();
             return true;
         }
 
@@ -49,10 +48,10 @@ namespace PollingClass
         {
             if (!OrdiniSchedulerPolicy.IsValidInterval(intervalMinutes))
                 throw new ArgumentOutOfRangeException("intervalMinutes");
-            var scheduler = new StdSchedulerFactory().GetScheduler();
-            scheduler.Start();
-            var jobId = processId + "_" + institutionCode + "JOB_onetime_" + DateTime.Now.Ticks;
-            var triggerId = DateTime.Now.Ticks.ToString();
+            var scheduler = QuartzSchedulerFactory.Create();
+            scheduler.Start().GetAwaiter().GetResult();
+            var jobId = processId + "_" + institutionCode + "JOB_onetime_" + DateTime.UtcNow.Ticks;
+            var triggerId = DateTime.UtcNow.Ticks.ToString();
             IJobDetail job = sendFile
                 ? JobBuilder.Create<JobOrdini_SAP_Invio>().WithIdentity(jobId, "IDG").Build()
                 : JobBuilder.Create<JobOrdini_SAP_Esito>().WithIdentity(jobId, "IDG").Build();
@@ -72,7 +71,7 @@ namespace PollingClass
                 trigger = TriggerBuilder.Create().WithIdentity(triggerId, "IDGWEB")
                     .StartAt(DateTimeOffset.Now.AddMinutes(intervalMinutes)).WithPriority(1).Build();
             }
-            scheduler.ScheduleJob(job, trigger);
+            scheduler.ScheduleJob(job, trigger).GetAwaiter().GetResult();
         }
     }
 }

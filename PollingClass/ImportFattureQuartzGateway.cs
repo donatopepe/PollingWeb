@@ -1,16 +1,15 @@
 using System;
 using Quartz;
-using Quartz.Impl;
 
 namespace PollingClass
 {
-    /// <summary>Quartz 2.x adapter for invoice-import schedules, legacy net48 host.</summary>
+    /// <summary>Quartz adapter for invoice-import schedules, legacy net48 host.</summary>
     public sealed class ImportFattureQuartzGateway : IFornitoriSchedulingGateway
     {
         public bool ScheduleDaily(string institutionCode, string processId, string cronExpression, bool overrideExisting)
         {
-            var scheduler = new StdSchedulerFactory().GetScheduler();
-            scheduler.Start();
+            var scheduler = QuartzSchedulerFactory.Create();
+            scheduler.Start().GetAwaiter().GetResult();
             var job = JobBuilder.Create<JobImportFatture>()
                 .WithIdentity("JOB_" + processId + "_" + institutionCode, "IDG").Build();
             job.JobDataMap.Add("codist", institutionCode);
@@ -18,10 +17,10 @@ namespace PollingClass
             var trigger = TriggerBuilder.Create()
                 .WithIdentity("Trigger_" + processId + "_" + institutionCode, "IDG")
                 .WithCronSchedule(FornitoriSchedulePolicy.WeekdayCronFromLegacy(cronExpression)).Build();
-            if (scheduler.CheckExists(trigger.Key) && overrideExisting)
-                scheduler.UnscheduleJob(trigger.Key);
-            if (scheduler.CheckExists(trigger.Key)) return false;
-            scheduler.ScheduleJob(job, trigger);
+            if (scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult() && overrideExisting)
+                scheduler.UnscheduleJob(trigger.Key).GetAwaiter().GetResult();
+            if (scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult()) return false;
+            scheduler.ScheduleJob(job, trigger).GetAwaiter().GetResult();
             return true;
         }
 
@@ -29,9 +28,9 @@ namespace PollingClass
         {
             if (!FornitoriSchedulePolicy.IsValidInterval(intervalMinutes))
                 throw new ArgumentOutOfRangeException("intervalMinutes");
-            var scheduler = new StdSchedulerFactory().GetScheduler();
-            scheduler.Start();
-            var ticks = DateTime.Now.Ticks;
+            var scheduler = QuartzSchedulerFactory.Create();
+            scheduler.Start().GetAwaiter().GetResult();
+            var ticks = DateTime.UtcNow.Ticks;
             var job = JobBuilder.Create<JobImportFatture>().WithIdentity(
                 processId + "_" + institutionCode + "JOB_onetime_" + ticks, "IDG").Build();
             job.JobDataMap.Add("codist", institutionCode);
@@ -41,15 +40,15 @@ namespace PollingClass
             {
                 job.JobDataMap.Add("onetime", "true");
                 trigger = TriggerBuilder.Create().WithIdentity(processId + "_" + institutionCode +
-                    "Trigger_onetime_" + DateTime.Now.Ticks, "IDG").StartNow().Build();
+                    "Trigger_onetime_" + DateTime.UtcNow.Ticks, "IDG").StartNow().Build();
             }
             else
             {
                 job.JobDataMap.Add("onetime", "false");
                 trigger = TriggerBuilder.Create().WithIdentity(processId + "_" + institutionCode +
-                    "_" + DateTime.Now.Ticks, "IDG").StartAt(DateTimeOffset.Now.AddMinutes(intervalMinutes)).Build();
+                    "_" + DateTime.UtcNow.Ticks, "IDG").StartAt(DateTimeOffset.Now.AddMinutes(intervalMinutes)).Build();
             }
-            scheduler.ScheduleJob(job, trigger);
+            scheduler.ScheduleJob(job, trigger).GetAwaiter().GetResult();
         }
 
     }

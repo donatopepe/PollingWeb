@@ -49,6 +49,12 @@ echo
 echo "=== 2/3 schema (scripts/db-deploy.sh)"
 ./scripts/db-deploy.sh --with-seed
 
+# SQL Server container fixture: the same least-privilege application login and the
+# Quartz database are used. Quartz 3.x schema migration runs in-place in T0.8 so this
+# integration smoke can prove persistent trigger recovery without adding a privileged
+# second credential to the test process.
+export POLLING_QUARTZ_CONNECTION="${POLLING_QUARTZ_CONNECTION:-Server=${POLLING_DB_SERVER:-localhost,14330};Database=Quartz;User Id=${POLLING_APP_LOGIN:-PollingApp};$1=[REDACTED];Encrypt=False;TrustServerCertificate=True;Connect Timeout=5;}"
+
 echo
 echo "=== 3/3 test di integrazione"
 dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj \

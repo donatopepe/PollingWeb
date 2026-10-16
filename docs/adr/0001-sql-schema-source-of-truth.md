@@ -110,7 +110,7 @@ Conseguenze osservate, non ipotizzate:
 | A6 | **4 tabelle usate da `PollingClass/ParserFatture.cs` non esistono in nessuna fonte**: `Tab_SC00S100_1Ord`, `Tab_SC00S100_1Ord_R`, `Tab_SC00S100_2Fatt`, `Tab_SC00S100_2Fatt_R`. Ricerca esaustiva su repository, 9 commit della storia archiviata e snapshot `eProcurement`: nessuna DDL. **BLOCCATO** in attesa dell'ambiente di origine (`T0.13`); specifica delle colonne richieste in [`sql/eProcurement/MISSING-TABLES.md`](../../sql/eProcurement/MISSING-TABLES.md) | `T0.13` — `[!]` |
 | A7 | **Difetto latente**: `Esiti_Ordini_SAP.sql` esegue `INSERT INTO RDA_Esiti` non qualificata, ma la procedura gira sulla connessione applicativa e la tabella sta in `eProcurement`. Fallisce a runtime con `Invalid object name`; non è rilevabile alla creazione per name resolution differita | fase `C` |
 | A3 | Nessun meccanismo di migrazione incrementale: gli script sono `CREATE` e non `CREATE OR ALTER` | da pianificare |
-| A4 | Lo schema Quartz è quello di Quartz.NET 2.x e va verificato contro lo schema ufficiale della versione adottata nell'upgrade | `X2.2` |
+| A4 | Lo schema Quartz è stato aggiornato per Quartz.NET 3.13.1 SqlServerDelegate; il deploy fornisce solo DDL e non registra job storici | `X2.2` |
 
 ## 5. Alternative considerate
 

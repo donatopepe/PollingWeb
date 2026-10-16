@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Database;
 using Quartz;
 
@@ -7,7 +8,7 @@ namespace PollingClass
     [PersistJobDataAfterExecution]
     public class JobOrdini_SAP_Esito : IJob
     {
-        public void Execute(IJobExecutionContext context)
+        public Task Execute(IJobExecutionContext context)
         {
             try
             {
@@ -23,15 +24,14 @@ namespace PollingClass
             {
                 PollingExceptionHandler.Esegui(ex);
             }
-
-
+            return Task.CompletedTask;
         }
     }
 
     [PersistJobDataAfterExecution]
     public class JobOrdini_SAP_Invio : IJob
     {
-        public void Execute(IJobExecutionContext context)
+        public Task Execute(IJobExecutionContext context)
         {
             try
             {
@@ -62,8 +62,7 @@ namespace PollingClass
             {
                 PollingExceptionHandler.Esegui(ex);
             }
-
-
+            return Task.CompletedTask;
         }
     }
 

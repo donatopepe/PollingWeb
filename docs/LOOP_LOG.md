@@ -1565,7 +1565,33 @@ $ git diff --check
 
 **Limiti.** `PollingClass` resta net48; verificata solo la build Linux. Windows/macOS non verificati localmente; la soluzione WebForms non è stata compilata.
 
-**Prossimo task:** `X2.2 — Quartz 3.x con job store ADO su SQL Server`.
+**Prossimo task:** verificare/chiudere `X2.2 — Quartz 3.x con job store ADO su SQL Server`.
+
+---
+
+## 2026-10-16T17:xxZ — X2.2 Quartz 3.13.1 con job store ADO — DONE
+
+**Modifiche.** Quartz 2.1.2 aggiornato a 3.13.1; aggiunto `Quartz.Serialization.Json`. `QuartzSchedulerFactory` configura `JobStoreTX`, `SqlServerDelegate`, provider `MicrosoftDataSqlClient`, prefisso `QRTZ_`, JSON serializer, misfire threshold 60 s e clustering disabilitato. Connection string da parametro, `POLLING_QUARTZ_CONNECTION` o `QuartzConnectionString`; nessun segreto in config/version control. I gateway usano la factory condivisa; le API asincrone Quartz sono attese nei boundary legacy, `IJob.Execute` restituisce `Task`. Il job/payload storico inserito nello schema è stato rimosso: deploy ora contiene solo DDL. Schema SQL mantenuto sulle 11 tabelle QRTZ e permessi minimi.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ dotnet clean PollingClass/PollingClass.csproj -f net48 --nologo -v quiet
+(exit 0)
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --nologo -v quiet
+Compilazione completata. Avvisi: 5. Errori: 0.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --nologo -v quiet
+Superato! Non superati: 0. Superati: 98. Ignorati: 2. Totale: 100.
+$ POLLING_DB_$1=[REDACTED] POLLING_APP_$1=[REDACTED] ./scripts/test-integration.sh
+Deploy SQL Server + autotest permessi; Quartz_3_persistent_store_restarts_with_trigger_state_preserved PASS;
+Totale test: 16; Superati: 16; exit 0.
+$ dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj # senza credenziali
+Totale test: 16; Ignorati: 16; exit 0.
+```
+
+Il test persistente crea job/trigger sintetici sul DB Quartz, riavvia lo scheduler con lo stesso nome e verifica il recupero dallo store SQL, poi pulisce i record. L'esecuzione passa dal test d'integrazione (`LeastPrivilegeTests`), non dalla suite unit senza connessione. Nessuna immagine Docker aggiunta. Windows/macOS non verificati localmente; la soluzione WebForms non compilata. Decisioni/configuration sono registrate in `docs/adr/0007-quartz-3-persistent-store.md`.
+
+**Prossimo task:** `X1.3c — multi-target net48;net8.0 e misura delle righe compilate`.
 
 ---
 
