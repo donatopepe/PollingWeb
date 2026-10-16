@@ -1,4 +1,7 @@
+using System;
+using System.Collections;
 using Database;
+using Microsoft.Data.SqlClient;
 using Xunit;
 
 namespace PollingWeb.UnitTests
@@ -16,6 +19,51 @@ namespace PollingWeb.UnitTests
     /// </summary>
     public class AntiSqlInjectTests
     {
+        private static FiltroCampi Filter(string field, string value, string type = "C") => new FiltroCampi
+        {
+            Campo = field,
+            Valore = value,
+            Tipo = type
+        };
+
+        [Fact]
+        public void BuildWhere_returns_parameters_and_never_embeds_injection_payload()
+        {
+            var filters = new ArrayList { Filter("IdProcesso", "' OR 1=1 --") };
+            using (var command = new SqlCommand())
+            {
+                var where = FiltroCampi.BuildWhere(filters, command);
+                Assert.Equal("UPPER(IdProcesso) = @p0", where);
+                Assert.Single(command.Parameters);
+                Assert.Equal("' OR 1=1 --", command.Parameters["@p0"].Value);
+                Assert.DoesNotContain("OR 1=1", where.ToUpperInvariant());
+            }
+        }
+
+        [Fact]
+        public void BuildWhere_rejects_untrusted_field_operator_type_and_connector()
+        {
+            using (var command = new SqlCommand())
+            {
+                Assert.Throws<ArgumentException>(() => FiltroCampi.BuildWhere(new ArrayList { Filter("IdProcesso; DROP TABLE X", "a") }, command));
+                Assert.Throws<ArgumentException>(() => FiltroCampi.BuildWhere(new ArrayList { new FiltroCampi { Campo = "IdProcesso", Valore = "a", SegnoOp = "= 1 OR 1=1" } }, command));
+                Assert.Throws<ArgumentException>(() => FiltroCampi.BuildWhere(new ArrayList { Filter("IdProcesso", "a", "X") }, command));
+                Assert.Throws<ArgumentException>(() => FiltroCampi.BuildWhere(new ArrayList { Filter("IdProcesso", "a"), new FiltroCampi { Campo = "Data", Valore = "x", NextCond = "OR 1=1" } }, command));
+            }
+        }
+
+        [Fact]
+        public void BuildWhere_converts_numeric_and_date_values_using_invariant_rules()
+        {
+            var filters = new ArrayList { Filter("Istituto", "12", "N"), Filter("Data", "16/10/2026", "D") };
+            using (var command = new SqlCommand())
+            {
+                var where = FiltroCampi.BuildWhere(filters, command);
+                Assert.Equal("(Istituto) = @p0 AND dbo.Datfin(Data) = @p1", where);
+                Assert.Equal(12m, command.Parameters["@p0"].Value);
+                Assert.Equal(new DateTime(2026, 10, 16), command.Parameters["@p1"].Value);
+            }
+        }
         private static bool Safe(string input) => AntiSqlInject.Instance.IsSafetySql(input);
 
         [Theory]

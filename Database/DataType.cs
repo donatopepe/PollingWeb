@@ -325,38 +325,98 @@ namespace Database
 
         #region METODI DI SUPPORTO 
 
+        private static readonly System.Collections.Generic.HashSet<string> CampiFiltroConsentiti =
+            new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Istituto", "IdProcesso", "Ora_fine", "Data", "Codist", "Tiporecord", "Elaborato"
+            };
+
+        private static string CampoSql(FiltroCampi filtro)
+        {
+            var campo = filtro.Campo == "isnull(Elaborato,0)" ? "ISNULL(Elaborato,0)" : filtro.Campo;
+            if (string.IsNullOrWhiteSpace(campo) ||
+                (campo != "ISNULL(Elaborato,0)" && !CampiFiltroConsentiti.Contains(campo)))
+                throw new ArgumentException("Campo filtro non consentito.", nameof(filtro));
+            return campo;
+        }
+
+        private static string OperatoreSql(FiltroCampi filtro)
+        {
+            var op = string.IsNullOrWhiteSpace(filtro.SegnoOp) ? "=" : filtro.SegnoOp.Trim();
+            if (op != "=" && op != "<" && op != ">" && op != "<=" && op != ">=")
+                throw new ArgumentException("Operatore filtro non consentito.", nameof(filtro));
+            return op;
+        }
+
+        private static string ConnettoreSql(FiltroCampi filtro)
+        {
+            var connector = string.IsNullOrWhiteSpace(filtro.NextCond) ? "AND" : filtro.NextCond.Trim();
+            if (connector.Equals("AND", StringComparison.OrdinalIgnoreCase)) return " AND ";
+            if (connector.Equals("OR", StringComparison.OrdinalIgnoreCase)) return " OR ";
+            throw new ArgumentException("Connettore filtro non consentito.", nameof(filtro));
+        }
+
+        public static string BuildWhere(ArrayList filtroPar, Microsoft.Data.SqlClient.SqlCommand command)
+        {
+            if (command == null) throw new ArgumentNullException(nameof(command));
+            var where = new System.Text.StringBuilder();
+            if (filtroPar == null) return string.Empty;
+
+            var index = 0;
+            foreach (FiltroCampi filtro in filtroPar)
+            {
+                if (filtro == null) throw new ArgumentException("Filtro nullo.", nameof(filtroPar));
+                if (where.Length > 0) where.Append(ConnettoreSql(filtro));
+                var campo = CampoSql(filtro);
+                var op = OperatoreSql(filtro);
+                var tipo = string.IsNullOrWhiteSpace(filtro.Tipo) ? "C" : filtro.Tipo.Trim().ToUpperInvariant();
+                var parameterName = "@p" + index++;
+                var expression = tipo == "C" ? "UPPER(" + campo + ")" : tipo == "D" ? "dbo.Datfin(" + campo + ")" : "(" + campo + ")";
+                if (filtro.Parentesi == "(") where.Append('(');
+                if (filtro.Parentesi != "" && filtro.Parentesi != "(" && filtro.Parentesi != ")")
+                    throw new ArgumentException("Parentesi filtro non consentita.", nameof(filtroPar));
+                where.Append(expression).Append(' ').Append(op).Append(' ').Append(parameterName);
+                if (filtro.Parentesi == ")") where.Append(')');
+
+                object value;
+                if (tipo == "N")
+                {
+                    decimal numeric;
+                    if (!decimal.TryParse(filtro.Valore, System.Globalization.NumberStyles.Number,
+                        System.Globalization.CultureInfo.InvariantCulture, out numeric))
+                        throw new ArgumentException("Valore numerico non valido.", nameof(filtroPar));
+                    value = numeric;
+                }
+                else if (tipo == "D")
+                {
+                    DateTime date;
+                    if (!DateTime.TryParseExact(filtro.Valore, new[] { "dd/MM/yyyy", "yyyy-MM-dd", "yyyy-MM-ddTHH:mm:ss" },
+                        System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out date))
+                        throw new ArgumentException("Valore data non valido.", nameof(filtroPar));
+                    value = date;
+                }
+                else if (tipo == "C") value = (filtro.Valore ?? string.Empty).Trim().ToUpperInvariant();
+                else throw new ArgumentException("Tipo filtro non consentito.", nameof(filtroPar));
+                command.Parameters.AddWithValue(parameterName, value);
+            }
+            return where.ToString();
+        }
+
+        [Obsolete("Use BuildWhere(ArrayList, SqlCommand) and execute with parameters.")]
         public static string BuildWhere(ArrayList filtroPar)
         {
-            string where = "";
-            string segnoOp = "";
-            if (filtroPar == null)
-                return where;
-
-            foreach (FiltroCampi fc in filtroPar)
+            var command = new Microsoft.Data.SqlClient.SqlCommand();
+            var clause = BuildWhere(filtroPar, command);
+            foreach (Microsoft.Data.SqlClient.SqlParameter parameter in command.Parameters)
             {
-                if (where != "")
-                    where += fc.NextCond != null && fc.NextCond != "" ? fc.NextCond : " and ";
-
-                segnoOp = fc.SegnoOp != null ? fc.SegnoOp : "=";
-                fc.Tipo = fc.Tipo == null ? "C" : fc.Tipo;
-
-                if (fc.Parentesi == "(")
-                    where += fc.Parentesi;
-
-                if (fc.Tipo == "N")
-                    where += "(" + fc.Campo + ")" + " " + segnoOp + " " + fc.Valore.ToUpper();
-                if (fc.Tipo == "C")
-                    where += "upper(" + fc.Campo + ")" + " " + segnoOp + " '" + fc.Valore.Trim() + "'";
-                //				if (fc.Tipo == "D")
-                //					where += "dbo.Datfin(" + fc.Campo + ") " + segnoOp + " Convert(smalldatetime,'" + fc.Valore + "')";				
-                if (fc.Tipo == "D")
-                    where += "dbo.Datfin(" + fc.Campo + ") " + segnoOp + " Convert(datetime,'" + fc.Valore + "',103)";
-
-                if (fc.Parentesi == ")")
-                    where += fc.Parentesi;
+                var literal = parameter.Value is string
+                    ? "'" + parameter.Value.ToString().Replace("'", "''") + "'"
+                    : parameter.Value is DateTime
+                        ? "Convert(datetime,'" + ((DateTime)parameter.Value).ToString("yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) + "',126)"
+                        : Convert.ToString(parameter.Value, System.Globalization.CultureInfo.InvariantCulture);
+                clause = clause.Replace(parameter.ParameterName, literal);
             }
-
-            return where;
+            return clause;
         }
 
         #endregion

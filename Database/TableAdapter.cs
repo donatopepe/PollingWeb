@@ -41,6 +41,12 @@ namespace Database.TableInterface
         #region METODI DI SUPPORTO
 
 
+        protected string BuildWhere(System.Collections.ArrayList filters)
+        {
+            adapter.SelectCommand.Parameters.Clear();
+            return FiltroCampi.BuildWhere(filters, adapter.SelectCommand);
+        }
+
         public SqlDataAdapter BuildCommand(SqlDataAdapter adapter)
         {
             try

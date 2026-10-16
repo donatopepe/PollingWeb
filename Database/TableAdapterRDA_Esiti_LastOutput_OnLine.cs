@@ -119,7 +119,7 @@ namespace Database.TableInterface
 
             string select = "Select * from " + this.NomeTabella + " with (nolock) ";
 
-            string where = FiltroCampi.BuildWhere(array);
+            string where = this.BuildWhere(array);
             where = where != "" ? " where " + where : "";
 
             this.adapter.SelectCommand.CommandText = select + where;
@@ -256,7 +256,7 @@ namespace Database.TableInterface
 
             string select = "Select * from " + this.NomeTabella + " with (nolock) ";
 
-            string where = FiltroCampi.BuildWhere(array);
+            string where = this.BuildWhere(array);
             where = where != "" ? " where " + where : "";
 
             this.adapter.SelectCommand.CommandText = select + where;

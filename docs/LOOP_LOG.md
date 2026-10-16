@@ -1762,6 +1762,36 @@ Windows/macOS e compilazione IIS legacy non verificati localmente. La soluzione 
 
 **Prossimo task:** `C1 — FiltroCampi.BuildWhere parametrizzato`.
 
+---
+
+## 2026-10-16T21:00Z — C1 FiltroCampi.BuildWhere parametrizzato — DONE
+
+**Baseline riprodotto.** `Database/DataType.cs` concatenava campo, operatore e valori nella stringa SQL (`BuildWhere(ArrayList)`); 18 call site dei table adapter. Campo funzionale calcolato esistente `isnull(Elaborato,0)` è ora riconosciuto esplicitamente, senza autorizzare espressioni arbitrarie.
+
+**Modifiche.** Nuovo `BuildWhere(ArrayList, SqlCommand)`: allowlist dei campi impiegati dai filtri del DAL, operatori `= < > <= >=`, connettori AND/OR e parentesi; tipi C/N/D validati, ogni valore è parameterizzato (`@pN`), numeri/date convertiti invariant. Il factory helper del `TableAdapter` pulisce i parametri e li allega al `SelectCommand`; tutti i 18 call site in 9 table adapter aggiornati. Overload string mantenuto marcato Obsolete per compatibilità, da rimuovere nel task C2; nessun call site SQL DAL lo usa più. Aggiunti test di injection, input non ammessi e conversioni numerico/data.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build Database/Database.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+104 passati, 2 ignorati, 0 falliti.
+$ dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet
+17 ignorati, 0 falliti (istanza DB non configurata per questa verifica).
+$ rg -n 'FiltroCampi.BuildWhere' Database/TableAdapter*.cs
+solo il wrapper helper parametrizzato in TableAdapter.cs; tutti i consumer usano `this.BuildWhere(array)`.
+$ git diff --check
+exit 0.
+```
+
+Il test SQL Server injection/assenza di righe extra non è eseguito; i test unit confermano che il payload resta un parametro e non entra nel testo SQL. Windows/macOS non verificati localmente.
+
+**Prossimo task:** `C2 — Migrazione di tutti i TableAdapter`.
+
+
 
 
 

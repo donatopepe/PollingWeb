@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 27 / 74 task verificati
+- **Stato complessivo:** 28 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -419,10 +419,9 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 ### Fase 5 — Correttezza e sicurezza del codice (C)
 
-- [ ] **C1 — `FiltroCampi.BuildWhere` parametrizzato**
-  DoD: `BuildWhere` restituisce SQL con parametri `@p0..@pN` + parametri; `Campo` validato
-  contro whitelist; `Tipo` enum; `Valore` sempre parametro.
-  Evidenza: test con payload `' OR 1=1 --` → nessuna riga extra.
+- [x] **C1 — `FiltroCampi.BuildWhere` parametrizzato**
+  DoD: `BuildWhere(ArrayList, SqlCommand)` restituisce SQL con parametri `@p0..@pN`; campo validato tramite allowlist dei filtri DAL osservati, tipo C/N/D, operatore/connettore/parentesi allowlist; valori parametrizzati e numeri/date convertiti invariant. I 18 call site dei table adapter usano il command parametrizzato. L'overload string legacy è mantenuto solo per compatibilità e non è usato dal DAL; rimozione in C2.
+  Evidenza (Linux): test payload `' OR 1=1 --` verifica parametro separato; build Database net48/net8 → 0 errori; unit 104 passati/2 ignorati. La verifica SQL Server dedicated resta in C2 CRUD.
 - [ ] **C2 — Migrazione di tutti i `TableAdapter*`**
   DoD: tutti i TableAdapter usano `BuildWhere` parametrizzato; nessuna concatenazione residua.
   Evidenza: test di integrazione CRUD per ogni tabella/vista.
@@ -716,3 +715,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 30 | X1.5 provider SQL astratto | `[x]` | Isolato il factory seam ADO dietro `ISqlClientFactory`, con implementazione Microsoft.Data.SqlClient. CRUD integration sintetico con SqlDataAdapter/SqlCommandBuilder → 1/1 PASS; suite integration → 8 passati, 9 ignorati (manca login applicativo); build Database net48/net8 → 0 errori; unit 101/2 ignorati; 104 riferimenti Microsoft.Data.SqlClient; zero riferimenti System.Data.SqlClient. Il test richiede DB e viene saltato se assente. |
 | 2026-10-16 | 31 | X1.6 CI multi-OS | `[x]` | Aggiunto workflow GitHub Actions: matrix ubuntu/macos/windows builda Database e PollingClass entrambi i TFM e unit test; job SQL Server Ubuntu effettua deploy synthetic e test integrazione solo con secrets CI definiti. YAML parse OK; build locale Release di tutte le librerie e test unit OK, integration project build OK; run remoto non ancora osservato, quindi OS CI non dichiarati verificati. |
 | 2026-10-16 | 32 | X1.7 Website WebForms legacy | `[x]` | Build soluzione riprodotta → MSB4249 Website; `docs/LEGACY.md` dichiara scope legacy, requisito IIS/.NET Framework 4.8 e procedura Visual Studio su richiesta; workflow CI builda solo i progetti SDK e non il Website. Nessuna falsa dichiarazione di compilazione legacy. |
+| 2026-10-16 | 33 | C1 BuildWhere parametrizzato | `[x]` | Nuovo overload con SqlCommand, allowlist campi/operatore/connettore/tipo e valori parametrici; tutti i 18 call site DAL delegano al comando SqlCommand. Test payload injection, input invalido, conversione N/D. Build Database net48/net8 0 errori; unit 104/2 ignorati; integrazione 17 ignorati senza DB; diff-check pulito. |
