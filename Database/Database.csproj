@@ -1,100 +1,68 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Progetto SDK-style multi-target (task X1.2).
+    Il target net48 conserva la compatibilita' con l'applicazione WebForms legacy;
+    net8.0 e' il target cross-platform. Entrambi si compilano su qualunque sistema
+    operativo grazie a Microsoft.NETFramework.ReferenceAssemblies, che fornisce gli
+    assembly di riferimento di .NET Framework senza richiedere Windows (fatto P14).
+
+    L'ordine dei target conta: il primo (net48) e' quello usato quando il progetto
+    viene referenziato da un progetto che non specifica un target.
+  -->
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{634E4E29-210B-48CB-8B6A-47F2E9E19997}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Database</RootNamespace>
+    <TargetFrameworks>net48;net8.0</TargetFrameworks>
     <AssemblyName>Database</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <RootNamespace>Database</RootNamespace>
+    <LangVersion>7.3</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>disable</Nullable>
+    <Deterministic>true</Deterministic>
+    <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+    <!--
+      SYSLIB0051: proviene solo da Database/dtsTabelle.Designer.cs, il DataSet tipizzato
+      generato dal designer, che usa i costruttori di serializzazione basati su formatter
+      (obsoleti da .NET 8). Non e' codice nostro e non si corregge a mano: rigenerarlo
+      richiede Visual Studio su Windows. La soppressione e' limitata a questo progetto e
+      documentata qui; il ridisegno del livello dati e' compito del task C2.
+    -->
+    <NoWarn>$(NoWarn);SYSLIB0051</NoWarn>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <!--
+      Su .NET Framework questo assembly non e' implicito e il SDK-style project non lo
+      aggiunge: senza, `System.ComponentModel.DataAnnotations` non si risolve (CS0234).
+      Su .NET 8 appartiene al framework condiviso e non serve.
+    -->
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Aggset.cs" />
-    <Compile Include="AntiSqlInject.cs" />
-    <Compile Include="PollingException.cs" />
-    <Compile Include="DatabaseInfo.cs" />
-    <Compile Include="DataType.cs" />
-    <Compile Include="dtsTabelle.Designer.cs">
+    <!-- Assembly di riferimento di .NET Framework: permettono il target net48 su Linux -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <!-- Un solo provider dati per entrambi i target (ADR 0004 §1) -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <!-- ApplicationSettingsBase e ConfigurationManager per net8.0 -->
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Il DataSet tipizzato: dtsTabelle.Designer.cs e' generato da dtsTabelle.xsd.
+      Il file .xsd resta nel repository per poter rigenerare il designer, ma non
+      viene incorporato come risorsa: il designer contiene gia' lo schema inline.
+    -->
+    <None Update="dtsTabelle.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>dtsTabelle.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <Compile Update="dtsTabelle.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>dtsTabelle.xsd</DependentUpon>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-    <Compile Include="TableAdapter.cs" />
-    <Compile Include="TableAdapterDimDayquartz.cs" />
-    <Compile Include="TableAdapterDimStato.cs" />
-    <Compile Include="TableAdapterDimBudgetTemp.cs" />
-    <Compile Include="TableAdapterLogTaskService.cs" />
-    <Compile Include="TableAdapterRDA_Esiti_LastOutput_OnLine.cs" />
-    <Compile Include="TableAdapterTargetSC00G100.cs" />
-    <Compile Include="TableAdapterListaTriggerTemp.cs" />
-    <Compile Include="TableAdapterTaskService.cs" />
-    <Compile Include="TableAdapterTbl_Export_SAP_OnLine.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="dtsTabelle.xsc">
-      <DependentUpon>dtsTabelle.xsd</DependentUpon>
-    </None>
-    <None Include="dtsTabelle.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>dtsTabelle.Designer.cs</LastGenOutput>
-    </None>
-    <None Include="dtsTabelle.xss">
-      <DependentUpon>dtsTabelle.xsd</DependentUpon>
-    </None>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

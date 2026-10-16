@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Collections;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Database.Base;
 using Database;
 using System.Data;
@@ -68,18 +68,18 @@ namespace Database.TableInterface
 
         private SqlDataAdapter CreaSqlDataAdapter()
         {
-            System.Data.SqlClient.SqlDataAdapter sqlDataAdapter1;
-            sqlDataAdapter1 = new System.Data.SqlClient.SqlDataAdapter();
+            Microsoft.Data.SqlClient.SqlDataAdapter sqlDataAdapter1;
+            sqlDataAdapter1 = new Microsoft.Data.SqlClient.SqlDataAdapter();
 
-            System.Data.SqlClient.SqlCommand sqlSelectCommand1;
-            System.Data.SqlClient.SqlCommand sqlInsertCommand1;
-            System.Data.SqlClient.SqlCommand sqlUpdateCommand1;
-            System.Data.SqlClient.SqlCommand sqlDeleteCommand1;
+            Microsoft.Data.SqlClient.SqlCommand sqlSelectCommand1;
+            Microsoft.Data.SqlClient.SqlCommand sqlInsertCommand1;
+            Microsoft.Data.SqlClient.SqlCommand sqlUpdateCommand1;
+            Microsoft.Data.SqlClient.SqlCommand sqlDeleteCommand1;
 
-            sqlSelectCommand1 = new System.Data.SqlClient.SqlCommand();
-            sqlInsertCommand1 = new System.Data.SqlClient.SqlCommand();
-            sqlUpdateCommand1 = new System.Data.SqlClient.SqlCommand();
-            sqlDeleteCommand1 = new System.Data.SqlClient.SqlCommand();
+            sqlSelectCommand1 = new Microsoft.Data.SqlClient.SqlCommand();
+            sqlInsertCommand1 = new Microsoft.Data.SqlClient.SqlCommand();
+            sqlUpdateCommand1 = new Microsoft.Data.SqlClient.SqlCommand();
+            sqlDeleteCommand1 = new Microsoft.Data.SqlClient.SqlCommand();
             // 
             // sqlDataAdapter1
             // 

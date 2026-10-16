@@ -1206,3 +1206,110 @@ modalità `apply` non è idempotente sugli oggetti già presenti. Documentato in
 track cross-platform, e da lì dipendono `X1.2`/`X1.3` (multi-target `net48;net8.0`).
 
 **Blocchi.** `T0.13` in attesa della DDL dall'ambiente di origine. Nessun altro.
+
+## 2026-10-16T15:10Z — Revisione 3 del piano (ADR 0004) — DONE
+
+**Perché una revisione e non un'esecuzione.** `X1.1` è il primo task della fase cross-platform e
+la sua DoD era **impossibile da soddisfare**:
+
+1. chiedeva una soluzione con `PollingWorker`, `PollingApi`, `PollingWeb.Core` e `tests/*` —
+   progetti **creati** da `X2.1`, `X3.1`, `X4.1` e `T1`, cioè dopo;
+2. chiedeva come evidenza `dotnet build PollingWeb.sln` → **0 errori**, mentre i fatti `P13` e
+   `P14` dello stesso piano dicono che la soluzione non è compilabile finché non sono fatti
+   `X1.1`–`X1.3` e `X1.7`.
+
+```
+$ for p in PollingWorker PollingApi PollingWeb.Core tests; do [ -e "$p" ] && echo esiste || echo ASSENTE; done
+ASSENTE (tutti e quattro)
+$ dotnet build PollingWeb.sln
+2 errori: MSB4249 (sito WebForms) + MSB3644 (progetti classici)
+```
+
+Un task la cui evidenza non può passare finirebbe `[x]` su un'affermazione falsa o `[~]` per
+sempre, bloccando la fase: la regola 8 del prompt prescrive in questo caso una revisione con ADR.
+
+**Decisione (ADR 0004).** `X1.1` ristretto allo scheletro di build; le richieste non ottenibili
+trasferite ai task che le possono soddisfare: i progetti nella soluzione → `X2.1`/`X3.1`/`X4.1`/`T1`
+(sono loro a crearli); la soluzione verde → `X1.6`/`X1.7`. Ordine rivisto:
+`X1.2 → X1.3 → X1.1 → X1.4 → X1.5 → X1.6 → X1.7`. Corrette due imprecisioni: `WindowsBase` è di
+`PollingClass` (quindi `X1.3`), e `X1.5` prescriveva **due** provider dati mentre ne basta uno.
+
+---
+
+## 2026-10-16T15:10Z — X1.2 `Database` multi-target `net48;net8.0` — DONE
+
+**Primo task cross-platform eseguito.** Cinque interventi, tutti motivati da un fatto del piano:
+
+| # | Intervento | Motivo |
+|---|---|---|
+| 1 | rimosse `FontSerif` e `Colore` e `using System.Drawing` | P6: il loro unico consumatore era `Check_RdA.cs`, rimosso in `T0.6` |
+| 2 | rimosso `using System.Web` da `PollingException.cs` | non usato |
+| 3 | `HttpUtility.UrlDecode` → `UrlDecodeCompat` su `Uri.UnescapeDataString` | elimina l'**ultima** dipendenza da `System.Web` nella DAL invece di aggiungere il riferimento solo per net48 (ADR 0004 §2.4) |
+| 4 | `System.Data.SqlClient` → `Microsoft.Data.SqlClient` (12 file + 90 usi qualificati) | **un solo provider** per entrambi i target (ADR 0004 §1) |
+| 5 | `Database.csproj` riscritto SDK-style multi-target | P14: senza questo, `MSB3644` su qualunque OS |
+
+**Sostituzione di `HttpUtility` verificata, non assunta.** `UrlDecode` converte `+` in spazio,
+`UnescapeDataString` no: la differenza è replicata. Equivalenza misurata su 8 casi, inclusi
+payload di injection e UTF-8 percent-encoded → **0 differenze**. È un controllo di sicurezza:
+il comportamento non doveva cambiare.
+
+**Tre errori miei, trovati compilando.**
+
+1. **Numerazione sfasata di uno.** `DataType.cs` inizia con `BOM + newline`, quindi la riga 1 è
+   vuota e `using System.Drawing;` è la riga 2. La prima esecuzione dello script è fallita
+   sull'assert invece di cancellare le righe sbagliate: l'assert ha fatto il suo lavoro.
+2. **Sostituzione incompleta del provider.** Avevo cambiato solo `using System.Data.SqlClient;`
+   lasciando **90 usi qualificati** (`System.Data.SqlClient.SqlCommand`, `.SqlDataAdapter`): la
+   build net8.0 ha fallito con `CS1069`. Verificato prima di sostituire che fossero tutti codice
+   e nessuno una stringa (avrebbe rotto il `providerName` della configurazione).
+3. **Riferimento mancante per net48.** Il progetto SDK-style non aggiunge
+   `System.ComponentModel.DataAnnotations`, implicito nel progetto classico → `CS0234`. Aggiunto
+   con `Condition="'$(TargetFramework)' == 'net48'"`, perché su net8.0 appartiene al framework
+   condiviso.
+
+**Evidenza.**
+
+```
+  net48   errori=0  avvisi=0
+  net8.0  errori=0  avvisi=28   (tutti CA2200, cioè `throw ex;`)
+  artefatti: Database/bin/Debug/net48/Database.dll
+             Database/bin/Debug/net8.0/Database.dll
+
+  System.Web o System.Drawing in Database : 0
+  System.Data.SqlClient in Database       : 0
+  TFM dichiarati                          : net48;net8.0
+  Database.csproj non è più un csproj classico
+
+  dotnet build PollingWeb.sln
+    prima:  MSB4249 (sito) + MSB3644 (progetti classici)
+    dopo:   2 × MSB4249 (solo il sito)     <- i MSB3644 sono spariti con X1.2
+  dotnet build PollingClass/PollingClass.csproj -> MSB3644 invariato (è X1.3)
+```
+
+**Il numero 28 non è rumore: è la misura di `C6`.** Gli avvisi `CA2200` sono
+`throw ex;`, che azzera lo stack trace. Il piano lo prevedeva come elenco qualitativo; ora ha una
+cifra: **28 occorrenze in `Database`** (0 in `PollingClass`).
+
+**`SYSLIB0051` soppresso e documentato.** Proviene solo da `dtsTabelle.Designer.cs`, il DataSet
+generato dal designer, che usa i costruttori di serializzazione basati su formatter. La
+soppressione è di progetto e commentata nel csproj; il ridisegno del livello dati è `C2`. Ho
+provato prima la soppressione per-file (`<Compile Update>` + `NoWarn`): non ha effetto sugli
+avvisi del compilatore, quindi ho cambiato approccio invece di lasciarla lì a sembrare utile.
+
+**Nuovo fatto registrato: P15.** Il cambio di provider ha una conseguenza non ovvia, verificata
+sul container:
+
+```
+  FALLITA  default (Encrypt non specificato) -> SqlException: errore durante l'handshake pre-login
+  OK       TrustServerCertificate=True      -> Polling
+  OK       Encrypt=False                    -> Polling
+```
+
+`Microsoft.Data.SqlClient` 5.x attiva `Encrypt` per default. Le connection string servono
+`TrustServerCertificate=True` (o un certificato valido). Colpisce la quickstart (**AC8**) e va
+intercettato con un messaggio comprensibile da `C7`: l'errore predefinito non dice cosa manca.
+
+**Prossimo.** `X1.3` — `PollingClass` multi-target: rimozione di `LinqToExcel`/`Remotion` (LGPL,
+Windows-only), estrazione della logica dei 4 ASMX e isolamento di `Prog_Quartz`.
+
+**Blocchi.** `T0.13` in attesa della DDL dall'ambiente di origine. Nessun altro.

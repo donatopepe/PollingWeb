@@ -6,7 +6,9 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 12 / 68 task verificati
+- **Stato complessivo:** 13 / 68 task verificati
+- **Revisione piano:** 3 (2026-10-16) — `X1.1` ristretto e spostato dopo `X1.2`/`X1.3`;
+  DoD di `X1.2` e `X1.5` corrette. Motivo in [`docs/adr/0004`](docs/adr/0004-build-layout-and-multitargeting.md)
 - **Prompt operativo:** [`PROMPT.md`](PROMPT.md)
 - **Log iterazioni:** [`docs/LOOP_LOG.md`](docs/LOOP_LOG.md)
 
@@ -84,6 +86,7 @@ massimo 3 tentativi per task, poi il task passa a `BLOCKED` con motivo scritto.
 | P12 | Logica di business totale ≈ 2.500 righe (`PollingClass`) + DAL generato ≈ 4.000 (`Database`) | ✅ Dimensione compatibile con un port incrementale, non con una riscrittura | `wc -l` |
 | P13 | `dotnet build PollingWeb.sln` fallisce con **`MSB4249`**: il compilatore ASP.NET esiste solo in MSBuild di .NET Framework, su Windows | ⚠️ Il sito **non è compilabile in CI su Linux**: da escludere dal build di default (`X1.7`) e sostituire con Razor Pages (`X4.2`) | `dotnet build PollingWeb.sln` |
 | P14 | I `.csproj` classici dichiarano `v4.5` senza targeting pack | ⚠️ `dotnet build <progetto>.csproj` fallisce con **`MSB3644`** su qualsiasi OS: serve la conversione SDK-style (`X1.1`–`X1.3`) | `dotnet build Database/Database.csproj` |
+| P15 | `Microsoft.Data.SqlClient` 5.x attiva `Encrypt` **per default**: contro un certificato self-signed la connessione fallisce con un errore di *handshake pre-login* | ⚠️ Le connection string servono `TrustServerCertificate=True` (o `Encrypt=False`) o un certificato valido. Colpisce la quickstart (`AC8`) e va intercettato con un messaggio chiaro da `C7`. Verificato: `default` → handshake fallito, `TrustServerCertificate=True` → connessione riuscita | test su container, net8.0 |
 
 **Conclusione.** Il port è a basso rischio tecnico: mancano solo (a) sostituzione
 ASMX→API, (b) upgrade Quartz, (c) rimozione `System.Drawing`/`LinqToExcel`/`WindowsBase`,
@@ -241,18 +244,29 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 > Assorbe i task T1.1–T1.7 della revisione 1 (mappatura in nota a fine fase).
 
 - [ ] **X1.1 — Layout soluzione + `Directory.Build.props`**
-  DoD: `PollingWeb.sln` con i progetti correnti + `PollingWorker` + `PollingApi` + `PollingWeb.Core`
-  + `tests/*`; `Directory.Build.props` centralizza `LangVersion`, `Nullable`, versione da
-  `Directory.Packages.props` (Central Package Management); `Directory.Build.targets` per regole comuni.
-  Evidenza: `dotnet build PollingWeb.sln` → 0 errori; `dotnet sln list` mostra tutti i progetti.
-- [ ] **X1.2 — `Database` multi-target `net48;net8.0`**
-  DoD: csproj SDK-style; TFM `net48;net8.0`; rimosso `System.Drawing` (P6); rimossi using
-  `System.Web` superflui; `SqlClient` astratto (vedi X1.5); nessun `WindowsBase`.
-  Evidenza: `dotnet build Database/Database.csproj -f net8.0` e `-f net48` → 0 errori.
+  DoD: `Directory.Build.props` centralizza `LangVersion`, `Nullable`, `Deterministic` e la
+  versione; `Directory.Packages.props` (Central Package Management); `Directory.Build.targets`
+  per regole comuni; `PollingWeb.sln` allineata ai **progetti esistenti**.
+  Evidenza: `dotnet msbuild Database/Database.csproj -getProperty:LangVersion -getProperty:Version`
+  mostra i valori dei props (i props sono importati anche dai csproj classici, via
+  `Microsoft.Common.props`); `dotnet sln list` elenca i progetti.
+  *Ristretto da ADR 0004: la richiesta di contenere `PollingWorker`/`PollingApi`/`PollingWeb.Core`/`tests`
+  passa ai task che quei progetti li creano (`X2.1`, `X3.1`, `X4.1`, `T1`), e l'evidenza
+  `dotnet build PollingWeb.sln → 0 errori` passa a `X1.6`/`X1.7`: fino ad allora è un obiettivo,
+  non un'evidenza verificabile.*
+- [x] **X1.2 — `Database` multi-target `net48;net8.0`**
+  DoD: csproj SDK-style; TFM `net48;net8.0`; rimosso `System.Drawing` (P6); rimossa la
+  dipendenza da `System.Web` (senza aggiungere il riferimento a net48: si sostituisce
+  `HttpUtility.UrlDecode`, vedi ADR 0004 §2.4); provider dati usato direttamente, l'astrazione
+  è `X1.5`. Il riferimento `WindowsBase` è in `PollingClass`, quindi appartiene a `X1.3`
+  (ADR 0004 §2.3).
+  Evidenza: `dotnet build Database/Database.csproj -f net8.0` e `-f net48` → 0 errori;
+  `git grep -n "System.Web\|System.Drawing" Database` = 0.
 - [ ] **X1.3 — `PollingClass` multi-target `net48;net8.0`**
   DoD: csproj SDK-style; TFM `net48;net8.0`; **rimozione `LinqToExcel`/`Remotion`** (sostituiti con
   `DocumentFormat.OpenXml`, già in uso, o ClosedXML MIT); logica dei 4 ASMX estratta in classi di
-  servizio platform-neutral; `Prog_Quartz` isolato dietro un'interfaccia per permettere Quartz 3.x.
+  servizio platform-neutral; `Prog_Quartz` isolato dietro un'interfaccia per permettere Quartz 3.x;
+  rimosso il riferimento `WindowsBase` (non usato: nessun `System.Windows`/`Dispatcher`).
   Evidenza: build per entrambi i TFM → 0 errori; `git grep -i "remotion\|linqtoexcel"` = 0.
 - [ ] **X1.4 — Configurazione astratta**
   DoD: accesso a config dietro `IAppConfig`/`IOptions`; su net48 legge `Web.config`/`app.config`,
@@ -261,9 +275,9 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   Evidenza: test unit con provider fake; `git grep -n "ConfigurationManager" Database PollingClass` = 0
   (escluso l'adapter).
 - [ ] **X1.5 — Provider dati astratto (`Microsoft.Data.SqlClient`)**
-  DoD: su net8.0 `Microsoft.Data.SqlClient`, su net48 `System.Data.SqlClient`, dietro un unico
-  adapter; `SqlDataAdapter`/`SqlCommandBuilder` funzionanti su entrambi; connection string senza
-  credenziali nel codice.
+  DoD: **un solo provider**, `Microsoft.Data.SqlClient`, su entrambi i TFM (verificato che
+  `SqlDataAdapter` e `SqlCommandBuilder` vi funzionano: vedi ADR 0004 §1); adapter sottile per
+  isolare il DAL da un futuro cambio di provider; connection string senza credenziali nel codice.
   Evidenza: integration test CRUD verdi su entrambi i TFM.
 - [ ] **X1.6 — CI multi-OS**
   DoD: `.github/workflows/ci.yml` con matrice `ubuntu-latest`, `macos-latest`, `windows-latest`:
@@ -282,7 +296,8 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 - [ ] **X2.1 — Progetto `PollingWorker` (.NET 8 Worker Service)**
   DoD: `IHostedService` avvia la scansione dei file source e i job; eseguibile come processo
-  `dotnet PollingWorker.dll`; nessuna dipendenza da IIS.
+  `dotnet PollingWorker.dll`; nessuna dipendenza da IIS; registra il progetto in `PollingWeb.sln`
+  (requisito trasferito da `X1.1`, ADR 0004 §2.1).
   Evidenza: `dotnet run --project PollingWorker` avvia senza errori su Linux e Windows.
 - [ ] **X2.2 — Quartz 3.x con job store ADO su SQL Server**
   DoD: upgrade da 2.1.2 a 3.x; `JobStoreTX` con `Microsoft.Data.SqlClient`; schema `QRTZ_` da
@@ -305,7 +320,8 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 - [ ] **X3.1 — Progetto `PollingApi` (ASP.NET Core 8)**
   DoD: minimal API o controller; OpenAPI (`/openapi/v1.json`); config da `appsettings.json`;
-  binding su `0.0.0.0`; autenticazione a chiave o Windows/None documentata.
+  binding su `0.0.0.0`; autenticazione a chiave o Windows/None documentata; registra il progetto
+  in `PollingWeb.sln` (requisito trasferito da `X1.1`, ADR 0004 §2.1).
   Evidenza: `dotnet run --project PollingApi` e chiamata reale a un endpoint documentata.
 - [ ] **X3.2 — Porting dei 4 web service**
   DoD: `ImportBudget`, `ImportFatture`, `LeggiFornitore`, `Ordini_Sap` esposti come endpoint
@@ -324,7 +340,8 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 - [ ] **X4.1 — `PollingWeb.Core` con Razor Pages: fondamenta**
   DoD: progetto ASP.NET Core Razor Pages; layout con Bootstrap; menu equivalente a `home.aspx`;
-  `Web.config`/`appsettings.json` per le connection string; nessun IIS richiesto.
+  `Web.config`/`appsettings.json` per le connection string; nessun IIS richiesto; registra il
+  progetto in `PollingWeb.sln` (requisito trasferito da `X1.1`, ADR 0004 §2.1).
   Evidenza: `dotnet run` e smoke test Playwright sulla home.
 - [ ] **X4.2 — Porting delle 11 pagine WebForms**
   DoD: `Default`, `home`, `TaskService`, `GestioneDayQuartz`, `ListaTrigger`, `SQL01`,
@@ -391,7 +408,8 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 - [ ] **T1 — Infrastruttura test**
   DoD: `tests/PollingWeb.UnitTests`, `tests/PollingWeb.IntegrationTests` (xUnit); `docker compose`
-  con SQL Server 2022; `scripts/db-deploy.sh` usato dai test; skip automatico se DB assente.
+  con SQL Server 2022; `scripts/db-deploy.sh` usato dai test; skip automatico se DB assente;
+  registra i progetti di test in `PollingWeb.sln` (requisito trasferito da `X1.1`, ADR 0004 §2.1).
   Evidenza: `dotnet test` esegue entrambi i progetti.
 - [ ] **T2 — Unit test logica pura**
   DoD: copertura di `ValidaData`, `ValidaMail`, `FiltroCampi`, `AntiSqlInject`, `Aggset`,
@@ -500,7 +518,9 @@ T0.2 → T0.3 → T0.4 → T0.6 → T0.11 → T0.9
   → T0.7 → T0.12 → T0.8              # schema unico, schema eProcurement, deploy riproducibile
   #   T0.13 (4 tabelle Tab_SC00S100_*) e' BLOCCATO in attesa della DDL dall'ambiente di origine:
   #   non blocca il resto della pipeline, va sbloccato quando la DDL e' disponibile.
-  → X1.1 → X1.2 → X1.3 → X1.4 → X1.5 → X1.6 → X1.7
+  → X1.2 → X1.3 → X1.1 → X1.4 → X1.5 → X1.6 → X1.7
+  #   ordine rivisto da ADR 0004: i props di X1.1 hanno senso solo su progetti SDK-style,
+  #   quindi X1.1 viene dopo X1.2/X1.3; la soluzione verde e' pretesa da X1.6/X1.7.
   → C1 → C2 → C3 → C4 → C5 → C6 → C7 → C8 → C9 → C10
   → T1 → T2 → T3 → T4
   → X2.1 → X2.2 → X2.3 → X2.4 → X2.5
@@ -610,3 +630,5 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 12 | T0.12 schema eProcurement (solo DDL) | `[x]` | 17 oggetti estratti, 15.728 `INSERT` scartati (12.435 KB → 25 KB); deploy `tabelle=15 viste=1 funzioni=1 FK=5 default=22 PK=13` = **identico all'origine**; pattern di audit = 0; `StripHTML` e `ViewEstrazioneRdARdE` eseguibili |
 | 2026-10-16 | 13 | T0.13 tabelle `Tab_SC00S100_*` | `[!]` | **bloccato**: ricerca esaustiva su repository, 9 commit della storia archiviata e snapshot `eProcurement` → nessuna DDL esistente. Prodotto `sql/eProcurement/MISSING-TABLES.md` con la specifica delle colonne usate dal codice (10 istruzioni estratte, righe 277–560) |
 | 2026-10-16 | 14 | T0.8 deploy con privilegi minimi | `[x]` | deploy `recreate` due volte → exit 0; **12 controlli di autotest** (8 positivi + 4 negativi); `sysadmin=0`, `db_owner=0` sui 3 database, nessun ruolo server, `CHECK_POLICY=1`; **0 oggetti dbo senza permesso** (drift check) |
+| 2026-10-16 | 15 | revisione 3 del piano (ADR 0004) | `[x]` | `X1.1` ristretto e spostato dopo `X1.2`/`X1.3`; DoD di `X1.2` e `X1.5` corrette; renderlo eseguibile era impossibile: i progetti citati non esistono e il build verde contraddice P13/P14 |
+| 2026-10-16 | 16 | X1.2 Database multi-target | `[x]` | `net48` 0 errori / 0 avvisi; `net8.0` 0 errori / 28 avvisi (tutti CA2200 = `throw ex;`, scope di C6); `System.Web` e `System.Drawing` in `Database` → 0; artefatti per entrambi i TFM; errori `MSB3644` sulla soluzione → 0 (restano solo 2 `MSB4249` del sito) |

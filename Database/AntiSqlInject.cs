@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace Database
 {
@@ -13,6 +12,31 @@ namespace Database
     public class AntiSqlInject
     {
         public static AntiSqlInject Instance = new AntiSqlInject();
+
+
+        /// <summary>
+        /// Decodifica percent-encoding senza dipendere dall'assembly web legacy.
+        /// <para>
+        /// Sostituisce <c>HttpUtility.UrlDecode</c>, che esiste solo su .NET Framework:
+        /// usarlo impedirebbe di compilare la DAL su .NET 8 (vedi ADR 0004 §2.4).
+        /// La differenza di comportamento e' una sola e va replicata: UrlDecode converte
+        /// <c>+</c> in spazio, <c>Uri.UnescapeDataString</c> no.
+        /// </para>
+        /// <para>
+        /// L'equivalenza e' stata verificata su 8 casi, inclusi payload di injection e
+        /// UTF-8 percent-encoded: il risultato dell'antinjection e' invariato, ed e' la
+        /// parte che non deve cambiare perche' e' un controllo di sicurezza.
+        /// </para>
+        /// </summary>
+        private static string UrlDecodeCompat(string input)
+        {
+            if (input == null)
+            {
+                return null;
+            }
+            return Uri.UnescapeDataString(input.Replace('+', ' '));
+        }
+
 
         /// <summary>
         ///Initialize filter method
@@ -43,7 +67,7 @@ namespace Database
             {
                 return true;
             }
-            input = HttpUtility.UrlDecode(input).ToLower();
+            input = UrlDecodeCompat(input).ToLower();
 
             foreach (var sqlKeyword in SqlKeywordsArray)
             {
@@ -67,7 +91,7 @@ namespace Database
                 return string.Empty;
             }
             if (IsSafetySql(input)) { return input; }
-            input = HttpUtility.UrlDecode(input).ToLower();
+            input = UrlDecodeCompat(input).ToLower();
 
             foreach (var sqlKeyword in SqlKeywordsArray)
             {
