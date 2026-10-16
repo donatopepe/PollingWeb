@@ -48,8 +48,13 @@
   </quartz>
 
   <appSettings>
-    <!-- Server SMTP per le notifiche di esito dei job (MailSede). -->
-    <add key="smtpServer" value="${POLLING_SMTP_HOST}"/>
+    <!-- SMTP values can also be provided through the matching POLLING_SMTP_* environment variables. -->
+    <add key="POLLING_SMTP_HOST" value="${POLLING_SMTP_HOST}"/>
+    <add key="POLLING_SMTP_PORT" value="587"/>
+    <add key="POLLING_SMTP_ENABLE_SSL" value="true"/>
+    <add key="POLLING_SMTP_USE_DEFAULT_CREDENTIALS" value="false"/>
+    <add key="POLLING_SMTP_USERNAME" value="${POLLING_SMTP_USERNAME}"/>
+    <add key="POLLING_SMTP_PASSWORD" value="${POLLING_SMTP_PASSWORD}"/>
   </appSettings>
 
   <connectionStrings>

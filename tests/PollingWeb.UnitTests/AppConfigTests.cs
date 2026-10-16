@@ -110,6 +110,53 @@ namespace PollingWeb.UnitTests
         }
 
         [Fact]
+        public void Smtp_configuration_requires_host_and_validates_port_and_authentication()
+        {
+            Assert.Throws<System.InvalidOperationException>(() => PollingClass.SmtpSettings.Load(new AppConfig(useLegacyConfiguration: false)));
+            var invalidPort = new AppConfig(new Dictionary<string, string>
+            {
+                ["POLLING_SMTP_HOST"] = "localhost",
+                ["POLLING_SMTP_PORT"] = "70000"
+            }, useLegacyConfiguration: false);
+            Assert.Throws<System.InvalidOperationException>(() => PollingClass.SmtpSettings.Load(invalidPort));
+
+            var missingCredentials = new AppConfig(new Dictionary<string, string>
+            {
+                ["POLLING_SMTP_HOST"] = "localhost",
+                ["POLLING_SMTP_USE_DEFAULT_CREDENTIALS"] = "false"
+            }, useLegacyConfiguration: false);
+            Assert.Throws<System.InvalidOperationException>(() => PollingClass.SmtpSettings.Load(missingCredentials));
+        }
+
+        [Fact]
+        public void Smtp_configuration_accepts_explicit_credentials_and_secure_transport_settings()
+        {
+            var config = new AppConfig(new Dictionary<string, string>
+            {
+                ["POLLING_SMTP_HOST"] = "localhost",
+                ["POLLING_SMTP_PORT"] = "2525",
+                ["POLLING_SMTP_ENABLE_SSL"] = "true",
+                ["POLLING_SMTP_USE_DEFAULT_CREDENTIALS"] = "false",
+                ["POLLING_SMTP_USERNAME"] = "synthetic-user",
+                ["POLLING_SMTP_PASSWORD"] = "synthetic-password"
+            }, useLegacyConfiguration: false);
+            var settings = PollingClass.SmtpSettings.Load(config);
+            Assert.Equal(2525, settings.Port);
+            Assert.True(settings.EnableSsl);
+            Assert.False(settings.UseDefaultCredentials);
+            Assert.Equal("synthetic-user", settings.UserName);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("bad-address")]
+        [InlineData("valid@example.test;")]
+        public void Smtp_recipient_list_rejects_empty_or_malformed_addresses(string value)
+        {
+            Assert.Throws<System.ArgumentException>(() => PollingClass.SmtpSettings.ValidateRecipientList(value));
+        }
+
+        [Fact]
         public void Configured_paths_require_existing_directory_and_bare_file_name()
         {
             var directory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.Guid.NewGuid().ToString("N"));

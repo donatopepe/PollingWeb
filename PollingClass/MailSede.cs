@@ -47,65 +47,37 @@ namespace PollingClass
                
         public void Invia(string tomail, string frommail, string oggetto, string messaggio)
         {
+            var settings = SmtpSettings.Load(Configuration);
+            SmtpSettings.ValidateRecipientList(tomail);
+            if (string.IsNullOrWhiteSpace(frommail)) throw new ArgumentException("SMTP sender address is required.", nameof(frommail));
             try
             {
-                string user = "username";
-                string password = "password";
-                    
-                MailMessage oMsg = new MailMessage();
-                //Imposta il mittente
-                oMsg.From = new MailAddress(frommail, frommail);
-                //La proprietà .To è una collezione di destinatari, 
-                //quindi possiamo addizionare quanti destinatari vogliamo.
-                string[] cc_mail = tomail.Split(';');
-
-                oMsg.To.Add(new MailAddress(cc_mail[0], cc_mail[0]));
-
-                
-
-                if (cc_mail.Length > 1)
+                using (var message = new MailMessage())
                 {
-                    for (int cc = 1; cc < cc_mail.Length; cc++)
+                    message.From = new MailAddress(frommail);
+                    var recipients = tomail.Split(';');
+                    message.To.Add(new MailAddress(recipients[0].Trim()));
+                    for (var i = 1; i < recipients.Length; i++)
+                        message.CC.Add(new MailAddress(recipients[i].Trim()));
+                    message.Subject = oggetto;
+                    message.Body = messaggio;
+                    message.IsBodyHtml = true;
+                    using (var client = new SmtpClient(settings.Host, settings.Port))
                     {
-                        oMsg.CC.Add(new MailAddress(cc_mail[cc], cc_mail[cc]));
+                        client.DeliveryMethod = SmtpDeliveryMethod.Network;
+                        client.EnableSsl = settings.EnableSsl;
+                        client.UseDefaultCredentials = settings.UseDefaultCredentials;
+                        if (!settings.UseDefaultCredentials)
+                            client.Credentials = new NetworkCredential(settings.UserName, settings.Password);
+                        client.Send(message);
                     }
                 }
-
-                
-                //Imposto oggetto
-                oMsg.Subject = oggetto;
-                //Imposto contenuto
-
-                String TestoBody = messaggio;
-
-                oMsg.Body = TestoBody;
-                oMsg.IsBodyHtml = true;
-                //Imposto il Server Smtp
-                SmtpClient oSmtp = new SmtpClient(
-                Configuration.GetValue("smtpServer"));
-                
-
-                //Possiamo impostare differenti metodi di spedizione. 
-                //Imposta consegna diretta.
-                oSmtp.DeliveryMethod = SmtpDeliveryMethod.Network;
-                //Alcuni Server SMTP richiedono l'accesso autenticato
-
-                NetworkCredential oCredential = new NetworkCredential(user, password);
-                //NetworkCredential oCredential = new NetworkCredential("username", "password");
-                oSmtp.UseDefaultCredentials = true;
-                oSmtp.Credentials = oCredential;
-                //Spediamo la mail
-                oSmtp.Send(oMsg);
-
-
             }
             catch (Exception ex)
             {
                 PollingExceptionHandler.Esegui(ex);
             }
-
         }
-
 
         #endregion
     }

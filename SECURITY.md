@@ -125,8 +125,8 @@ Sintesi delle azioni minime prima di pubblicare:
 2. **Stringhe di connessione** — ruotare la password e conservarla **fuori dal repository**:
    variabili d'ambiente, `aspnet_regiis -pe` per la sezione `connectionStrings`, o un secret
    store. I file versionati contengono solo placeholder `${POLLING_DB_*}`.
-3. **SMTP** — l'invio non implementa realmente l'autenticazione: configurare utente e
-   password reali e verificare con un server di prova (task `C10` del piano).
+3. **SMTP** — `MailSede` legge host, porta, TLS e modalità credenziali da `POLLING_SMTP_*`.
+   Fornire password tramite secret store/environment e verificare l'invio con un server di test.
 4. **Dati di terzi** — l'inventario elenca i file rimossi; verificare con il titolare del
    trattamento se serve una notifica.
 
@@ -186,7 +186,7 @@ git gc --prune=now
 | Stato statico mutabile nella connessione DB | `Database/DatabaseInfo.cs` | `C5` |
 | Eccezioni inghiottite (`catch { }`) | vari | `C6` |
 | Percorsi assoluti di macchina nel codice | vari | `C8` |
-| Autenticazione SMTP non implementata | `PollingClass/MailSede.cs` | `C10` |
+| Configurazione SMTP hard-coded/placeholder | `PollingClass/MailSede.cs` | `C10` (in corso: uso di `POLLING_SMTP_*`, invio test sintetico) |
 | Dipendenza copyleft (`LinqToExcel` → `Remotion`, LGPL) | `PollingClass` | ✅ rimossa in `X1.3`: era codice morto |
 
 ---

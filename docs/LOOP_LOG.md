@@ -22,6 +22,7 @@ poi: contesto, modifiche, evidenza (comando + output), prossimo task, blocchi.
 
 ## 2026-10-17T12:20Z — C9 Robustezza parsing SAP — IN PROGRESS
 
+
 **Baseline riprodotto:** `Ordini_Sap` esegue `Substring` su righe senza controllare la lunghezza minima; `ImportaXML` assume foglio `BDG`, dati worksheet e riferimenti alle shared strings validi; `ParserFatture` usa `StreamReader` predefinito e `IsNumeric` dipende dalla cultura. Evidenza attesa: gestione esplicita input vuoti/mancanti/troncati e encoding dichiarato, fixture sintetiche, build PollingClass su entrambi i TFM e test unit.
 
 **Modifiche parziali:** `Ordini_Sap` ignora righe vuote e rifiuta record troncati; `ImportaXML` valida foglio/dati e riferimenti shared-string, restituisce empty per cella assente e tollera righe budget con celle mancanti; `ConfiguredFilePaths` dichiara UTF-8/BOM e decode Windows-1252 esplicito; `ParserFatture` ignora input vuoto, rifiuta header corto, usa invariant parsing e formati data espliciti. `samples/sap/README.md` documenta i formati e i campioni sintetici. Test generati coprono output troncato, righe vuote, UTF-8/BOM, Windows-1252, date sotto culture diverse e workbook incompleti.
@@ -1989,6 +1990,18 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 
 
+
+---
+
+## 2026-10-17T13:00Z — C10 SMTP — IN PROGRESS
+
+**Baseline:** `MailSede.Invia` contiene credenziali placeholder nel codice, host soltanto da config, porta/TLS non configurabili, `UseDefaultCredentials=true` e nessun test SMTP. Evidenza attesa: configurazione validata host/porta/TLS/auth, invio su server SMTP fittizio e assenza credenziali hardcoded; build PollingClass net8.0/net48 e test unit/integration reali.
+
+**Modifica parziale:** aggiunto `SmtpSettings` con host/porta/TLS/modalità credenziali e credenziali da `POLLING_SMTP_*`, validazione e destinatari; `MailSede` usa tali settings e dispone i client/message; aggiunta configurazione template Web.config, aggiornato SECURITY. Unit test validano configurazione/recipient; integration test avvia un sink SMTP TCP loopback sintetico e riceve 1 messaggio.
+
+**Verifica reale:** `dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet` e `-f net48` → exit 0; `dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet` → 145 passati/2 ignorati; `dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --filter FullyQualifiedName~SmtpDeliveryTests --nologo -v quiet` → 1/1 pass.
+
+**Esito:** C10 resta `[~]`: il test SMTP è un sink loopback embedded, non il servizio Papercut/SMTP4Dev containerizzato richiesto dalla DoD; autenticazione non è ancora testata contro il sink. Nessuna password o credenziale reale introdotta.
 
 ---
 
