@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 18 / 74 task verificati
+- **Stato complessivo:** 19 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -304,7 +304,13 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   1 ignorato; nessun riferimento Quartz/IJob/StdSchedulerFactory/JobBuilder/TriggerBuilder/
   IScheduler in `Import_Budget.cs`; `git diff --check` pulito. Windows/macOS non verificati in
   locale.
-- [ ] **X1.3b4 — `Ordini_Scheduler`** — idem, con due trigger (invio ed esito).
+- [x] **X1.3b4 — `Ordini_Scheduler`**
+  DoD: provider `IOrdiniSchedulingGateway`, adapter Quartz `OrdiniQuartzGateway`, separati
+  `JobOrdini_SAP_Invio` / `JobOrdini_SAP_Esito`; scheduling giornaliero e interval delegati;
+  firme pubbliche esistenti mantenute.
+  Evidenza (Linux): build net48 → 0 errori, 5 warning preesistenti; unit test net8 → 90 passati,
+  1 ignorato; nessun simbolo Quartz in `Ordini_Sap.cs`; `git diff --check` pulito. Windows/macOS
+  non verificati localmente.
 - [ ] **X1.3b5 — `SQL01_Scheduler`** — idem.
 - [ ] **X1.3c — `PollingClass` multi-target `net48;net8.0`**
   DoD: `TargetFrameworks=net48;net8.0`; entrambi i target compilano.
@@ -692,3 +698,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 21 | X1.3b1 separazione Fornitori_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test: 65 superati, 1 ignorato; nessun simbolo Quartz in `Prog_Quartz.cs`; policy cron testata; `git diff --check` pulito. Windows/macOS non verificati in locale. |
 | 2026-10-16 | 22 | X1.3b2 separazione ImportFatture_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test net8: 73 superati, 1 ignorato; nessun simbolo Quartz nel file `ImportFatture.cs`; test di policy, contratto adapter, identità job/trigger e intervalli verdi; `git diff --check` pulito. |
 | 2026-10-16 | 23 | X1.3b3 separazione ImportBudget_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test net8: 80 superati, 1 ignorato; nessun simbolo Quartz nel file `Import_Budget.cs`; adapter verifica cron feriale, preserva il job `Leggi_File(..., onetime)`, override e scheduling immediato/intervallo; `git diff --check` pulito. |
+| 2026-10-16 | 24 | X1.3b4 separazione Ordini_Scheduler/Quartz | `[x]` | Build net48: 0 errori, 5 warning preesistenti; unit test net8: 90 superati, 1 ignorato; nessun simbolo Quartz in `Ordini_Sap.cs`; adapter conserva routing invio/esito, `tipoExport`, cron lun-ven, override e trigger one-time/interval; `git diff --check` pulito. |

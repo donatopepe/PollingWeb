@@ -1546,9 +1546,9 @@ $ git diff --check
 
 ---
 
-## 2026-10-16T16:xxZ — X1.3b3 Separazione ImportBudget_Scheduler/Quartz — DONE
+## 2026-10-16T16:xxZ — X1.3b4 Separazione Ordini_Scheduler/Quartz — DONE
 
-**Modifica.** `ImportBudget_Scheduler` mantiene firma e caricamento parametri legacy, delegando FirstStart e Polling_Interval a `IFornitoriSchedulingGateway`. Aggiunti `PollingClass/ImportBudgetQuartzGateway.cs` (Quartz 2.x) e `PollingClass/JobBudget.cs`; `Import_Budget.cs` non contiene più simboli Quartz. L'adapter mantiene trigger feriale lun-ven, identity legacy, flag `onetime`, chiamata `ImportBudget.Leggi_File(..., onetime)`, override e schedule immediata/intervallo. La chiamata esistente `TaskServiceClass.LeggiParametri` nel percorso interval è mantenuta.
+**Modifica.** `Ordini_Scheduler` delega FirstStart e i due polling (invio/esito) a `IOrdiniSchedulingGateway`. Aggiunti `PollingClass/OrdiniQuartzGateway.cs` e `PollingClass/JobOrdini.cs` (i due job restano distinti); `Ordini_Sap.cs` non contiene più riferimenti Quartz. L'adapter conserva identità di job/trigger, routing Invio/Esito, `tipoExport` solo per l'invio, cron feriale, override, JobDataMap e trigger immediate/interval con priorità legacy. Separata policy validazione cron, interval e routing.
 
 **Evidenza reale (Linux, 2026-10-16).**
 
@@ -1556,13 +1556,15 @@ $ git diff --check
 $ dotnet build PollingClass/PollingClass.csproj -f net48 --nologo -v quiet
 Compilazione completata. Avvisi: 5. Errori: 0.
 $ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --nologo -v quiet
-Superato! Non superati: 0. Superati: 80. Ignorati: 1. Totale: 81.
-$ grep -nE '\\b(Quartz|IJob|StdSchedulerFactory|JobBuilder|TriggerBuilder|IScheduler)\\b' PollingClass/Import_Budget.cs
+Superato! Non superati: 0. Superati: 90. Ignorati: 1. Totale: 91.
+$ grep -nE '\\b(Quartz|IJob|StdSchedulerFactory|JobBuilder|TriggerBuilder|IScheduler)\\b' PollingClass/Ordini_Sap.cs
 (nessuna corrispondenza)
 $ git diff --check
 (exit 0)
 ```
 
-**Limiti.** Target `PollingClass` resta net48; build eseguita solo su Linux. Windows/macOS non verificati localmente. Non compilata l'intera soluzione WebForms per il blocker noto.
+**Limiti.** `PollingClass` resta net48; verificata solo la build Linux con reference assemblies. Windows/macOS non verificati localmente; la soluzione WebForms non è stata compilata. I test unit coprono policy cron/interval e routing dei due tipi job, non l'esecuzione contro Quartz reale.
 
-**Prossimo task:** `X1.3b4 — Ordini_Scheduler`.
+**Prossimo task:** `X1.3b5 — SQL01_Scheduler`.
+
+---

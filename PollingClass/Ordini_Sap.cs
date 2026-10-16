@@ -9,8 +9,6 @@ using Database.Base;
 using System.Collections;
 using System.Data;
 using System.IO;
-using Quartz;
-using Quartz.Impl;
 
 
 namespace PollingClass
@@ -478,6 +476,14 @@ namespace PollingClass
     public class Ordini_Scheduler
     {
         public string messaggio_errore = "";
+        private readonly IOrdiniSchedulingGateway schedulingGateway;
+
+        public Ordini_Scheduler() : this(new OrdiniQuartzGateway()) { }
+
+        public Ordini_Scheduler(IOrdiniSchedulingGateway schedulingGateway)
+        {
+            this.schedulingGateway = schedulingGateway ?? throw new ArgumentNullException(nameof(schedulingGateway));
+        }
         public bool _FirstStart_Invio(string codist, string idprocesso)
         {
             return this.FirstStart(codist, idprocesso, true, false,"");
@@ -522,45 +528,12 @@ namespace PollingClass
             try
             {
 
-                ISchedulerFactory schedFact = new StdSchedulerFactory();
-                IScheduler quartzScheduler = schedFact.GetScheduler();
-                quartzScheduler.Start();
-
-                IJobDetail job; 
-                if (InvioFile)
-                {
-                    job = JobBuilder.Create<JobOrdini_SAP_Invio>()
-                        .WithIdentity("JOB_" + idprocesso + "_" + codist, "IDG")
-                        .Build();
-                }
-                else
-                {
-                    job = JobBuilder.Create<JobOrdini_SAP_Esito>()
-                        .WithIdentity("JOB_" + idprocesso + "_" + codist, "IDG")
-                        .Build();
-                }
-                job.JobDataMap.Add("codist", codist);
-                job.JobDataMap.Add("idprocesso", idprocesso);
-                job.JobDataMap.Add("tipoExport", tipoExport);
-
-
-                ITrigger trigger = TriggerBuilder.Create()
-                  .WithIdentity("Trigger_" + idprocesso + "_" + codist, "IDG")
-                  .WithCronSchedule(withCronSchedule) //dal lun-ven, tutti i mesi alle 8.30                                                                             
-                  //.StartAt(DateTimeOffset.Now)
-                  .Build();
-
-                //cancello trigger
-                if (overrideTask)
-                    quartzScheduler.UnscheduleJob(trigger.Key);
-
-                if (quartzScheduler.CheckExists(trigger.Key))
+                if (!this.schedulingGateway.ScheduleDaily(codist, idprocesso, InvioFile,
+                    tipoExport, FornitoriSchedulePolicy.WeekdayCronFromLegacy(withCronSchedule), overrideTask))
                 {
                     esito = false;
                     throw new PollingException(PollingExceptionType.Job_Quartz_esistente, "");
                 }
-
-                quartzScheduler.ScheduleJob(job, trigger);
 
 
             }
@@ -593,56 +566,7 @@ namespace PollingClass
             try
             {
 
-                ISchedulerFactory schedFact = new StdSchedulerFactory();
-                IScheduler quartzScheduler = schedFact.GetScheduler();
-                quartzScheduler.Start();
-
-                IJobDetail job;
-                if (inviofile)
-                {
-                    job = JobBuilder.Create<JobOrdini_SAP_Invio>()
-                        .WithIdentity(idprocesso + "_" + codist + "JOB_onetime_" + DateTime.Now.Ticks.ToString(), "IDG")
-                        .Build();
-                }
-                else
-                {
-                    job = JobBuilder.Create<JobOrdini_SAP_Esito>()
-                        .WithIdentity(idprocesso + "_" + codist + "JOB_onetime_" + DateTime.Now.Ticks.ToString(), "IDG")
-                        .Build();
-                }
-
-                job.JobDataMap.Add("codist", codist);
-                job.JobDataMap.Add("idprocesso", idprocesso);
-                job.JobDataMap.Add("tipoExport", tipoexport);
-
-                DateTime orario = DateTime.Now.AddMinutes(minuti);//valore di polling_inteval
-                ITrigger trigger;
-
-                if (minuti == 0)
-                {
-                    job.JobDataMap.Add("onetime", "true");
-
-                    trigger = TriggerBuilder.Create()
-                        .WithIdentity(DateTime.Now.Ticks.ToString(), "IDGWEB")
-                        .StartNow()
-                        .WithPriority(1)
-                        .Build();
-                }
-                else
-                {
-                    job.JobDataMap.Add("onetime", "false");
-
-                    trigger = TriggerBuilder.Create()
-                        .WithIdentity(DateTime.Now.Ticks.ToString(), "IDGWEB")
-                        //.WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(orario.Hour, orario.Minute)) // execute job daily at 9:30            
-                        .StartAt(DateTimeOffset.Now.AddMinutes(minuti))
-                        //.StartAt(DateTime.UtcNow)
-                        .WithPriority(1)
-                        .Build();
-                }
-
-                //scheduler.ScheduleJob(job, trigger);
-                quartzScheduler.ScheduleJob(job, trigger);
+                this.schedulingGateway.ScheduleInterval(minuti, codist, idprocesso, inviofile, tipoexport);
             }
             catch (Exception ex)
             {
@@ -656,67 +580,5 @@ namespace PollingClass
         
     }
 
-    [PersistJobDataAfterExecution]
-    public class JobOrdini_SAP_Esito : IJob
-    {
-        public void Execute(IJobExecutionContext context)
-        {
-            try
-            {
-                bool onetime = Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime"));
-                Ordini_Sap ordini = new Ordini_Sap();
-                ordini.Leggi_Esito_Sap(
-                        context.JobDetail.JobDataMap.GetString("codist"),
-                        context.JobDetail.JobDataMap.GetString("idprocesso"),
-                        onetime);
-
-            }
-            catch (Exception ex)
-            {
-                PollingExceptionHandler.Esegui(ex);
-            }
-
-
-        }
-    }
-
-    [PersistJobDataAfterExecution]
-    public class JobOrdini_SAP_Invio : IJob
-    {
-        public void Execute(IJobExecutionContext context)
-        {
-            try
-            {
-                bool onetime = Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime"));
-                Ordini_Sap ordini = new Ordini_Sap();
-                ordini.Invia_file_Sap(
-                        context.JobDetail.JobDataMap.GetString("codist"),
-                        context.JobDetail.JobDataMap.GetString("idprocesso"),
-                        onetime,
-                        context.JobDetail.JobDataMap.GetString("tipoExport"));
-
-                //if (onetime)
-                //{
-                //    ordini.Invia_file_Sap(
-                //        context.JobDetail.JobDataMap.GetString("codist"),
-                //        context.JobDetail.JobDataMap.GetString("idprocesso"),
-                //        onetime);
-                //}
-                //else
-                //{
-                //    ordini.Invia_file_Sap(
-                //        context.JobDetail.JobDataMap.GetString("codist"),
-                //        context.JobDetail.JobDataMap.GetString("idprocesso"),on);
-                //}
-
-            }
-            catch (Exception ex)
-            {
-                PollingExceptionHandler.Esegui(ex);
-            }
-
-
-        }
-    }
 
 }
