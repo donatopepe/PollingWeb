@@ -191,7 +191,7 @@ namespace PollingClass
             var VAI_A_CAPO = (char)(10) + (char)(13);
             var VAI_PAGINA_SUCCESSIVA = (char)(175) + VAI_A_CAPO;
             var END_TAG = (char)(178) + (char)(45) + "END" + (char)(45);
-            var sFile = PATH_FOLDER + @"\" + oNomeFile;
+            var sFile = ConfiguredFilePaths.Combine(PATH_FOLDER, oNomeFile);
 
             if (File.Exists(sFile))
             {

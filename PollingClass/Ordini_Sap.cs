@@ -283,7 +283,7 @@ namespace PollingClass
 
 
 
-                FileInfo file_sap = new FileInfo(tsk.path_source + @"\" + tsk.file_source);
+                FileInfo file_sap = new FileInfo(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source));
                 if (file_sap.Exists)
                 {
                     //implementare se bisogna creare un alert di elaborazione??
@@ -343,7 +343,7 @@ namespace PollingClass
                 tbiExport.ConfermaDataset();
 
                 //aggiorna log
-                file_sap = new FileInfo(tsk.path_source + @"\" + tsk.file_source);
+                file_sap = new FileInfo(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source));
                 if (file_sap.Exists)
                     Aggset.Eseguicomando("INSERT INTO eProcurement.dbo.Log_ODA_SAP (Istituto, Data_Put, Nrighe_input, Size_input) " +
                                         "VALUES(" + this.codice_istituto + "," +
@@ -392,18 +392,18 @@ namespace PollingClass
             TableAdapterRDA_Esiti_LastOutput_OnLine tbiEsiti = new TableAdapterRDA_Esiti_LastOutput_OnLine(dbinfo2, this.dts);
 
             //if (File.Exists(this.dts.TaskService[0].Path_Source))
-            if (File.Exists(tsk.path_source + @"\" + tsk.file_source))
+            if (File.Exists(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
             {
                 //azzero tabella RDA_Esiti_LastOutput_OnLine per istituto 10NN
                 Aggset.Eseguicomando("delete RDA_Esiti_LastOutput_OnLine where Societa='10" + this.codice_istituto + "'",
                     dbinfo2);
                 this.dts.RDA_Esiti_LastOutput_OnLine.Rows.Clear();
 
-                datafile = File.GetLastWriteTime(tsk.path_source + @"\" + tsk.file_source);
+                datafile = File.GetLastWriteTime(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source));
                 tsk.AggiornaStato("4");//metto in elaborazione
                 var line = "";
                 var values = new string[0];
-                using (var leggi = new StreamReader(tsk.path_source + @"\" + tsk.file_source))
+                using (var leggi = new StreamReader(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
                 {
                     //leggo il file
                     while (!leggi.EndOfStream)
@@ -435,7 +435,7 @@ namespace PollingClass
                     sp_Esiti_Ordini_SAP.Esegui(this.dbInfo);
 
                     //aggiorna log
-                    FileInfo file_sap = new FileInfo(tsk.path_source + @"\" + tsk.file_source);
+                    FileInfo file_sap = new FileInfo(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source));
                     Aggset.Eseguicomando(
                         "UPDATE Log_ODA_SAP SET " +
                         "Data_Get = Convert(DateTime, '" + file_sap.LastWriteTime + "',103)," +

@@ -191,7 +191,7 @@ namespace PollingClass
         this.dbInfo.IniziaSessione();
 
         //if (File.Exists(this.dts.TaskService[0].Path_Source))
-        if (File.Exists(tsk.path_source + @"\" + tsk.file_source))
+        if (File.Exists(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
         {
           //Log_Errori.ScriviLOGPROCEDURE("CheckFile trovatofile ");
           try
@@ -213,7 +213,7 @@ namespace PollingClass
           tsk.AggiornaStato("4"); //metto in elaborazione
           var line = "";
           var values = new string[0];
-          using (var leggi = new StreamReader(tsk.path_source + @"\" + tsk.file_source))
+          using (var leggi = new StreamReader(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
           {
             //azzero tabella
             this.dts.TargetSC00G100.Rows.Clear();
@@ -225,12 +225,11 @@ namespace PollingClass
 
               line = leggi.ReadLine();
 
-              if (line.Split('|').Length == 8
-              ) //1001  |UMB. CECCARELLI GENERAL TRADE SRL  |P.ZZA SALLUSTIO, 13/14/15          |RM |00187   |ROMA                            |07506810584     |                        
+              if (line.Split('|').Length == 8)
                 line = "|" + line;
 
               values = line
-                .Split('|'); //|1001  |UMB. CECCARELLI GENERAL TRADE SRL  |P.ZZA SALLUSTIO, 13/14/15          |RM |00187   |ROMA                            |07506810584     |
+                .Split('|');
               if (values.Length == 9)
                 esisteRiga = true;
               else
@@ -238,7 +237,7 @@ namespace PollingClass
                 if (line.Contains("�"))
                   line = "�" + line; //fix per avere stesse colonne di |
                 values = line
-                  .Split('�'); //Ò³1001  ³COMUNE DI DELICETO                 ³CORSO MARGHERITA 45                ³FG ³71026   ³DELICETO                           ³80003310713     ³
+                  .Split('�'); // Split legacy fixed-width record delimiters.
                 if (values.Length == 9)
                 {
                   //fix campo codice                                

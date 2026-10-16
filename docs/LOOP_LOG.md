@@ -8,6 +8,16 @@ poi: contesto, modifiche, evidenza (comando + output), prossimo task, blocchi.
 
 ---
 
+## 2026-10-17T12:00Z — C8 Percorsi file configurabili — COMPLETATO
+
+**Baseline:** `rg` ha trovato path costruiti tramite separatore Windows fisso in `ExportSQL01`, `TaskServiceClass`, `ImportFatture`, `ParserFatture`, `LeggiFornitore`, `Ordini_Sap` e `Import_Budget`. La scansione dei path assoluti `C:\\`/`D:\\` nel codice non ha trovato corrispondenze.
+
+**Modifica:** aggiunto `ConfiguredFilePaths.Combine`, che richiede directory configurata esistente e solo un nome file (senza path), usando `Path.Combine`. Tutti gli accessi attivi ai file dei flussi citati usano l'helper; rimossi due commenti obsoleti con concatenazione Windows. Aggiunti test per output cross-platform, directory mancante e nome file con componenti path.
+
+**Evidenza reale:** `dotnet build PollingClass/PollingClass.csproj -f net8.0 --nologo -v quiet` → exit 0; stesso comando con `-f net48` → exit 0. `dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet` → superato, 115 passati/2 ignorati. Scansione dei path assoluti Windows in `Database`/`PollingClass` → 0 risultati; scansione dei pattern concatenazione `path_source + @"\\"`/`PATH_FOLDER + @"\\"`/`archivia_path + @"\\"` → 0 risultati. `git diff --check` → exit 0. La soluzione completa non è stata verificata in questa iterazione.
+
+---
+
 ## 2026-xx-xx T00 — Studio iniziale e pianificazione — DONE
 
 **Contesto.** Repository `github.com/donatopepe/PollingWeb` (branch `master`, singolo

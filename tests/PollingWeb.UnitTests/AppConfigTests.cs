@@ -89,6 +89,23 @@ namespace PollingWeb.UnitTests
         }
 
         [Fact]
+        public void Configured_paths_require_existing_directory_and_bare_file_name()
+        {
+            var directory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(directory);
+            try
+            {
+                Assert.Equal(System.IO.Path.Combine(directory, "input.dat"), PollingClass.ConfiguredFilePaths.Combine(directory, "input.dat"));
+                Assert.Throws<System.IO.DirectoryNotFoundException>(() => PollingClass.ConfiguredFilePaths.Combine(directory + "-missing", "input.dat"));
+                Assert.Throws<System.ArgumentException>(() => PollingClass.ConfiguredFilePaths.Combine(directory, "sub/input.dat"));
+            }
+            finally
+            {
+                System.IO.Directory.Delete(directory);
+            }
+        }
+
+        [Fact]
         public void Missing_value_returns_null_without_legacy_configuration()
         {
             var config = new AppConfig(useLegacyConfiguration: false);

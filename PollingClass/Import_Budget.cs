@@ -124,7 +124,7 @@ namespace PollingClass
 
             TableAdapterDimBudgetTemp tbiBudgetTemp = new TableAdapterDimBudgetTemp(dbinfo2, this.dts);
 
-             if (File.Exists(tsk.path_source + @"\" + tsk.file_source))
+             if (File.Exists(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
             {
                 Log_Errori.ScriviLOGPROCEDURE(this.codice_istituto, this.IdProcesso, "File.Exists");
 
@@ -137,7 +137,7 @@ namespace PollingClass
 
                 try
                 {
-                    string pathToExcelFile = tsk.path_source + @"\" + tsk.file_source;
+                    string pathToExcelFile = ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source);
                     ImportaXML importaxls = new ImportaXML();                    
                     List<PollingClass.Budget> bdgs= importaxls.ReadExcelFileDOM(pathToExcelFile);
                     int i = 0;
@@ -220,7 +220,7 @@ namespace PollingClass
 
         //    Log_Errori.ScriviLOGPROCEDURE(this.codice_istituto, this.IdProcesso, "new TableAdapterDimBudgetTemp(dbinfo2, this.dts)");
 
-        //    if (File.Exists(tsk.path_source + @"\" + tsk.file_source))
+        //    if (File.Exists(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
         //    {
         //        Log_Errori.ScriviLOGPROCEDURE(this.codice_istituto, this.IdProcesso, "File.Exists");
 
@@ -233,7 +233,7 @@ namespace PollingClass
 
         //        try
         //        {
-        //            string pathToExcelFile = tsk.path_source + @"\" + tsk.file_source;
+        //            string pathToExcelFile = ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source);
         //            ConnexionExcel ConxObject = new ConnexionExcel(pathToExcelFile);
         //            //Query a worksheet with a header row  
         //            var query1 = from a in ConxObject.UrlConnexion.Worksheet<Budget>("BDG") select a;

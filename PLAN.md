@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 34 / 74 task verificati
+- **Stato complessivo:** 35 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -441,9 +441,9 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   DoD: `providerName` corretti; validazione delle connection string obbligatorie con messaggio
   chiaro; nessun default implicito su host di produzione.
   Evidenza (Linux, 2026-10-17): test unitari su sintassi incompleta/errata, provider legacy errato e connection Quartz malformata/incompleta; unit 114 passati/2 ignorati; build Database e PollingClass net8.0/net48 → 0 errori. `dotnet build PollingWeb.sln --nologo -v quiet` fallisce con MSB4249 (Website WebForms), limite già documentato in X1.7; C7 non introduce host predefiniti.
-- [ ] **C8 — Percorsi file configurabili**
+- [x] **C8 — Percorsi file configurabili**
   DoD: nessun path assoluto `D:\`/`C:\`; base dir da config; validazione esistenza directory.
-  Evidenza: `git grep -nE "[A-Za-z]:\\\\"` (codice) = 0.
+  Evidenza (Linux, 2026-10-17): `ConfiguredFilePaths.Combine` usa `Path.Combine`, rifiuta directory mancanti e file name con componenti path; i flussi leggono/scrivono con helper. Test unitari 115 passati/2 ignorati; `PollingClass` net8.0/net48 exit 0; scansione path Windows assoluti e concatenazioni Windows nei flussi → 0 risultati.
 - [ ] **C9 — Robustezza parsing tracciati SAP**
   DoD: `ParserFatture`, `ImportaXML`, `Ordini_Sap`, `Flusso_*` gestiscono file vuoto/troncato/campi
   mancanti senza crash; encoding (Windows-1252/UTF-8) dichiarato e testato.
@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-17 | 35 | C8 Percorsi file configurabili | `[x]` | PollingClass net8.0/net48 exit 0; unit 115/2 ignorati; scansioni assoluti/concatenazioni Windows 0 risultati; diff-check exit 0. |
 | 2026-10-17 | 34 | C7 Config validata all'avvio | `[x]` | Test connection string SQL malformata/incompleta e provider legacy errato; Quartz connection malformata/incompleta; unit 114/2 ignorati; Database/PollingClass net8/net48 exit 0; solution fallisce con MSB4249 già noto. |
 | 2026-10-16 | 0 | studio iniziale | completato | revisione 1 del piano |
 | 2026-10-16 | 1 | T0.1 inventario segreti | `[x]` | `docs/SECURITY-FINDINGS.md` — S1: 2 password SQL LOGIN; S2: 22 occorrenze; S3: 1; S4: 87 (17 file); S5: 15.732 INSERT |

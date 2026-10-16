@@ -192,10 +192,10 @@ namespace PollingClass
             
             try
             {
-                FileInfo file_sql01 = new FileInfo(tsk.path_source + @"\" + tsk.file_source);
+                FileInfo file_sql01 = new FileInfo(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source));
                 if (file_sql01.Exists)
                 {
-                    File.Delete(tsk.path_source + @"\" + tsk.file_source);
+                    File.Delete(file_sql01.FullName);
                 }
 
                 
@@ -220,7 +220,7 @@ namespace PollingClass
 
                 //VERSIONE OPENXML               
                 SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.
-                    Create(tsk.path_source + @"\" + tsk.file_source, SpreadsheetDocumentType.Workbook);
+                    Create(file_sql01.FullName, SpreadsheetDocumentType.Workbook);
 
                 // Add a WorkbookPart to the document.
                 WorkbookPart workbookpart = spreadsheetDocument.AddWorkbookPart();
@@ -330,7 +330,6 @@ namespace PollingClass
             }
 
                         
-            //if (File.Exists(tsk.path_source + @"\" + tsk.file_source))
             //{
                                           
 

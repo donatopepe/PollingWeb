@@ -189,7 +189,7 @@ namespace PollingClass
         this.dbInfo.IniziaSessione();
 
         //if (File.Exists(this.dts.TaskService[0].Path_Source))
-        if (File.Exists(tsk.path_source + @"\" + tsk.file_source))
+        if (File.Exists(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
         {
           ////Log_Errori.ScriviLOGPROCEDURE("CheckFile trovatofile ");
           //try
@@ -212,7 +212,6 @@ namespace PollingClass
           tsk.AggiornaStato("4"); //metto in elaborazione
                                   //var line = "";
                                   //var values = new string[0];
-                                  //using (var leggi = new StreamReader(tsk.path_source + @"\" + tsk.file_source))
                                   //{
                                   //  //azzero tabella
                                   //  this.dts.TargetSC00G100.Rows.Clear();

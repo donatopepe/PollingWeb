@@ -157,14 +157,14 @@ namespace PollingClass
                         string.Format("{0:00}", DateTime.Now.Hour) + "_" + string.Format("{0:00}", DateTime.Now.Minute);
                 if (this.LasciaInSource) //copio il file nella cartella di destinazione
                 {
-                    System.IO.File.Copy(path_source + @"\" + file_source,
-                        archivia_path + @"\" + this.IdProcesso + "_" + archivia + "_" + file_source
+                    System.IO.File.Copy(ConfiguredFilePaths.Combine(path_source, file_source),
+                        ConfiguredFilePaths.Combine(archivia_path, this.IdProcesso + "_" + archivia + "_" + file_source)
                         );
                 }
                 else //sposto il file cartella di destinazione
                 {
-                    System.IO.File.Move(path_source + @"\" + file_source,
-                      archivia_path + @"\" + this.IdProcesso + "_" + archivia + "_" + file_source
+                    System.IO.File.Move(ConfiguredFilePaths.Combine(path_source, file_source),
+                      ConfiguredFilePaths.Combine(archivia_path, this.IdProcesso + "_" + archivia + "_" + file_source)
                       );
                 }
             }
