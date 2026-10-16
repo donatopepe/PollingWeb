@@ -1,4 +1,4 @@
-﻿using Database;
+using Database;
 using Database.Base;
 using Database.TableInterface;
 using DocumentFormat.OpenXml;
@@ -10,7 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text;

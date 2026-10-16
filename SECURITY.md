@@ -187,7 +187,7 @@ git gc --prune=now
 | Eccezioni inghiottite (`catch { }`) | vari | `C6` |
 | Percorsi assoluti di macchina nel codice | vari | `C8` |
 | Autenticazione SMTP non implementata | `PollingClass/MailSede.cs` | `C10` |
-| Dipendenza copyleft (`LinqToExcel` → `Remotion`, LGPL) | `PollingClass` | `X1.3` |
+| Dipendenza copyleft (`LinqToExcel` → `Remotion`, LGPL) | `PollingClass` | ✅ rimossa in `X1.3`: era codice morto |
 
 ---
 

@@ -1,121 +1,56 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PollingClass — logica di dominio (task X1.3).
+
+    Target UNICO net48 in questa fase. Il multi-target net48;net8.0 è X1.3c e richiede
+    prima X1.3b (estrazione della logica dai 4 wrapper ASMX) e X2.2 (Quartz 3.x):
+    misurato, il 55% di questo assembly (2.905 righe su 5.246) non è compilabile per
+    net8 perché dipende da Quartz 2.x e da System.Web.Services. Vedi ADR 0005.
+
+    Perché SDK-style già ora: il csproj classico dichiarava v4.5 senza targeting pack,
+    quindi il progetto non si compilava su nessun sistema che non fosse Windows con il
+    Developer Pack (MSB3644, fatto P14). Con Microsoft.NETFramework.ReferenceAssemblies
+    la build è riproducibile su Linux, macOS e Windows.
+  -->
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{704EB132-8236-46DB-BD6D-074EA6086989}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PollingClass</RootNamespace>
+    <TargetFramework>net48</TargetFramework>
     <AssemblyName>PollingClass</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <RootNamespace>PollingClass</RootNamespace>
+    <LangVersion>7.3</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>disable</Nullable>
+    <Deterministic>true</Deterministic>
+    <!-- Non genera un file di configurazione: la config arriva dall'applicazione ospite -->
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="DocumentFormat.OpenXml, Version=0.0.1.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
-      <HintPath>..\packages\DocumentFormat.OpenXml.2.7.1\lib\net45\DocumentFormat.OpenXml.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="LinqToExcel, Version=1.11.0.0, Culture=neutral, PublicKeyToken=9c8ea65a58f03f1f, processorArchitecture=MSIL">
-      <HintPath>..\packages\LinqToExcel.1.11.0\lib\LinqToExcel.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Quartz">
-      <HintPath>..\PollingWeb\Bin\Quartz.dll</HintPath>
-    </Reference>
-    <Reference Include="Remotion, Version=1.13.52.2, Culture=neutral, PublicKeyToken=0669cf0452175907, processorArchitecture=MSIL">
-      <HintPath>..\packages\LinqToExcel.1.11.0\lib\Remotion.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Remotion.Data.Linq, Version=1.13.52.2, Culture=neutral, PublicKeyToken=0669cf0452175907, processorArchitecture=MSIL">
-      <HintPath>..\packages\LinqToExcel.1.11.0\lib\Remotion.Data.Linq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Remotion.Interfaces, Version=1.13.52.2, Culture=neutral, PublicKeyToken=0669cf0452175907, processorArchitecture=MSIL">
-      <HintPath>..\packages\LinqToExcel.1.11.0\lib\Remotion.Interfaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
+    <!-- Assembly di riferimento di .NET Framework: build su qualunque sistema operativo -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <!-- Un solo provider dati, come in Database (ADR 0004 §1) -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+    <!-- Scheduling: Quartz 2.x, sostituito da Quartz 3.x in X2.2 -->
+    <PackageReference Include="Quartz" Version="2.1.2" />
+    <!-- Lettura/scrittura XLSX: cross-platform, MIT. Sostituisce la precedente
+         dipendenza XLSX (LGPL, Windows-only) rimossa in X1.3. -->
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- API web e servizi SOAP legacy: presenti solo su .NET Framework (fatto P3) -->
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Services" />
+    <!-- Non implicito nei progetti SDK-style (fatto riscontrato in X1.2) -->
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="AggiornaFornitori.cs" />
-    <Compile Include="AzzeraTarget.cs" />
-    <Compile Include="ExportSQL01.cs" />
-    <Compile Include="ImportaExcel.cs" />
-    <Compile Include="ImportaXML.cs" />
-    <Compile Include="Import_Budget.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="ImportFatture.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="LeggiFornitore.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Log_Errori.cs" />
-    <Compile Include="MailSede.cs" />
-    <Compile Include="Ordini_Sap.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="ParserFatture.cs" />
-    <Compile Include="Prog_Quartz.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="sp_Esiti_Ordini_SAP.cs" />
-    <Compile Include="sp_Flusso_Ordini_SAP_ist.cs" />
-    <Compile Include="sp_Flusso_RDA_ist.cs" />
-    <Compile Include="sp_ImportaBudget.cs" />
-    <Compile Include="sp_Flusso_RDA.cs" />
-    <Compile Include="sp_Flusso_Ordini_SAP.cs" />
-    <Compile Include="TaskServiceClass.cs" />
+    <ProjectReference Include="..\Database\Database.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Database\Database.csproj">
-      <Project>{634e4e29-210b-48cb-8b6a-47f2e9e19997}</Project>
-      <Name>Database</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

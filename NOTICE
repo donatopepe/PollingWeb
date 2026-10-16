@@ -46,11 +46,14 @@ Dipendenze .NET (gestite da NuGet)
   Common.Logging 2.1.2                    Apache License 2.0
   DocumentFormat.OpenXml 2.7.1            MIT
 
-  ⚠️ LinqToExcel 1.11.0 e le librerie Remotion (Remotion, Remotion.Data.Linq,
-     Remotion.Interfaces) 1.13.52.2 sono distribuite con licenza LGPL-2.1.
-     La dipendenza è incompatibile con l'obiettivo "solo licenze permissive":
-     è pianificata la rimozione in favore di DocumentFormat.OpenXml (già in uso).
-     Vedi task `X1.3` del piano.
+  ✅ LinqToExcel 1.11.0 e le librerie Remotion (Remotion, Remotion.Data.Linq,
+     Remotion.Interfaces) 1.13.52.2 — LGPL-2.1 — sono state **rimosse** nel task `X1.3`.
+     Erano l'unica dipendenza copyleft del progetto e non erano nemmeno usate:
+     `ConnexionExcel`, l'unica classe che le impiegava, era a sua volta codice morto
+     (il suo unico riferimento stava in un commento di `Import_Budget.cs`).
+     La lettura e scrittura di XLSX usa `DocumentFormat.OpenXml`, già presente e con
+     licenza MIT.
+     Il progetto non contiene quindi più alcuna dipendenza copyleft.
 
 Asset front-end
 

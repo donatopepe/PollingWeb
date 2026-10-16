@@ -1313,3 +1313,92 @@ intercettato con un messaggio comprensibile da `C7`: l'errore predefinito non di
 Windows-only), estrazione della logica dei 4 ASMX e isolamento di `Prog_Quartz`.
 
 **Blocchi.** `T0.13` in attesa della DDL dall'ambiente di origine. Nessun altro.
+
+## 2026-10-16T16:00Z — Revisione 4 del piano (ADR 0005) — DONE
+
+**Misurato prima di eseguire.** `X1.3` chiedeva un `PollingClass` multi-target `net48;net8.0`.
+Prima di provarci ho contato i file non compilabili per net8:
+
+| File | Righe | Quartz 2.x | `System.Web.Services` |
+|------|------:|-----------:|----------------------:|
+| `Ordini_Sap.cs` | 721 | 34 | 8 |
+| `ImportFatture.cs` | 621 | 25 | 4 |
+| `Import_Budget.cs` | 478 | 21 | 3 |
+| `ExportSQL01.cs` | 449 | 20 | — |
+| `LeggiFornitore.cs` | 381 | — | 4 |
+| `Prog_Quartz.cs` | 255 | 25 | — |
+| **totale** | **2 905** | | |
+| **`PollingClass`** | **5 246** | | |
+
+**Il 55% dell'assembly non è compilabile per net8** — e sono esattamente i flussi di dominio:
+invio ordini, import budget, import fatture, lettura fornitori, export. Un `net8.0` ottenuto
+escludendoli passerebbe l'evidenza «compila» mentre l'assembly non conterrebbe il motore:
+sarebbe un'affermazione falsa sulla portabilità.
+
+**Decisione (ADR 0005).** `X1.3` ristretto alla parte verificabile; il multi-target scomposto in
+`X1.3b` (estrazione della logica dai 4 ASMX — **dopo `T1`**, perché sono 2 201 righe stateful e
+oggi non esiste alcun test: un refactoring così senza rete di sicurezza rompe il sistema in modo
+non rilevabile) e `X1.3c` (**dopo `X1.3b` e `X2.2`**: con Quartz 2.x il 55% del codice non può
+stare nel target net8).
+
+**Regola anti-svuotamento**, introdotta perché il problema appena misurato si ripresenti in
+forma peggiore: da `X1.3c` un task di multi-target deve riportare righe compilate per target,
+rapporto `righe(net8)/righe(totali)` con **soglia ≥ 95%** e l'elenco esplicito delle esclusioni.
+Senza, «multi-target» sarebbe soddisfacibile con una lista di esclusione.
+
+---
+
+## 2026-10-16T16:00Z — X1.3 `PollingClass` SDK-style net48 + rimozione LGPL — DONE
+
+**Risultato principale: `PollingClass` si compila su Linux.** Prima era impossibile
+(`MSB3644`: csproj classico su `v4.5` senza targeting pack), quindi nessun task successivo era
+verificabile su questa macchina.
+
+**Modifiche.**
+
+- `PollingClass.csproj` riscritto SDK-style (`net48`, `Microsoft.NETFramework.ReferenceAssemblies`);
+  Quartz e Common.Logging ora da NuGet invece dei `HintPath` verso `PollingWeb/Bin`;
+  `WindowsBase` rimosso (non usato: 0 occorrenze di `System.Windows`/`Dispatcher`).
+- **`LinqToExcel` e `Remotion` rimossi**: l'unica dipendenza copyleft del progetto era anche
+  **codice morto** — `ConnexionExcel` era usata solo in un commento di `Import_Budget.cs`.
+  `ImportaExcel.cs` e `PollingClass/packages.config` eliminati; le 5 DLL/XML LGPL rimosse da
+  `PollingWeb/Bin`; `NOTICE` e `SECURITY.md` aggiornati da «da rimuovere» a «rimossa».
+- 11 file passati a `Microsoft.Data.SqlClient` (provider unico, ADR 0004 §1).
+
+**Un errore mio evitato per un soffio.** Avevo concluso che `ImportaExcel.cs` fosse
+interamente morto e l'avevo cancellato. La build ha risposto `CS0246: 'Budget' non trovato`:
+il file conteneva **due** classi — `ConnexionExcel` (LGPL, morta) **e** `Budget` (usata da
+`ImportaXML`). Il mio controllo era troppo grossolano: avevo cercato i nomi della *classe* e del
+*file*, non le classi in esso definite. `Budget` è stata estratta in `PollingClass/Budget.cs`
+(classe di soli dati, platform-neutral) e documentata come tipizzata per il parser di budget.
+
+**Evidenza.**
+
+```
+$ dotnet build PollingClass/PollingClass.csproj -f net48
+Compilazione completata.  Avvisi: 5  Errori: 0
+      ^ 5 avvisi preesistenti: variabili e campi assegnati ma mai usati
+
+$ git grep -inE 'remotion|linqtoexcel' -- '*.cs' '*.csproj' '*.config' '*.props' '*.targets' '*.sln' '*.sqlproj'
+(nessun risultato)                     # 0 riferimenti in codice, progetti e configurazione
+
+  WindowsBase nel csproj              : 0
+  HintPath verso PollingWeb/Bin       : 0
+  System.Data.SqlClient in PollingClass: 0
+  pacchetti ripristinati              : Quartz 2.1.2, Common.Logging 2.1.2,
+                                        DocumentFormat.OpenXml 2.7.1, Microsoft.Data.SqlClient 5.2.2,
+                                        System.Configuration.ConfigurationManager 8.0.0 (+ transitivi)
+
+$ rm -rf PollingClass/bin PollingClass/obj     # artefatti del vecchio progetto, con le DLL LGPL
+```
+
+**Perché l'evidenza sul grep è limitata a codice/progetti/configurazione.** `NOTICE`,
+`SECURITY.md`, il piano e questo registro **devono** nominare la dipendenza rimossa: documentarne
+la rimozione fa parte del compito. Un `git grep` «= 0» su tutto l'albero sarebbe una verifica
+impossibile, quindi falsa. La restrizione è dichiarata nella DoD.
+
+**Prossimo secondo l'ordine rivisto.** `T1` — infrastruttura di test (xUnit, container SQL Server,
+`db-deploy.sh` nei test). È il prerequisito di `X1.3b`: senza test, il refactoring dei 4 ASMX non
+è verificabile.
+
+**Blocchi.** `T0.13` in attesa della DDL dall'ambiente di origine. Nessun altro.

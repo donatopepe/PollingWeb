@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Database.Base;
 using System.Data.SqlTypes;
 
@@ -51,20 +51,20 @@ namespace Database.Procedure.Chiamate
             try
             {
                 //parametri Input
-                parameter = command.Parameters.Add(new System.Data.SqlClient.SqlParameter("@pi_istituto", System.Data.SqlDbType.Int));
+                parameter = command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@pi_istituto", System.Data.SqlDbType.Int));
                 parameter.Direction = ParameterDirection.Input;
                 parameter.Value = istituto;
                 //parametri Input
-                parameter = command.Parameters.Add(new System.Data.SqlClient.SqlParameter("@pi_guid", System.Data.SqlDbType.VarChar));
+                parameter = command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@pi_guid", System.Data.SqlDbType.VarChar));
                 parameter.Direction = ParameterDirection.Input;
                 parameter.Value = guid;
 
                 //parametri Output
-                parameter = command.Parameters.Add(new System.Data.SqlClient.SqlParameter("@po_valoreuscita", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Output, false, ((System.Byte)(10)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                parameter = command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@po_valoreuscita", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Output, false, ((System.Byte)(10)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 parameter.Direction = ParameterDirection.Output;
 
                 //RETURN_VALUE
-                parameter = command.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(10)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                parameter = command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(10)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 parameter.Direction = ParameterDirection.ReturnValue;
 
                 command.CommandTimeout = 3000;
