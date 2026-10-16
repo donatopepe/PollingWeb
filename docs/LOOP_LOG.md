@@ -584,3 +584,88 @@ in `CHANGELOG.md` e in `docs/INSTALL.md` (entrambi previsti nei task `D1`/`D2`),
 marchio e identificatori sono fuori dall'albero.
 
 **Blocchi.** Nessuno.
+
+## 2026-10-16T11:40Z — T0.10 Riscrittura della storia Git — DONE
+
+**Contesto.** Richiesta esplicita dell'utente. Il commit radice, pubblico dal 2023-01-16,
+conteneva credenziali di produzione, dati reali di terzi e riferimenti all'istituto. Dopo
+`T0.2`–`T0.11` l'albero non contiene più nulla di tutto ciò: ora si poteva ricostruire la
+storia senza trascinarsi dietro la versione precedente.
+
+**Eseguito in anticipo rispetto a §4 del piano** (che collocava `T0.10` per ultimo) su
+richiesta dell'utente. Il loop schedulato è stato **messo in pausa** prima di iniziare
+(`cron_delete`): riscrivere la storia mentre un processo committa è una corsa garantita.
+
+**Procedura.**
+
+```
+# 1. backup verificabile, FUORI dal repository
+git bundle create "$AUDIT_DIR/full-history.bundle" --all   # 9 commit
+git bundle verify "$AUDIT_DIR/full-history.bundle"         # "cronologia completa"
+sha256sum full-history.bundle > full-history.bundle.sha256
+
+# 2. storia nuova
+git checkout --orphan main
+git add -A                     # 190 file, nessun artefatto ignorato
+# controllo pre-commit: pattern dal record di audit -> 0 risultati
+git commit -m "chore: pubblica PollingWeb su storia Git ripulita [T0.10]"
+
+# 3. eliminazione di TUTTO ciò che puntava alla vecchia storia
+git branch -D master
+git for-each-ref --format='%(refname)' refs/remotes/ | xargs -n1 git update-ref -d
+rm -f .git/refs/remotes/origin/HEAD
+git reflog expire --expire=now --all
+git gc --prune=now
+```
+
+**Errore intercettato al primo tentativo — e perché conta.** Dopo il commit orfano,
+`git rev-list --all --count` restituiva **2**, non 1: `refs/remotes/origin/master` (il
+riferimento di tracking del remoto) puntava ancora alla storia vecchia e la rendeva
+**raggiungibile**, quindi non prunabile. Cancellare solo il branch locale non basta: i
+remote-tracking ref vanno rimossi esplicitamente, altrimenti la verifica "0 segreti nella
+storia" è falsa. Lo stesso vale per `refs/remotes/origin/HEAD`, che era rimasto come
+puntatore SHA1 nullo.
+
+**Verifica definitiva (blob per blob, non solo working tree).**
+
+```
+$ git rev-list --all --count
+1
+$ git log --oneline --all
+a8cf49f chore: pubblica PollingWeb su storia Git ripulita [T0.10]
+
+# scansione di OGNI blob di OGNI commit raggiungibile
+$ CNT=$(git rev-list --objects --all | awk '{print $1}' \
+        | git cat-file --batch-check='%(objectname) %(objecttype)' \
+        | awk '$2=="blob"{print $1}' | git cat-file --batch \
+        | grep -acE "$PATTERNS")
+$ echo "$CNT"
+0                                  # su 164 blob scansionati
+$ git fsck --unreachable           # nessun oggetto irraggiungibile
+$ git count-objects -v             # count=0, garbage=0
+$ du -sh .git
+608K                               # era 17,03 MiB: i blob dei dump sono stati rimossi
+```
+
+`git grep` da solo **non** sarebbe bastato: guarda solo il working tree. La verifica è stata
+fatta sull'object database completo, che è l'unica cosa che dimostra qualcosa su una storia.
+
+**Redazione dei documenti di lavoro.** `PLAN.md` e `docs/LOOP_LOG.md` nominavano i vecchi
+identificatori per descriverne la rimozione: sarebbero rimasti come riferimento all'azienda
+nel repository pubblico. Sostituiti con placeholder e con un rimando al record di audit
+(`REDACTED-VALUES.md` contiene la mappatura completa vecchio → nuovo). I pattern del record
+di audit sono scesi a 16 voci, includendo ora anche i vecchi identificatori.
+
+**Conseguenza che NON è stata risolta da questa operazione.**
+La riscrittura **non annulla l'esposizione già avvenuta**: chiunque abbia clonato, forkato o
+copiato i blob entro il 2026-10-16 ha i valori originali, e GitHub può conservare oggetti
+orfani raggiungibili per SHA. Restano quindi obbligatorie:
+
+1. la **rotazione** delle credenziali (`docs/SECURITY-FINDINGS.md` §5);
+2. la richiesta a GitHub di rimozione degli oggetti orfani, se necessaria;
+3. la verifica che non esistano **fork** con la storia vecchia.
+
+**Prossimo.** `T0.9` — nota di disclosure e rotazione credenziali; poi `T0.7` (schema unico) e
+`T0.8` (deploy riproducibile), che sbloccano il track cross-platform.
+
+**Blocchi.** Nessuno.
