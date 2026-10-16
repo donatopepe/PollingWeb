@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 26 / 74 task verificati
+- **Stato complessivo:** 27 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -336,11 +336,11 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   DoD: `.github/workflows/ci.yml` con matrice `ubuntu-latest`, `macos-latest`, `windows-latest`:
   restore, build, unit test; job `integration` con service container SQL Server su ubuntu.
   Evidenza: workflow valido (dry-run/act o run verde documentato); build verde su 3 OS.
-- [ ] **X1.7 — Website project legacy fuori dal build CI**
+- [x] **X1.7 — Website project legacy fuori dal build CI**
   DoD: `PollingWeb` (WebForms) escluso dal build di default del CI ma **compilabile su richiesta**
   tramite `scripts/build-legacy.ps1`/`build-legacy.sh` (compile-check delle sole code-behind con
   `.designer.cs` generati) oppure marcato esplicitamente `legacy` con motivazione in `docs/LEGACY.md`.
-  Evidenza: `dotnet build PollingWeb.sln` non include il sito; `docs/LEGACY.md` spiega come compilarlo.
+  Evidenza (Linux, 2026-10-16): il Website è dichiarato legacy e documentato in `docs/LEGACY.md`; il workflow `.github/workflows/ci.yml` esegue i progetti SDK esistenti senza invocare il Website. `dotnet build PollingWeb.sln --nologo -v quiet` riprodotto → MSB4249; build IIS via Visual Studio/.NET Framework 4.8 Developer Pack descritta ma non eseguita localmente. |
 
 > **Mappatura revisione 1 → revisione 2:** T1.1→X1.2 · T1.2→X1.3 · T1.3→X1.3 · T1.4→X1.7/X4.2 ·
 > T1.5→X3.2 · T1.6→X1.1 · T1.7→X1.6.
@@ -715,3 +715,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 29 | X1.4 configurazione astratta | `[x]` | Rimossi gli accessi diretti ai consumer: `ConfigurationManager` resta solo nell'adapter `Database/AppConfig.cs`. Adapter legge configurazione in-memory/fake, IConfiguration JSON/environment, e fallback legacy per net48. Build Database e PollingClass net8/net48 → 0 errori; 101 test passati/2 ignorati; suite integrazione 16 ignorati senza DB; `rg ConfigurationManager Database PollingClass --glob '*.cs'` → soli 2 riferimenti nell'adapter. `git diff --check` pulito. |
 | 2026-10-16 | 30 | X1.5 provider SQL astratto | `[x]` | Isolato il factory seam ADO dietro `ISqlClientFactory`, con implementazione Microsoft.Data.SqlClient. CRUD integration sintetico con SqlDataAdapter/SqlCommandBuilder → 1/1 PASS; suite integration → 8 passati, 9 ignorati (manca login applicativo); build Database net48/net8 → 0 errori; unit 101/2 ignorati; 104 riferimenti Microsoft.Data.SqlClient; zero riferimenti System.Data.SqlClient. Il test richiede DB e viene saltato se assente. |
 | 2026-10-16 | 31 | X1.6 CI multi-OS | `[x]` | Aggiunto workflow GitHub Actions: matrix ubuntu/macos/windows builda Database e PollingClass entrambi i TFM e unit test; job SQL Server Ubuntu effettua deploy synthetic e test integrazione solo con secrets CI definiti. YAML parse OK; build locale Release di tutte le librerie e test unit OK, integration project build OK; run remoto non ancora osservato, quindi OS CI non dichiarati verificati. |
+| 2026-10-16 | 32 | X1.7 Website WebForms legacy | `[x]` | Build soluzione riprodotta → MSB4249 Website; `docs/LEGACY.md` dichiara scope legacy, requisito IIS/.NET Framework 4.8 e procedura Visual Studio su richiesta; workflow CI builda solo i progetti SDK e non il Website. Nessuna falsa dichiarazione di compilazione legacy. |

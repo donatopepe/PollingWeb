@@ -1727,6 +1727,42 @@ Non eseguiti `act`/`actionlint` né run remoto; macOS e Windows non verificati l
 
 **Prossimo task:** `X1.7 — Website project legacy fuori dal build CI`.
 
+---
+
+## 2026-10-16T20:30Z — X1.7 Website legacy escluso dal build default — DONE
+
+**Baseline riprodotto.** `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1 con `MSB4249`: il compilatore ASP.NET Website WebForms non è disponibile in MSBuild cross-platform. Evidenza attesa: dichiarare il Website come legacy opzionale, descrivere l'ambiente di compilazione su richiesta e assicurare che il workflow predefinito lavori sui progetti SDK invece di tentare la soluzione Website.
+
+**Modifica.** Aggiunto `docs/LEGACY.md` con motivazione, limiti e procedura di compilazione IIS su Windows tramite Visual Studio/.NET Framework 4.8 Developer Pack. Il workflow CI introdotto in X1.6 compila soltanto i progetti SDK cross-platform e non invoca `PollingWeb.sln`; nessuna compilazione legacy è stata simulata o dichiarata completata.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ dotnet build PollingWeb.sln --nologo -v quiet
+exit 1: MSB4249 sul Website WebForms.
+$ grep -n 'dotnet build PollingWeb.sln' .github/workflows/ci.yml
+nessuna corrispondenza; workflow build/test per i progetti SDK soltanto.
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build Database/Database.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build PollingClass/PollingClass.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+101 passati, 2 ignorati, 0 falliti.
+$ test -f docs/LEGACY.md
+exit 0.
+$ git diff --check
+exit 0.
+```
+
+Windows/macOS e compilazione IIS legacy non verificati localmente. La soluzione Visual Studio continua a mostrare il Website per gli sviluppatori legacy; non si asserisce che la solution build sia verde.
+
+**Prossimo task:** `C1 — FiltroCampi.BuildWhere parametrizzato`.
+
+
 
 
 
