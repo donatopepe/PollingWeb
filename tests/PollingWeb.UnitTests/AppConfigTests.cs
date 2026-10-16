@@ -89,6 +89,27 @@ namespace PollingWeb.UnitTests
         }
 
         [Fact]
+        public void Sap_text_reader_uses_utf8_and_detects_unicode_bom()
+        {
+            var directory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(directory);
+            var path = System.IO.Path.Combine(directory, "sap.txt");
+            try
+            {
+                System.IO.File.WriteAllText(path, "città", new System.Text.UTF8Encoding(true));
+                using (var reader = PollingClass.ConfiguredFilePaths.OpenSapText(path))
+                    Assert.Equal("città", reader.ReadToEnd());
+                System.IO.File.WriteAllText(path, "", new System.Text.UTF8Encoding(false));
+                using (var reader = PollingClass.ConfiguredFilePaths.OpenSapText(path))
+                    Assert.Equal(string.Empty, reader.ReadToEnd());
+            }
+            finally
+            {
+                System.IO.Directory.Delete(directory, recursive: true);
+            }
+        }
+
+        [Fact]
         public void Configured_paths_require_existing_directory_and_bare_file_name()
         {
             var directory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.Guid.NewGuid().ToString("N"));

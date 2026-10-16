@@ -380,6 +380,13 @@ namespace PollingClass
         }
 
 
+        public static void ValidateSapOutputRecord(string line)
+        {
+            if (string.IsNullOrWhiteSpace(line)) return;
+            if (line.Length < 20) throw new FormatException("SAP output record is shorter than the required 20 characters.");
+            if (line.Length > 20 && line.Length < 25) throw new FormatException("SAP output error record is shorter than the required 25 characters.");
+        }
+
         private void CheckFile()
         {
             DateTime datafile;
@@ -403,13 +410,15 @@ namespace PollingClass
                 tsk.AggiornaStato("4");//metto in elaborazione
                 var line = "";
                 var values = new string[0];
-                using (var leggi = new StreamReader(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
+                using (var leggi = ConfiguredFilePaths.OpenSapText(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
                 {
                     //leggo il file
                     while (!leggi.EndOfStream)
                     {
-                        line = leggi.ReadLine().Trim();
-
+                        line = leggi.ReadLine();
+                        ValidateSapOutputRecord(line);
+                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        line = line.TrimEnd();
                         dr = this.dts.RDA_Esiti_LastOutput_OnLine.NewRDA_Esiti_LastOutput_OnLineRow();
                         dr["Mandante"] = line.Substring(0, 3);
                         dr["Societa"] = line.Substring(3, 4);
@@ -419,7 +428,7 @@ namespace PollingClass
                         if (line.Length > 20)
                         {
                             dr["Cod_Errore"] = line.Substring(20, 5);
-                            dr["Desc_Errore"] = line.Substring(25, line.Length - 25);
+                            dr["Desc_Errore"] = line.Substring(25);
 
                             //implementare 
                             //invio messaggio singolo di errore esito?

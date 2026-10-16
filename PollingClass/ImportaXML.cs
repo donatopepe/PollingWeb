@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Database;
@@ -20,16 +20,13 @@ namespace PollingClass
 
             using (SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Open(fileName, false))
             {
-                //WorkbookPart workbookPart = spreadsheetDocument.WorkbookPart;
-                //WorksheetPart worksheetPart = workbookPart.WorksheetParts.First();
-                //SheetData sheetData = worksheetPart.Worksheet.Elements<SheetData>().First();
-
                 WorkbookPart workbookPart = spreadsheetDocument.WorkbookPart;
-                Sheet theSheet = workbookPart.Workbook.Descendants<Sheet>().
-                 Where(s => s.Name == "BDG").FirstOrDefault();
-                WorksheetPart wsPart =
-                    (WorksheetPart)(workbookPart.GetPartById(theSheet.Id));
-                SheetData sheetData = wsPart.Worksheet.Elements<SheetData>().First();
+                Sheet theSheet = workbookPart?.Workbook?.Descendants<Sheet>()
+                    .FirstOrDefault(s => s.Name == "BDG");
+                if (theSheet == null) throw new InvalidDataException("Workbook is missing the required BDG worksheet.");
+                WorksheetPart wsPart = (WorksheetPart)workbookPart.GetPartById(theSheet.Id);
+                SheetData sheetData = wsPart.Worksheet.Elements<SheetData>().FirstOrDefault();
+                if (sheetData == null) throw new InvalidDataException("The BDG worksheet has no sheet data.");
 
                 string value = null;
                 Budget bdg;
@@ -44,7 +41,7 @@ namespace PollingClass
                         i++;
                         //text = c.CellValue.Text;
                         //Console.Write(text + " ");
-                        if (c.InnerText.Length > 0)
+                        if (!string.IsNullOrEmpty(c.InnerText))
                         {
                             value = c.InnerText;                            
                             if (c.DataType != null)
@@ -53,21 +50,17 @@ namespace PollingClass
                                 {
                                     case CellValues.SharedString:
 
-                                    var stringTable =
-                                        workbookPart.GetPartsOfType<SharedStringTablePart>()
-                                        .FirstOrDefault();
+                                    var stringTable = workbookPart.GetPartsOfType<SharedStringTablePart>().FirstOrDefault();
 
                                    
-                                    if (stringTable != null)
-                                    {
-                                        value =
-                                            stringTable.SharedStringTable
-                                            .ElementAt(int.Parse(value)).InnerText;
-                                    }
+                                    if (stringTable == null || !int.TryParse(value, out var sharedStringIndex)
+                                        || sharedStringIndex < 0 || sharedStringIndex >= stringTable.SharedStringTable.Count())
+                                        throw new InvalidDataException("Workbook contains an invalid shared-string reference.");
+                                    value = stringTable.SharedStringTable.ElementAt(sharedStringIndex).InnerText;
                                     break;                                   
                                 }
                             }
-                            else
+                            else if (c.CellValue != null)
                             {
                                 value = c.CellValue.Text;
                             }
@@ -127,7 +120,7 @@ namespace PollingClass
                 // Retrieve the date value in cell A2.
                 value = GetCellValue(fileName, sheet, "A2");
                 Console.WriteLine(
-                DateTime.FromOADate(double.Parse(value)).ToShortDateString());
+                DateTime.FromOADate(double.Parse(value, CultureInfo.InvariantCulture)).ToShortDateString());
             }
             catch (Exception ex)
             {
@@ -150,16 +143,12 @@ namespace PollingClass
                 // Retrieve a reference to the workbook part.
                 WorkbookPart wbPart = document.WorkbookPart;
 
-                // Find the sheet with the supplied name, and then use that 
-                // Sheet object to retrieve a reference to the first worksheet.
-                Sheet theSheet = wbPart.Workbook.Descendants<Sheet>().
-                  Where(s => s.Name == sheetName).FirstOrDefault();
+                Sheet theSheet = wbPart?.Workbook?.Descendants<Sheet>()
+                    .FirstOrDefault(s => s.Name == sheetName);
 
                 // Throw an exception if there is no sheet.
                 if (theSheet == null)
-                {
-                    throw new ArgumentException("sheetName");
-                }
+                    throw new InvalidDataException("Workbook is missing the requested worksheet.");
 
                 // Retrieve a reference to the worksheet part.
                 WorksheetPart wsPart =
@@ -167,58 +156,20 @@ namespace PollingClass
 
                 // Use its Worksheet property to get a reference to the cell 
                 // whose address matches the address you supplied.
-                Cell theCell = wsPart.Worksheet.Descendants<Cell>().
-                  Where(c => c.CellReference == addressName).FirstOrDefault();
+                Cell theCell = wsPart.Worksheet?.Descendants<Cell>()
+                    .FirstOrDefault(c => c.CellReference == addressName);
 
-                // If the cell does not exist, return an empty string.
-                if (theCell.InnerText.Length > 0)
+                // An absent or empty cell has no value.
+                if (theCell == null || string.IsNullOrEmpty(theCell.InnerText))
+                    return string.Empty;
+                value = theCell.InnerText;
+                if (theCell.DataType == CellValues.SharedString)
                 {
-                    value = theCell.InnerText;
-
-                    // If the cell represents an integer number, you are done. 
-                    // For dates, this code returns the serialized value that 
-                    // represents the date. The code handles strings and 
-                    // Booleans individually. For shared strings, the code 
-                    // looks up the corresponding value in the shared string 
-                    // table. For Booleans, the code converts the value into 
-                    // the words TRUE or FALSE.
-                    if (theCell.DataType != null)
-                    {
-                        switch (theCell.DataType.Value)
-                        {
-                            case CellValues.SharedString:
-
-                            // For shared strings, look up the value in the
-                            // shared strings table.
-                            var stringTable =
-                                wbPart.GetPartsOfType<SharedStringTablePart>()
-                                .FirstOrDefault();
-
-                            // If the shared string table is missing, something 
-                            // is wrong. Return the index that is in
-                            // the cell. Otherwise, look up the correct text in 
-                            // the table.
-                            if (stringTable != null)
-                            {
-                                value =
-                                    stringTable.SharedStringTable
-                                    .ElementAt(int.Parse(value)).InnerText;
-                            }
-                            break;
-
-                            //case CellValues.Boolean:
-                            //switch (value)
-                            //{
-                            //    case "0":
-                            //    value = "FALSE";
-                            //    break;
-                            //    default:
-                            //    value = "TRUE";
-                            //    break;
-                            //}
-                            //break;
-                        }
-                    }
+                    var stringTable = wbPart.GetPartsOfType<SharedStringTablePart>().FirstOrDefault();
+                    if (stringTable == null || !int.TryParse(value, out var sharedStringIndex)
+                        || sharedStringIndex < 0 || sharedStringIndex >= stringTable.SharedStringTable.Count())
+                        throw new InvalidDataException("Workbook contains an invalid shared-string reference.");
+                    value = stringTable.SharedStringTable.ElementAt(sharedStringIndex).InnerText;
                 }
             }
             return value;

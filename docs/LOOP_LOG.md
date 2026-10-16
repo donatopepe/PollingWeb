@@ -16,6 +16,20 @@ poi: contesto, modifiche, evidenza (comando + output), prossimo task, blocchi.
 
 **Evidenza reale:** `dotnet build PollingClass/PollingClass.csproj -f net8.0 --nologo -v quiet` → exit 0; stesso comando con `-f net48` → exit 0. `dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet` → superato, 115 passati/2 ignorati. Scansione dei path assoluti Windows in `Database`/`PollingClass` → 0 risultati; scansione dei pattern concatenazione `path_source + @"\\"`/`PATH_FOLDER + @"\\"`/`archivia_path + @"\\"` → 0 risultati. `git diff --check` → exit 0. La soluzione completa non è stata verificata in questa iterazione.
 
+**Prossimo task:** `C9 — Robustezza parsing tracciati SAP`.
+
+---
+
+## 2026-10-17T12:20Z — C9 Robustezza parsing SAP — IN PROGRESS
+
+**Baseline riprodotto:** `Ordini_Sap` esegue `Substring` su righe senza controllare la lunghezza minima; `ImportaXML` assume foglio `BDG`, dati worksheet e riferimenti alle shared strings validi; `ParserFatture` usa `StreamReader` predefinito e `IsNumeric` dipende dalla cultura. Evidenza attesa: gestione esplicita input vuoti/mancanti/troncati e encoding dichiarato, fixture sintetiche, build PollingClass su entrambi i TFM e test unit.
+
+**Modifiche parziali:** `Ordini_Sap` ignora righe vuote e rifiuta record troncati; `ImportaXML` valida foglio/dati e riferimenti shared-string, restituisce empty per cella assente e tollera righe budget con celle mancanti; `ConfiguredFilePaths` dichiara UTF-8/BOM e decode Windows-1252 esplicito; `ParserFatture` ignora input vuoto, rifiuta header corto, usa invariant parsing e formati data espliciti. `samples/sap/README.md` documenta i formati e i campioni sintetici. Test generati coprono output troncato, righe vuote, UTF-8/BOM, Windows-1252, date sotto culture diverse e workbook incompleti.
+
+**Verifica reale (ultima esecuzione, Linux):** `dotnet build PollingClass/PollingClass.csproj -f net8.0 --nologo -v quiet` → exit 0; stesso comando con `-f net48` → exit 0; `dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet` → 140 passati/2 ignorati; `git diff --check` → exit 0. Il comando `dotnet build PollingWeb.sln --nologo -v quiet` era stato eseguito in precedenza in questa iterazione: exit 1, MSB4249 WebForms.
+
+**Esito:** dopo tre iterazioni sul task, C9 è marcato `[!]` e bloccato. Restano mancanti test end-to-end di `ParserFatture` e `Flusso_*`: crearli richiede fixture SAP complete approvate e schema/DDL verificati (in particolare le tabelle mancanti registrate in T0.13). Mitigazione: mantenuti i test deterministici sui boundary verificabili; riprendere l'end-to-end solo dopo acquisizione della DDL e fixture sintetiche conformi, senza dedurre il contratto dai soli parser.
+
 ---
 
 ## 2026-xx-xx T00 — Studio iniziale e pianificazione — DONE

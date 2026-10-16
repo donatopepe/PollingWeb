@@ -213,7 +213,7 @@ namespace PollingClass
           tsk.AggiornaStato("4"); //metto in elaborazione
           var line = "";
           var values = new string[0];
-          using (var leggi = new StreamReader(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
+          using (var leggi = ConfiguredFilePaths.OpenSapText(ConfiguredFilePaths.Combine(tsk.path_source, tsk.file_source)))
           {
             //azzero tabella
             this.dts.TargetSC00G100.Rows.Clear();

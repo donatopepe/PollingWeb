@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace PollingClass
 {
-    class ParserFatture : IDisposable
+    public class ParserFatture : IDisposable
     {
         DatabaseInfo dbInfoPolling;
         DatabaseInfo dbInfoeProcurement;
@@ -25,22 +25,26 @@ namespace PollingClass
         public bool IsNumeric(string s)
         {
             double output;
-            return double.TryParse(s, out output);
+            return double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out output);
         }
+
+        public static bool IsValidRecord(string line)
+        {
+            return !string.IsNullOrWhiteSpace(line) && line.Length >= 6;
+        }
+        public static string Mid(string str, int index, int length)
+        {
+            if (string.IsNullOrWhiteSpace(str) || index <= 0 || length <= 0 || index > str.Length) return string.Empty;
+            var start = index - 1;
+            return str.Substring(start, Math.Min(length, str.Length - start));
+        }
+
         public string Trim(string str)
         {
             if (String.IsNullOrWhiteSpace(str)) return string.Empty;
             return str.Trim();
         }
 
-        public string Mid(string str, int index, int length)
-        {
-            if (String.IsNullOrWhiteSpace(str)) return str;
-            var lungh = str.Length;
-            var min = Math.Min(lungh, index - 1);
-            str = str.Remove(0, min);
-            return Left(str, length);
-        }
         public string Replace(string str, object oldStr, object newStr)
         {
             if (String.IsNullOrWhiteSpace(str)) return str;
@@ -51,14 +55,16 @@ namespace PollingClass
         public string Left(string str, int index)
         {
             if (String.IsNullOrWhiteSpace(str)) return str;
-            var lungh = Math.Min(str.Length, Math.Min(str.Length, index));
+            if (index <= 0) return string.Empty;
+            var lungh = Math.Min(str.Length, index);
             var result = str.Substring(0, lungh);
             return result;
         }
         public string Right(string str, int index)
         {
             if (String.IsNullOrWhiteSpace(str)) return str;
-            var result = str.Substring(str.Length - Math.Min(str.Length, index));
+            if (index <= 0) return string.Empty;
+            var result = str.Substring(Math.Max(0, str.Length - index), Math.Min(index, str.Length));
             return result;
         }
 
@@ -152,33 +158,18 @@ namespace PollingClass
             dbInfoeProcurement.IniziaSessione();
         }
 
+        public static DateTime? ParseTextDate(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            string[] formats = { "dd.MM.yy", "dd.MM.yyyy", "ddMMyy", "ddMMyyyy", "dd/MM/yyyy", "dd/MM/yy", "dd/MM/yyyy H.mm.ss", "dd/MM/yyyy HH.mm.ss", "yyyyMMdd" };
+            if (DateTime.TryParseExact(value, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)) return parsed;
+            if (DateTime.TryParse(value, CultureInfo.GetCultureInfo("it-IT"), DateTimeStyles.None, out parsed)) return parsed;
+            return null;
+        }
+
         public DateTime? TextToDate(string value, bool viewerror = true)
         {
-            if (String.IsNullOrWhiteSpace(value))
-            {
-                return null;
-            }
-            DateTime result = DateTime.MinValue;
-            var dataOK = false;
-            foreach (var item in FormatoDate)
-            {
-                dataOK = DateTime.TryParseExact(value, item, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
-                if (dataOK) break;
-            }
-
-            if (!dataOK)
-            {
-                dataOK = DateTime.TryParse(value, CultureInfo.GetCultureInfo("it-IT"), DateTimeStyles.None, out result);
-                if (!dataOK)
-                {
-                    dataOK = DateTime.TryParse(value, CultureInfo.GetCultureInfo("en-EN"), DateTimeStyles.None, out result);
-                    if (!dataOK)
-                    {
-                        return null;
-                    }
-                }
-            }
-            return result;
+            return ParseTextDate(value);
         }
         public void Esegui(int CodIst, string PATH_FOLDER, string oNomeFile)
         {
@@ -198,8 +189,8 @@ namespace PollingClass
 
                 var sTab_CaptureDate = File.GetLastWriteTime(sFile);
 
-                var Tab_CaptureDate = sTab_CaptureDate.ToShortDateString();
-                using (var f = new StreamReader(sFile))
+                var Tab_CaptureDate = sTab_CaptureDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                using (var f = ConfiguredFilePaths.OpenSapText(sFile))
                 {
                     // ***************************************************************************************************************************************
                     // *					BEGIN  -  ALGORITMO DI PARSERIZZAZIONE				*
@@ -227,6 +218,8 @@ namespace PollingClass
                     {
 
                         var r = f.ReadLine();
+                        if (string.IsNullOrWhiteSpace(r)) continue;
+                        if (!IsValidRecord(r)) throw new FormatException("SAP invoice record is shorter than the required 6-character header.");
                         var riga = Replace(r, (char)(0), (char)(32));
 
                         var strTop = Left(riga, 6);

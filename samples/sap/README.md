@@ -14,23 +14,23 @@ Esito dell'invio ordini a SAP. Letto da `PollingClass/Ordini_Sap.cs` (`StreamRea
 | Offset | Lunghezza | Campo | Note |
 |--------|-----------|-------|------|
 | 0 | 3 | `Mandante` | es. `T47` |
-| 3 | 4 | `Societa` | es. `0101` |
+| 3 | 4 | `Societa` | codice sintetico |
 | 7 | 10 | `Num_Ordine` | zero-padded |
 | 17 | 3 | `Posizione` | |
-| 20 | 5 | `Cod_Errore` | `00000` = nessun errore |
+| 20 | 5 | `Cod_Errore` | tutti zeri = nessun errore |
 | 25 | resto | `Desc_Errore` | testo libero |
 
 ```
-T470101000000000100100000Esito sintetico: ordine accettato
+<RECORD-40-CHARS>
 │  │   │         │  │
-│  │   │         │  └─ Cod_Errore  = 00000
-│  │   │         └──── Posizione    = 001
-│  │   └────────────── Num_Ordine   = 0000000001
-│  └────────────────── Societa      = 0101
-└───────────────────── Mandante     = T47
+│  │   │         │  └─ Cod_Errore
+│  │   │         └──── Posizione
+│  │   └────────────── Num_Ordine
+│  └────────────────── Societa
+└───────────────────── Mandante
 ```
 
-Le righe 2 e 5 hanno `Cod_Errore` ≠ `00000` per esercitare il ramo di errore.
+Alcune righe del campione hanno un codice errore non-zero per esercitare il ramo d'errore.
 Il file reale era padded con spazi a larghezza fissa: il parser non lo richiede.
 
 ---
@@ -79,9 +79,7 @@ In entrambi i casi la riga si divide in **9 campi**, di cui il primo e l'ultimo 
 ⚠️ L'`Istituto` **non** viene letto dal file: è preso dalla configurazione
 (`codice_istituto`) e scritto in `dr["Istituto"]`.
 
-Il campione usa codici fornitore `1001`–`1003` e P.IVA `00000000001`–`00000000003`,
-evidentemente fittizie, più una riga con codice fiscale (11+ caratteri) per esercitare
-l'altro ramo.
+Il campione usa record costruiti per test sintetici, inclusa una riga che esercita il ramo alternativo del parser.
 
 **Non testato dai campioni:** il dialetto `³` richiede un file in code page 1252, che non si
 può rappresentare in un `.txt` UTF-8. Va aggiunto come fixture binaria quando si scriverà il
