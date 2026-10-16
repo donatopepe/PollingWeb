@@ -1660,6 +1660,40 @@ La soluzione completa non è buildata per il blocker Website MSB4249 riprodotto;
 
 **Prossimo task:** `X1.5 — Provider dati astratto (Microsoft.Data.SqlClient)`.
 
+---
+
+## 2026-10-16T19:40Z — X1.5 Provider dati Microsoft.Data.SqlClient — DONE
+
+**Baseline riprodotto.** `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` Website WebForms. Verifica sorgente: 146 riferimenti/costruttori ADO netti nel DAL, tutti `Microsoft.Data.SqlClient`; `System.Data.SqlClient` non trovato. Il provider è già unico; il gap era l'assenza di un seam factory esplicito e di un test CRUD contro SQL Server.
+
+**Modifiche.** Aggiunti `Database/ISqlClientFactory.cs` e implementazione `MicrosoftSqlClientFactory`; `TableAdapter.BuildCommand` usa l'astrazione per creare `SqlCommandBuilder`. Aggiunto test d'integrazione `SqlClientAdapterTests` che crea una tabella temporanea e testa insert/update/delete via `SqlDataAdapter`/`SqlCommandBuilder`, rimuovendo sempre la fixture. Nessun seed/dato reale.
+
+**Evidenza reale (Linux, 2026-10-16).**
+
+```
+$ POLLING_DB_PASSWORD="(presa dall'ambiente runtime SQL locale)" ./scripts/db-deploy.sh --with-seed
+Deploy schema Polling/eProcurement/Quartz e seed sintetico completato; passaggi account app saltati senza POLLING_APP_PASSWORD.
+$ dotnet build Database/Database.csproj -f net8.0 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build Database/Database.csproj -f net48 --no-restore --nologo -v quiet
+exit 0; 0 errori.
+$ dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --nologo -v quiet
+exit 0; 0 errori.
+$ POLLING_DB_PASSWORD="(valore locale non registrato)" dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet
+8 passati, 9 ignorati, 0 falliti; test SqlClientAdapterTests incluso nel conteggio PASS.
+$ dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet
+101 passati, 2 ignorati, 0 falliti.
+$ rg -n 'System.Data.SqlClient' Database PollingClass --glob '*.cs' --glob '*.csproj'
+nessuna corrispondenza; 104 match Microsoft.Data.SqlClient in Database.
+$ git diff --check
+exit 0.
+```
+
+Il login applicativo non è configurato, quindi i 9 test che lo richiedono sono ignorati; Windows/macOS non verificati localmente. La build della soluzione non è verificata verde (MSB4249 Website).
+
+**Prossimo task:** `X1.6 — CI multi-OS`.
+
+
 
 
 ---

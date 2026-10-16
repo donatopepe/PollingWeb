@@ -2,6 +2,7 @@
 
 using Microsoft.Data.SqlClient;
 using System.Data;
+using Database.Base;
 
 
 namespace Database.TableInterface
@@ -18,6 +19,9 @@ namespace Database.TableInterface
         {
             this.NomeTabella = nomeTabella;
         }
+
+        // Provider seam: all generated adapters remain on the single Microsoft.Data.SqlClient provider.
+        protected static ISqlClientFactory SqlClientFactory { get; set; } = new MicrosoftSqlClientFactory();
 
         //data adapter
         protected SqlDataAdapter adapter;
@@ -41,7 +45,7 @@ namespace Database.TableInterface
         {
             try
             {
-                SqlCommandBuilder build = new SqlCommandBuilder(adapter);
+                SqlCommandBuilder build = SqlClientFactory.CreateCommandBuilder(adapter);
 
                 build.RefreshSchema();
 

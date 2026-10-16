@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 24 / 74 task verificati
+- **Stato complessivo:** 25 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -327,7 +327,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   `ConfigurationManager` nel codice di dominio.
   Evidenza: test unit con provider fake; `git grep -n "ConfigurationManager" Database PollingClass` = 0
   (escluso l'adapter).
-- [ ] **X1.5 — Provider dati astratto (`Microsoft.Data.SqlClient`)**
+- [x] **X1.5 — Provider dati astratto (`Microsoft.Data.SqlClient`)**
   DoD: **un solo provider**, `Microsoft.Data.SqlClient`, su entrambi i TFM (verificato che
   `SqlDataAdapter` e `SqlCommandBuilder` vi funzionano: vedi ADR 0004 §1); adapter sottile per
   isolare il DAL da un futuro cambio di provider; connection string senza credenziali nel codice.
@@ -713,3 +713,4 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 | 2026-10-16 | 27 | X1.3c PollingClass multi-target | `[x]` | Build net8.0 e net48 → 0 errori, 5 avvisi ciascuno; unit 98/2 ignorati; 4.178/4.298 righe non vuote compilabili net8 (97,2%); esclusi solo metadata/base ASMX condizionali; diff-check pulito. Windows/macOS non verificati localmente. |
 | 2026-10-16 | 28 | X1.1 layout/props/central packages | `[x]` | Root props restituiscono LangVersion 7.3, Version 1.0.0, Nullable disable, Deterministic true; central versions attive con restore per i quattro csproj SDK; build Database e PollingClass net48/net8 0 errori; unit 98/2 ignored, integrazione 16 ignorati senza DB; `dotnet sln list` elenca i 5 progetti presenti. La soluzione mantiene il Website legacy; build completa fuori scope prima di X1.7. |
 | 2026-10-16 | 29 | X1.4 configurazione astratta | `[x]` | Rimossi gli accessi diretti ai consumer: `ConfigurationManager` resta solo nell'adapter `Database/AppConfig.cs`. Adapter legge configurazione in-memory/fake, IConfiguration JSON/environment, e fallback legacy per net48. Build Database e PollingClass net8/net48 → 0 errori; 101 test passati/2 ignorati; suite integrazione 16 ignorati senza DB; `rg ConfigurationManager Database PollingClass --glob '*.cs'` → soli 2 riferimenti nell'adapter. `git diff --check` pulito. |
+| 2026-10-16 | 30 | X1.5 provider SQL astratto | `[x]` | Isolato il factory seam ADO dietro `ISqlClientFactory`, con implementazione Microsoft.Data.SqlClient. CRUD integration sintetico con SqlDataAdapter/SqlCommandBuilder → 1/1 PASS; suite integration → 8 passati, 9 ignorati (manca login applicativo); build Database net48/net8 → 0 errori; unit 101/2 ignorati; 104 riferimenti Microsoft.Data.SqlClient; zero riferimenti System.Data.SqlClient. Il test richiede DB e viene saltato se assente. |
