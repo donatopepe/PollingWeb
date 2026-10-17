@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T01:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the synthetic bulk supplier refresh verifies row count, updated names, identities and institute scope, but not propagation of nullable source columns to the destination rows.
+
+**Esito atteso:** after setting synthetic target supplier records with omitted nullable fields, refreshing copies those NULLs to the corresponding dimension rows for both supplier identities.
+
+**Modifica:** added a `NOT EXISTS` assertion that rejects any of the synthetic updated supplier rows retaining non-NULL `Indirizzo`, `Cap`, `Citta`, `Prov`, `CodFisc`, or `PIva` values.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `AggiornaFornitori_updates_multiple_synthetic_suppliers_for_one_institute` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T01:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the no-match/no-existing-row `ImportaBudget` case verifies only that the output parameter is cleared; it does not explicitly assert that no budget records are created.

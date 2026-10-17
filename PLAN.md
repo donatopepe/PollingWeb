@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-18 | 101 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `AggiornaFornitori_updates_multiple_synthetic_suppliers_for_one_institute` SQL test 1/1 pass con verifica campi nullable; `git diff --check` exit 0. |
 | 2026-10-18 | 100 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `ImportaBudget_no_match_institute_empty_rows_returns_empty_output` test SQL 1/1 pass con asserzione nessuna riga creata; `git diff --check` exit 0. |
 | 2026-10-18 | 99 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (12 warning preesistenti); `AggiornaFornitori_empty_target_does_not_affect_nearby_institute_with_same_supplier` test SQL 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-18 | 98 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` baseline SQL test 1/1 pass; `git diff --check` exit 0. Exploratory non-success-transition assertion failed and removed. |

@@ -509,6 +509,7 @@ namespace PollingWeb.IntegrationTests
                     "EXEC dbo.AggiornaFornitori @pi_istituto=32003,@po_valoreuscita=@output OUTPUT; " +
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimFornitori WHERE IstID=32003 AND RagSoc LIKE N'% updated')<>2 THROW 51022,'Synthetic bulk update failed',1; " +
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimFornitori WHERE IstID=32003 AND CFor IN (987654330,987654331) AND RagSoc LIKE N'% updated')<>2 THROW 51072,'Bulk update did not preserve supplier identities',1; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID=32003 AND CFor IN (987654330,987654331) AND (Indirizzo IS NOT NULL OR Cap IS NOT NULL OR Citta IS NOT NULL OR Prov IS NOT NULL OR CodFisc IS NOT NULL OR PIva IS NOT NULL)) THROW 51080,'Bulk refresh did not propagate nullable source fields',1; " +
                     "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID<>32003 AND IstID IS NOT NULL AND RagSoc LIKE N'% updated') THROW 51023,'Bulk supplier update escaped institute scope',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
