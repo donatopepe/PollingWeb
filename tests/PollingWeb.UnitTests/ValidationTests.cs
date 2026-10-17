@@ -194,6 +194,22 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData(1.5, 1, "1.5")]
+        [InlineData(1234.567, 2, "1234.57")]
+        public void IsNumeric_FEFormattato_usa_la_precisione_invariant(double value, int decimals, string expected)
+        {
+            IsNumeric.Esegui(value.ToString(CultureInfo.InvariantCulture), decimals);
+            Assert.Equal(expected, IsNumeric.FEFormattato(decimals));
+        }
+
+        [Fact]
+        public void IsNumeric_FEFormattato_con_default_usa_due_decimali()
+        {
+            IsNumeric.Esegui("12.5");
+            Assert.Equal("12.50", IsNumeric.FEFormattato());
+        }
+
+        [Theory]
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("abc")]

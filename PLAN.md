@@ -475,7 +475,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [~] **T2 — Unit test logica pura**
   DoD: copertura di `ValidaData`, `ValidaMail`, `FiltroCampi`, `AntiSqlInject`, `Aggset`,
   `ParserFatture`, config adapter.
-  Evidenza (Linux, 2026-10-17, iterazione corrente): test unit 159 passati/2 ignorati; aggiunti casi `ValidaData` ISO e formati numerici con precisione. Coverage riportata: `ValidaData` 67,6%, `IsNumeric` 51,0%, `Aggset` 22,7%, `ParserFatture` 2,9%; T2 resta in corso per copertura insufficiente.
+  Evidenza (Linux, 2026-10-17, iterazione corrente): test unit 162 passati/2 ignorati; test aggiunti per `ValidaData` ISO e `IsNumeric.FEFormattato`. Coverage report: `ValidaData` 67,6%, `IsNumeric` 51,0%, `Aggset` 22,7%, `ParserFatture` 2,9%; T2 resta in corso per copertura insufficiente.
 - [ ] **T3 — Integration test stored procedure e funzioni**
   DoD: test per `Datini`, `Datfin`, `StripHTML`, `Flusso_RDA*`, `Flusso_Ordini_SAP*`,
   `Esiti_Ordini_SAP`, `ImportaBudget`, `AggiornaFornitori`, `AzzeraTargetSC00G100`.
@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-17 | 46 | T2 Unit coverage — parziale | `[~]` | Unit test 159/2 ignorati; test date ISO; `ValidaData` 67.6%, `IsNumeric` 51.0%, `Aggset` 22.7%, `ParserFatture` 2.9%. Database e PollingClass build `net8.0`/`net48` exit 0; `git diff --check` exit 0. |
+| 2026-10-17 | 47 | T2 Unit coverage — parziale | `[~]` | Unit test 162/2 ignorati; test date ISO e formattazione numerica; coverage target insufficiente. Database e PollingClass build `net8.0`/`net48` exit 0; `git diff --check` exit 0. |
 | 2026-10-17 | 42 | C10 SMTP funzionante | `[x]` | SMTP4Dev container; authenticated integration 1/1 pass; unit 145/2 ignored; PollingClass net8/net48 and IntegrationTests build exit 0; compose config clean; Windows/macOS not locally verified. |
 | 2026-10-17 | 43 | C11 Qualificare RDA_Esiti | `[x]` | `Esiti_Ordini_SAP` integration call from Polling in rollback transaction → 1/1 pass after deploy; integration project build exit 0. Full integration suite has unrelated table-count failure (Polling expected 9, actual 10); solution build exit 1/MSB4249 Website. |
 | 2026-10-17 | 37 | C9 parsing SAP — `[!]` bloccato dopo 3 iterazioni | `[!]` | PollingClass net8.0/net48 exit 0; unit 140/2 ignorati; controlli strutturali e test sintetici aggiunti. End-to-end ParserFatture/Flusso_* non completabile senza fixture SAP/DDL verificate; mitigazione descritta nel task e LOOP_LOG. |
