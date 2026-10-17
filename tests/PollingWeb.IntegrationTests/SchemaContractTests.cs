@@ -65,6 +65,77 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Flusso_RDA_ist_executes_with_synthetic_request_inside_rollback()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier = NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID, Progressivo, PageID, Matricola, IstID, Istituto, Status, " +
+                    "Oggetto, DataModifica, CFor, GruppoAcquisti, TipoOrdine, Frequenza, DataInizioCompetenza, DataFineCompetenza) " +
+                    "VALUES (@guid, 987654321, 1, N'TEST', 1, 1, 15, N'Synthetic test request', GETDATE(), 1001, N'001', N'NB', 1, GETDATE(), GETDATE()); " +
+                    "DECLARE @guidText varchar(40) = CONVERT(varchar(40), @guid); " +
+                    "EXEC dbo.Flusso_RDA @pi_guid=@guidText, @po_valoreuscita=@output OUTPUT; " +
+                    "SELECT COUNT(*) FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    Assert.True(Convert.ToInt32(command.ExecuteScalar()) > 0);
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void Remaining_sap_procedures_return_success_for_no_match_synthetic_inputs()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                foreach (var procedure in new[] { "ImportaBudget", "AggiornaFornitori", "AzzeraTargetSC00G100" })
+                {
+                    using (var command = new SqlCommand(
+                        "DECLARE @output varchar(30); EXEC dbo." + procedure + " @pi_istituto=-32768, @po_valoreuscita=@output OUTPUT; SELECT @output;",
+                        connection))
+                    {
+                        Assert.Equal(string.Empty, command.ExecuteScalar());
+                    }
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void Flusso_Ordini_SAP_ist_handles_no_matching_synthetic_requests()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "DECLARE @output varchar(40); EXEC dbo.Flusso_Ordini_SAP_ist @pi_istituto=-32768, @po_valoreuscita=@output OUTPUT; SELECT @output;",
+                    connection))
+                {
+                    Assert.Equal(string.Empty, command.ExecuteScalar());
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void Flusso_RDA_ist_handles_no_matching_synthetic_requests()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "DECLARE @output varchar(40); EXEC dbo.Flusso_RDA_ist @pi_istituto=-32768, @po_valoreuscita=@output OUTPUT; SELECT @output;",
+                    connection))
+                {
+                    Assert.Equal(string.Empty, command.ExecuteScalar());
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Polling_ha_gli_oggetti_attesi()
         {
             Assert.Equal(9, Conteggio("Polling", "SELECT COUNT(*) FROM sys.tables"));

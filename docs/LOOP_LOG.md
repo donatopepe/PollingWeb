@@ -2047,6 +2047,14 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Verifica reale:** `PATH=/opt/dotnet:$PATH dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --collect:'XPlat Code Coverage' --nologo -v quiet` → 162 passati/2 ignorati (finale, dopo scarto dei due test esplorativi Aggset privi di database realistico). Coverage report: `ValidaData` 67,6%, `IsNumeric` 51,0%, `Aggset` 22,7%, `ParserFatture` 10,0%. Build `Database` e `PollingClass` net8.0/net48 exit 0 (net48 warnings); `git diff --check` exit 0. T2 incompleto oltre tre iterazioni; `[!]` secondo policy. Mitigazione: copertura DB alla suite d'integrazione e fixture SAP verificate; no refactor di dominio.
 
+## 2026-10-17T19:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline riprodotto:** `SchemaContractTests` contiene test per Datini/Datfin, StripHTML, Esiti_Ordini_SAP e altre parti dello schema, ma nessun caso per Flusso_RDA / Flusso_Ordini_SAP né test dimostrato per tutte le procedure elencate in T3. Evidenza attesa: procedure/funzioni versionate invocate su SQL Server 2022 con soli dati sintetici, controllando output o side effects rollbackabili.
+
+**Modifica:** aggiunti test in `tests/PollingWeb.IntegrationTests/SchemaContractTests.cs`: Flusso_RDA su fixture RdA sintetica in transazione rollback; Flusso_RDA_ist e Flusso_Ordini_SAP_ist senza record matching; invocazioni ImportaBudget, AggiornaFornitori e AzzeraTargetSC00G100 con istituto sintetico non presente. Nessuna modifica al contratto SQL.
+
+**Evidenza reale:** deploy `POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --mode recreate --with-seed` → exit 0 (schema e seed sintetico applicati, credenziali app saltate). Build `dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Filtro mirato su Datini/Datfin, StripHTML, Esiti_Ordini_SAP e tre flussi → 6/6 pass; test procedure restanti → 1/1 pass. Full integration suite con SQL: 12 pass, 9 skip, 1 fail (test SMTP richiede env settings); escluso SMTP: 11 pass, 9 skip, 1 fail preesistente `Polling_ha_gli_oggetti_attesi` che si aspetta 9 tabelle ma schema attivo ne ha 10. T3 resta `[~]`: manca copertura per ciascun oggetto/procedure in tutti i branch/operazioni, e i test esistenti dei flussi non sostituiscono tale completezza. Segnalati i failure, non attribuiti alla modifica.
+
 ---
 
 ## 2026-10-16T18:xxZ — X1.3c PollingClass multi-target — DONE
