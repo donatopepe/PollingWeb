@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T00:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the `Datini`/`Datfin` integration test covers a leap-day midday input and NULL propagation, but not `datetime` input already rounded to the end-of-day boundary.
+
+**Esito atteso:** for a synthetic `2000-01-01T23:59:59.997` input, `Datini` returns that same end-of-day boundary and `Datfin` returns midnight of that date.
+
+**Modifica:** extended the existing direct SQL function test with the rounded-end-of-day input and exact expected values.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `Datini_and_Datfin_return_expected_synthetic_boundaries` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T23:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the bulk `AggiornaFornitori` test asserts both supplier names update for the institute, but does not assert that the same supplier keys (CFor identities) remain associated with those updated rows.
