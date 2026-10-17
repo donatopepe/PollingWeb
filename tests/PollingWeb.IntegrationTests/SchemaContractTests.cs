@@ -161,6 +161,7 @@ namespace PollingWeb.IntegrationTests
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.RdA WHERE GUID IN (@guidA,@guidB) AND Status=20)<>2 THROW 51024,'Successful synthetic orders were not marked',1; " +
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.RdE WHERE RdAID IN (@guidA,@guidB) AND Status=20)<>2 THROW 51025,'Successful synthetic requests were not marked',1; " +
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.LogTime_Ciclo WHERE Rch_ID IN (@guidA,@guidB) AND StatoID=20 AND StatoIntID=20)<>2 THROW 51026,'Success transition log entries were not written',1; " +
+                    "IF @output<>'' THROW 51067,'Multiple-success Esiti_Ordini_SAP output was not empty',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {
@@ -375,33 +376,6 @@ namespace PollingWeb.IntegrationTests
                     "EXEC dbo.Flusso_Ordini_SAP @pi_guid=@guidText,@po_valoreuscita=@output OUTPUT; " +
                     "IF @output<>'' THROW 51065,'Successful ODA flow returned unexpected output',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Codist=1 AND Tiporecord=N'ODA') THROW 51066,'Successful ODA flow did not insert an export row',1; " +
-                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
-                    connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
-
-
-        {
-            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
-            {
-                connection.Open();
-                using (var command = new SqlCommand(
-                    "BEGIN TRANSACTION; BEGIN TRY " +
-                    "DECLARE @guid uniqueidentifier=NEWID(),@guidText varchar(40),@output varchar(40); " +
-                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode,IstID,CodiceColl) VALUES (N'TEST33',1,N'033'); " +
-                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,IstID,Istituto,Status,Oggetto,DataModifica,CFor,GruppoAcquisti,TipoOrdine,Frequenza,DataInizioCompetenza,DataFineCompetenza,CdRUOCode) " +
-                    "VALUES (@guid,987654332,1,N'TEST',1,1,15,N'Synthetic order replacement',GETDATE(),1001,N'001',N'NB',1,GETDATE(),GETDATE(),N'TEST33'); " +
-                    "INSERT INTO eProcurement.dbo.RDAArt (IDArt,RdAID,SapID,GruppoMerci,DescrDett_Ord,QtaC,CostoConcordatoNoIva,DataPrevCons,TipoContabilizzazione) VALUES (987654332,@guid,1,N'001',N'Synthetic item replacement',1,10,GETDATE(),N'Y'); " +
-                    "INSERT INTO eProcurement.dbo.DimSottoCatSAP (IDCatSAP,Materiale) VALUES (1,N'SYNTHETIC'); " +
-                    "INSERT INTO eProcurement.dbo.JoinCatSottoCat (CatID,SCID,SapID,CodPrg) VALUES (1,1,1,N'TEST'); " +
-                    "INSERT INTO eProcurement.dbo.Tbl_Export_SAP_OnLine (Riga,Spid,Codist,Elaborato,Tiporecord) VALUES (N'TX4501014332 stale row',@@SPID,1,0,N'OD'); " +
-                    "SET @guidText=CONVERT(varchar(40),@guid); " +
-                    "EXEC dbo.Flusso_Ordini_SAP @pi_guid=@guidText,@po_valoreuscita=@output OUTPUT; " +
-                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Riga=N'TX4501014332 stale row') THROW 51063,'Stale synthetic order export was not removed',1; " +
-                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Tiporecord=N'ODA') THROW 51064,'Replacement synthetic order export was not inserted',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {

@@ -679,6 +679,8 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-17 | 89 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` SQL test 1/1 pass with empty-output assertion; `Flusso_Ordini_SAP_exports_and_returns_empty_output` SQL test 1/1 pass; `git diff --check` exit 0. |
+| 2026-10-17 | 89 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` SQL test 1/1 pass with empty-output assertion; `git diff --check` exit 0. |
 | 2026-10-17 | 88 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Flusso_Ordini_SAP_exports_and_returns_empty_output` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 87 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning; `AzzeraTargetSC00G100_clears_all_rows_for_target_institute_only` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 86 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `AzzeraTargetSC00G100_empty_target_clears_output_without_deleting_other_rows` SQL test 1/1 pass; `git diff --check` exit 0. |

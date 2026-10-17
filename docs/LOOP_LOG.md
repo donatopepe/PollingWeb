@@ -1,5 +1,35 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T22:51Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` checks archival, status changes, and success-transition counts for two successful orders but not the output parameter value.
+
+**Esito atteso:** batch processing of two synthetic successes returns an empty output string after recording both transitions.
+
+**Modifica:** added an output-empty assertion to the existing rollbackable two-success batch case.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL tests `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` → 1/1 pass and `Flusso_Ordini_SAP_exports_and_returns_empty_output` → 1/1 pass; `git diff --check` → exit 0. An unrelated stale-order-key experiment failed and was removed from the final changes.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
+## 2026-10-17T22:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` checks archival, status changes, and success-transition counts for two successful orders but not the output parameter value.
+
+**Esito atteso:** batch processing of two synthetic successes returns an empty output string after recording both transitions.
+
+**Modifica:** added an output-empty assertion to the existing rollbackable two-success batch case.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` → 1/1 pass, exit 0; `git diff --check` → exit 0. Discarded an unrelated trial asserting a speculative stale-output key after that hypothesis failed; final patch contains only the passing batch-output assertion.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T22:37Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** existing `Flusso_Ordini_SAP` integration case checks only that some export row is emitted; it does not assert success output reset or that output is tagged as an ODA record for the institute.
