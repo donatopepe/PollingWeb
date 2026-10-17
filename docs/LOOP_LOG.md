@@ -2031,6 +2031,12 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --collect:'XPlat Code Coverage' --nologo -v quiet` → 157 passati/2 ignorati. Build `Database/Database.csproj` e `PollingClass/PollingClass.csproj` con `-f net8.0` e `-f net48` → tutti exit 0; `git diff --check` → exit 0. Copertura `ValidaData` 67,6%, `Aggset` 22,7%, `ParserFatture` 2,9%: T2 non raggiunge DoD. `dotnet build PollingWeb.sln` non eseguito per Website WebForms noto; macOS/Windows non verificati localmente.
 
+### 2026-10-17T16:00Z — T2 Unit test logica pura — IN PROGRESS (iterazione 46)
+
+**Modifica:** aggiunti casi di data ISO (`yyyy-MM-dd`, datetime ISO) per verificare `ValidaData` sotto cultura esplicita; preservata la logica di dominio.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --collect:'XPlat Code Coverage' --nologo -v quiet` → 159 passati/2 ignorati. Coverage: `ValidaData` 67,6%, `IsNumeric` 51,0%, `ValidaMail` 78,6%, `Aggset` 22,7%, `ParserFatture` 2,9%. Build `Database/Database.csproj` e `PollingClass/PollingClass.csproj` con `-f net8.0` e `-f net48` → exit 0; `git diff --check` → exit 0. T2 non soddisfa ancora la copertura richiesta. Soluzione non eseguita; macOS/Windows non verificati localmente.
+
 ---
 
 ## 2026-10-16T18:xxZ — X1.3c PollingClass multi-target — DONE

@@ -88,6 +88,18 @@ namespace PollingWeb.UnitTests
             Assert.False(ValidaData.Esegui("x"));
         }
 
+        [Theory]
+        [InlineData("2024-01-31")]
+        [InlineData("2024-01-31T12:30:00")]
+        public void ValidaData_iso_formats_are_parsed_invariantly(string input)
+        {
+            ConCultura("en-US", () =>
+            {
+                Assert.True(ValidaData.Esegui(input));
+                Assert.Equal("31/01/2024", ValidaData.Valore());
+            });
+        }
+
         [Fact]
         public void ValidaData_rifiuta_una_data_impossibile()
         {
