@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T23:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the synthetic SAP error case confirms the error is archived, but only asserts existence, not uniqueness, of the archived row.
+
+**Esito atteso:** processing one synthetic SAP error writes exactly one matching archived error row to `RDA_Esiti`.
+
+**Modifica:** added a count-equals-one assertion to the existing rollbackable SAP error-path integration case.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` → 1/1 pass, exit 0; `git diff --check` → exit 0. Prior queue-consumption assertion hypothesis was discarded and is not in final change.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T23:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the synthetic SAP error integration case covers archiving the error and updating the request/log state, but not whether the online result row remains queued or is consumed.

@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-17 | 91 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` test 1/1 pass con verifica archiviazione una sola volta; `git diff --check` exit 0. |
 | 2026-10-17 | 90 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` 1/1 pass; `git diff --check` exit 0. Exploratory assertion about queue consumption failed and was removed. |
 | 2026-10-17 | 89 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` SQL test 1/1 pass with empty-output assertion; `Flusso_Ordini_SAP_exports_and_returns_empty_output` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 89 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` SQL test 1/1 pass with empty-output assertion; `git diff --check` exit 0. |
