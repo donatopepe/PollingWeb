@@ -479,7 +479,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [~] **T3 — Integration test stored procedure e funzioni**
   DoD: test per `Datini`, `Datfin`, `StripHTML`, `Flusso_RDA*`, `Flusso_Ordini_SAP*`,
   `Esiti_Ordini_SAP`, `ImportaBudget`, `AggiornaFornitori`, `AzzeraTargetSC00G100`.
-  Evidenza (Linux, 2026-10-17, iterazione 51): 11 test SQL filtrati passano; aggiunti branch insert/update per `ImportaBudget` e `AggiornaFornitori` su input sintetici in rollback, oltre ai flussi e alle funzioni. DoD non completa: `Flusso_Ordini_SAP`/`Flusso_RDA` full branch, altre funzioni/fixture non dimostrate; vedere `docs/LOOP_LOG.md`.
+  Evidenza (Linux, 2026-10-17, iterazione 52): build IntegrationTests exit 0; 13 test SQL filtrati passano. Aggiunti rami item dei flussi per istituto, delete sintetico e verifica di errore con rollback. DoD ancora incompleta: non tutti i rami business e side effect delle routine sono verificati; suite completa ha failure noti. `dotnet build PollingWeb.sln --nologo -v quiet` eseguito, exit 1 `MSB4249` Website legacy.
 - [ ] **T4 — Integration test DAL su entrambi i TFM**
   DoD: round-trip CRUD per tutti i TableAdapter + `ViewTaskService`, eseguiti su net48 e net8.0.
   Evidenza: test verdi con container SQL Server.
@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-17 | 51 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; 11 test SQL filtrati pass, inclusi insert/update budget e fornitori sintetici con rollback. Restano branch/oggetti non coperti e failure noti della suite completa (SMTP e schema count). |
+| 2026-10-17 | 52 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build 0; 13 test SQL filtrati pass. `dotnet build PollingWeb.sln --nologo -v quiet` exit 1 `MSB4249` Website. Restano branch business non coperti; failure suite noti. |
 | 2026-10-17 | 42 | C10 SMTP funzionante | `[x]` | SMTP4Dev container; authenticated integration 1/1 pass; unit 145/2 ignored; PollingClass net8/net48 and IntegrationTests build exit 0; compose config clean; Windows/macOS not locally verified. |
 | 2026-10-17 | 43 | C11 Qualificare RDA_Esiti | `[x]` | `Esiti_Ordini_SAP` integration call from Polling in rollback transaction → 1/1 pass after deploy; integration project build exit 0. Full integration suite has unrelated table-count failure (Polling expected 9, actual 10); solution build exit 1/MSB4249 Website. |
 | 2026-10-17 | 37 | C9 parsing SAP — `[!]` bloccato dopo 3 iterazioni | `[!]` | PollingClass net8.0/net48 exit 0; unit 140/2 ignorati; controlli strutturali e test sintetici aggiunti. End-to-end ParserFatture/Flusso_* non completabile senza fixture SAP/DDL verificate; mitigazione descritta nel task e LOOP_LOG. |

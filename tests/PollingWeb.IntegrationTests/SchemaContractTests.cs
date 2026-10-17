@@ -66,6 +66,7 @@ namespace PollingWeb.IntegrationTests
                     "VALUES (@guid, 987654323, 1, N'TEST', 1, 1, 15, 987654323); " +
                     "INSERT INTO eProcurement.dbo.LogTime_Ciclo (Rch_ID, Rch_Progr, PageID, Matricola, StatoID, StatoIntID) " +
                     "VALUES (@guid, 1, 1, N'TEST', 15, 15); " +
+                    "INSERT INTO eProcurement.dbo.RdE (GUID,Progressivo,PageID,IstID,RdAID,Status) VALUES (NEWID(),987654323,1,1,@guid,15); " +
                     "INSERT INTO eProcurement.dbo.RDA_Esiti_LastOutput_OnLine (Num_Ordine, Mandante, Societa, Posizione, Cod_Errore, Desc_Errore) " +
                     "VALUES (N'4502987654', N'000', N'1000', N'001', N'E001', N'Synthetic error'); " +
                     "EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; " +
@@ -118,6 +119,31 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Flusso_RDA_ist_executes_with_synthetic_request_and_item_inside_rollback()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier=NEWID(), @art uniqueidentifier=NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,Istituto,IstID,Status,Oggetto,DataModifica,CFor,GruppoAcquisti,TipoOrdine,Frequenza,DataInizioCompetenza,DataFineCompetenza) " +
+                    "VALUES (@guid,987654324,1,N'TEST',1,1,15,N'Synthetic request item',GETDATE(),1001,N'001',N'NB',1,GETDATE(),GETDATE()); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt (IDArt,RdAID,GUIDArt,GruppoMerci,DescrDett_Ord,QtaC) VALUES (987654324,@guid,@art,N'001',N'Synthetic item',1); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt_Costo_per_Anno (GUIDArt,DataInizioAnno,DataFineAnno,GGAnno,CostoAnno,AnnoCompetenza) VALUES (@art,GETDATE(),GETDATE(),1,10,2099); " +
+                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode,IstID,CodiceColl) VALUES (N'TEST02',1,N'002'); " +
+                    "UPDATE eProcurement.dbo.RdA SET CdRUOCode=N'TEST02' WHERE GUID=@guid; " +
+                    "EXEC dbo.Flusso_RDA_ist @pi_istituto=1,@po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Tiporecord=N'RDA') THROW 51006,'Synthetic RDA institute flow produced no rows',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Flusso_Ordini_SAP_executes_with_synthetic_request_inside_rollback()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
@@ -142,6 +168,27 @@ namespace PollingWeb.IntegrationTests
                     connection))
                 {
                     Assert.True(Convert.ToInt32(command.ExecuteScalar()) > 0);
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void AzzeraTargetSC00G100_deletes_only_requested_synthetic_institute()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30); " +
+                    "INSERT INTO dbo.TargetSC00G100 (Istituto,Cfor,Ragione_Sociale) VALUES (32002,987654321,N'Synthetic supplier'); " +
+                    "EXEC dbo.AzzeraTargetSC00G100 @pi_istituto=32002,@po_valoreuscita=@output OUTPUT; " +
+                    "IF EXISTS (SELECT 1 FROM dbo.TargetSC00G100 WHERE Istituto=32002) THROW 51004,'Synthetic institute was not cleared',1; " +
+                    "IF @output<>'' THROW 51005,'Unexpected output value',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
                 }
             }
         }

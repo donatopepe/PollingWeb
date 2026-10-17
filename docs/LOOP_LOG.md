@@ -2051,9 +2051,13 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Baseline riprodotto:** `SchemaContractTests` aveva casi per Datini/Datfin, StripHTML, Esiti_Ordini_SAP senza esito d'errore, ma mancavano test dimostrati per ogni procedura/flusso richiesto da T3. Evidenza attesa: chiamate a SQL Server 2022 con dati sintetici e rollback per tutte le scritture, output/effetti controllati.
 
-**Modifica:** aggiunti casi in `tests/PollingWeb.IntegrationTests/SchemaContractTests.cs`: entrambe le `StripHTML`; `Esiti_Ordini_SAP` con errore SAP sintetico e rollback; `Flusso_RDA` e `Flusso_Ordini_SAP` con RdA/item e dimensioni sintetiche in rollback; i due flussi per istituto senza corrispondenze; `ImportaBudget` e `AggiornaFornitori` esercitano insert e update con assert e rollback; mantenuta invocazione sintetica di `AzzeraTargetSC00G100`. Nessuna modifica allo schema o alla logica SQL.
+**Modifiche precedenti all'iterazione 52:** introdotti test per entrambe le `StripHTML`, `Esiti_Ordini_SAP` con errore sintetico in rollback, `Flusso_RDA` e `Flusso_Ordini_SAP` con fixture RdA/item sintetiche, flussi per istituto senza match, rami insert/update di `ImportaBudget` e `AggiornaFornitori`, e invocazione di `AzzeraTargetSC00G100`. Le relative evidenze sono negli commit/registro precedenti.
 
-**Evidenza reale:** `POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --mode recreate --with-seed` era exit 0 nella iterazione precedente; build IntegrationTests exit 0. Comando mirato `dotnet test ... --filter '<11 filtri T3>'` → 11/11 pass su SQL Server 2022. Full suite nella iterazione precedente: 12 pass, 9 skip, 1 fail SMTP; escluso SMTP: 11 pass, 9 skip, 1 failure preesistente sul conteggio tabelle Polling (attese 9, presenti 10). `git diff --check` exit 0. T3 resta `[~]`: non copre tutti gli oggetti/branch previsti e la suite completa ha fallimenti separati.
+### 2026-10-17T20:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 52)
+
+**Modifica:** aggiunti controlli più forti ai test: `AzzeraTargetSC00G100` verifica la rimozione mirata del record sintetico; `Flusso_RDA_ist` esegue anche con item/costo sintetici; il test `Esiti_Ordini_SAP` include ora anche una `RdE` sintetica per attraversare il percorso relativo agli esiti. Nessun cambio alle stored procedure o allo schema.
+
+**Evidenza reale:** `dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. `POLLING_DB_PASSWORD` configurata solo nell'ambiente di comando; `dotnet test ... --filter '<13 filtri T3>'` → 13/13 pass su SQL Server 2022. `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` (Website WebForms legacy); `git diff --check` → exit 0. T3 resta `[~]`: i test aumentati non coprono ancora tutti i branch funzionali per ogni stored procedure/funzione; la suite completa ha failure preesistenti SMTP/schema count già registrate nell'iterazione 49.
 
 ---
 
