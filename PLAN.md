@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-17 | 93 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `AggiornaFornitori_updates_multiple_synthetic_suppliers_for_one_institute` SQL test 1/1 pass con verifica identità fornitori; `git diff --check` exit 0. |
 | 2026-10-17 | 92 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (12 warning preesistenti); `ImportaBudget_no_match_institute_deactivates_multiple_active_budgets` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 91 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` test 1/1 pass con verifica archiviazione una sola volta; `git diff --check` exit 0. |
 | 2026-10-17 | 90 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` 1/1 pass; `git diff --check` exit 0. Exploratory assertion about queue consumption failed and was removed. |

@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T23:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the bulk `AggiornaFornitori` test asserts both supplier names update for the institute, but does not assert that the same supplier keys (CFor identities) remain associated with those updated rows.
+
+**Esito atteso:** after refresh, both seeded CFor values remain present and updated under the target institute; no other institute receives these updated records.
+
+**Modifica:** added a count assertion tying the updated `RagSoc` values to the exact two synthetic CFor identities in the existing transaction-backed test.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `AggiornaFornitori_updates_multiple_synthetic_suppliers_for_one_institute` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T21:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** existing no-match `ImportaBudget` tests cover a single existing target budget but do not assert that the procedure deactivates all active budgets for the institute in one invocation.
