@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T19:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** existing `AggiornaFornitori` cases cover non-empty inserts and updates; no direct test checks the empty-target branch's output initialization and absence of side effects.
+
+**Esito atteso:** with no source suppliers for the synthetic institute, the procedure clears a sentinel output value and inserts no supplier rows; test fixture is transactionally rolled back.
+
+**Modifica:** added an isolated rollbackable SQL case for institute 32007, asserting empty output and no `DimFornitori` rows after invocation.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `AggiornaFornitori_empty_target_clears_output_without_touching_rows` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T19:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** current `ImportaBudget` no-match cases focus on pre-existing budgets and do not isolate the no-staging-row/no-existing-row branch's output value.

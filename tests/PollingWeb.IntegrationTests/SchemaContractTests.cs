@@ -437,6 +437,26 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void AggiornaFornitori_empty_target_clears_output_without_touching_rows()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30)='sentinel'; " +
+                    "EXEC dbo.AggiornaFornitori @pi_istituto=32007,@po_valoreuscita=@output OUTPUT; " +
+                    "IF @output<>N'' THROW 51055,'Empty-target supplier refresh returned unexpected output',1; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID=32007) THROW 51056,'Empty-target supplier refresh unexpectedly created suppliers',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void AggiornaFornitori_inserts_then_updates_synthetic_supplier_and_rolls_back()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
