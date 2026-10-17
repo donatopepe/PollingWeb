@@ -391,6 +391,27 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void AzzeraTargetSC00G100_empty_target_clears_output_without_deleting_other_rows()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30)='sentinel'; " +
+                    "INSERT INTO dbo.TargetSC00G100 (Istituto,Cfor,Ragione_Sociale) VALUES (32008,987654322,N'Synthetic unaffected institute'); " +
+                    "EXEC dbo.AzzeraTargetSC00G100 @pi_istituto=32009,@po_valoreuscita=@output OUTPUT; " +
+                    "IF @output<>'' THROW 51058,'Empty-target clear returned unexpected output',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM dbo.TargetSC00G100 WHERE Istituto=32008 AND Cfor=987654322) THROW 51059,'Empty-target clear deleted an unrelated institute row',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void AzzeraTargetSC00G100_deletes_only_requested_synthetic_institute()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))

@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T20:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `AzzeraTargetSC00G100` has a populated-target test but lacks a direct empty-target assertion for output reset and non-interference.
+
+**Esito atteso:** invoking clear for an institute without source rows resets the output sentinel to empty and leaves a distinct institute's synthetic row intact.
+
+**Modifica:** added an isolated transaction-backed SQL test with one unrelated institute row and a no-match target institute; asserts empty output and retained unrelated row.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `AzzeraTargetSC00G100_empty_target_clears_output_without_deleting_other_rows` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T21:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `Esiti_Ordini_SAP_converts_synthetic_warning_to_success_and_archives_original` verifies warning archival, normalization, statuses, and transition log, but not output parameter reset on this success path.
