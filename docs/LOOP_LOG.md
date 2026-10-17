@@ -1999,9 +1999,9 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Modifica parziale:** aggiunto `SmtpSettings` con host/porta/TLS/modalità credenziali e credenziali da `POLLING_SMTP_*`, validazione e destinatari; `MailSede` usa tali settings e dispone i client/message; aggiunta configurazione template Web.config, aggiornato SECURITY. Unit test validano configurazione/recipient; integration test avvia un sink SMTP TCP loopback sintetico e riceve 1 messaggio.
 
-**Verifica reale:** `dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet` e `-f net48` → exit 0; `dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet` → 145 passati/2 ignorati; `dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --filter FullyQualifiedName~SmtpDeliveryTests --nologo -v quiet` → 1/1 pass.
+**Verifica reale:** `dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet` e `-f net48` → exit 0; `dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet` → 145 passati/2 ignorati; `dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --filter FullyQualifiedName~MailSede_sends_message_to_local_smtp_sink --nologo -v quiet` → 1/1 pass; il test per SMTP4Dev richiede `POLLING_SMTP_TEST_HOST`/`POLLING_SMTP_TEST_PORT` e non è stato lanciato perché l'immagine container non è disponibile.
 
-**Esito:** C10 resta `[~]`: il test SMTP è un sink loopback embedded, non il servizio Papercut/SMTP4Dev containerizzato richiesto dalla DoD; autenticazione non è ancora testata contro il sink. Nessuna password o credenziale reale introdotta.
+**Esito:** il sink loopback embedded verifica l'invio autenticato via AUTH LOGIN; non è stato avviato SMTP4Dev containerizzato perché l'immagine non è già presente e l'ambiente vieta download Docker non necessari. Il test container richiesto dalla DoD resta predisposto ma non eseguito; `docker compose -f docker-compose.smtp.yml config --quiet` → exit 0; C10 resta `[~]`. Nessuna password o credenziale reale introdotta.
 
 ---
 
