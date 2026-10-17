@@ -352,6 +352,34 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Flusso_Ordini_SAP_ist_executes_synthetic_nc_monthly_item_inside_rollback()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier=NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,Istituto,IstID,Status,Oggetto,DataModifica,CFor,GruppoAcquisti,TipoOrdine,Frequenza,DataInizioCompetenza,DataFineCompetenza,CdRUOCode) " +
+                    "VALUES (@guid,987654328,1,N'TEST',46,46,15,N'Synthetic NC monthly',GETDATE(),1001,N'001',N'NC',12,DATEFROMPARTS(2099,1,1),DATEFROMPARTS(2099,3,31),N'TEST05'); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt (IDArt,RdAID,SapID,GruppoMerci,DescrDett_Ord,QtaC,CostoConcordatoNoIva,DataInizioCompetenza,DataFineCompetenza,TipoContabilizzazione,GUIDArt) " +
+                    "VALUES (987654328,@guid,1,N'001',N'Synthetic NC item',1,300,DATEFROMPARTS(2099,1,1),DATEFROMPARTS(2099,3,31),N'Y',NEWID()); " +
+                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode,IstID,CodiceColl) VALUES (N'TEST05',46,N'005'); " +
+                    "INSERT INTO eProcurement.dbo.DimSottoCatSAP (IDCatSAP,Materiale) VALUES (1,N'SYNTHETIC'); " +
+                    "INSERT INTO eProcurement.dbo.JoinCatSottoCat (CatID,SCID,SapID,CodPrg) VALUES (1,1,1,N'TEST'); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt_Costo_per_Anno (GUIDArt,DataInizioAnno,DataFineAnno,GGAnno,CostoAnno,AnnoCompetenza) " +
+                    "SELECT GUIDArt,DataInizioCompetenza,DataFineCompetenza,90,300,2099 FROM eProcurement.dbo.RDAArt WHERE RdAID=@guid; " +
+                    "EXEC dbo.Flusso_Ordini_SAP_ist @pi_istituto=46,@po_valoreuscita=@output OUTPUT; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Tiporecord=N'ODA')<2 THROW 51015,'Synthetic NC monthly flow produced insufficient rows',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Flusso_Ordini_SAP_ist_handles_no_matching_synthetic_requests()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
