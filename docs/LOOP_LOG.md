@@ -4,6 +4,19 @@ Registro append-only delle iterazioni del loop.
 
 ## 2026-10-17T08:03Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
+**Baseline:** il caso errore di `Esiti_Ordini_SAP` copre archiviazione, status RdA, log unico e output vuoto. Un controllo esplorativo che si aspettava la rimozione della riga sorgente LastOutput_OnLine è fallito (`SAP error output row was not consumed`); questa semantica non viene assunta.
+
+**Modifica:** aggiunta verifica che il log errore riporti `Matricola=N'BBSISTE'`, come da valore letterale nella stored procedure. Fixture in transazione rollbackabile. Nessuna modifica alla stored procedure.
+
+**Evidenza reale:** build IntegrationTests → exit 0, 0 errori. Test SQL mirato `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback`, con configurazione container caricata senza stamparla → 1/1 pass, exit 0. `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con un altro ramo/oggetto della DoD.
+
+**Blocchi:** nessuno per questo caso; T3 resta incompleta.
+
+---
+
+
 **Baseline:** `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` fissa archiviazione, stato RdA, log e output vuoto per un errore sintetico. Un controllo esplorativo che si aspettava la rimozione della riga sorgente LastOutput_OnLine è fallito (`SAP error output row was not consumed`); il controllo non era giustificato dal comportamento osservato della procedura ed è stato rimosso.
 
 **Modifica:** nessuna modifica applicativa mantenuta: il test è stato riportato alla verifica delle semantiche effettivamente confermate. Registrato l'esito negativo dell'ipotesi di consumo/cancellazione della riga sorgente, senza alterare la stored procedure.
