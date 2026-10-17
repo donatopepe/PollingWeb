@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T01:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the no-match/no-existing-row `ImportaBudget` case verifies only that the output parameter is cleared; it does not explicitly assert that no budget records are created.
+
+**Esito atteso:** calling `ImportaBudget` for institute 32006 without staging or existing budget rows leaves no target-institute `DimBudget` rows and clears output; transaction rollback remains in place.
+
+**Modifica:** added an explicit `NOT EXISTS` assertion for target institute budget rows to the existing rollbackable empty-input case.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `ImportaBudget_no_match_institute_empty_rows_returns_empty_output` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T01:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the empty-target `AggiornaFornitori` test checks no created rows for the requested institute, but not whether a neighboring institute's same-supplier source row remains unchanged.

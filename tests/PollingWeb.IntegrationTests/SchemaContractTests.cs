@@ -676,6 +676,7 @@ namespace PollingWeb.IntegrationTests
                     "DECLARE @output varchar(30)='unexpected'; " +
                     "EXEC dbo.ImportaBudget @pi_istituto=32006,@po_valoreuscita=@output OUTPUT; " +
                     "IF @output<>N'' THROW 51054,'Empty-row ImportaBudget returned unexpected output',1; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32006) THROW 51079,'Empty-row ImportaBudget created unexpected budget rows',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {
