@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T17:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `StripHTML_functions_cover_empty_null_and_plain_text_inputs` checks NULL, empty, and plain text for both deployed function copies, but not normalization of tags and punctuation.
+
+**Esito atteso:** both function copies strip markup and normalize comma/hyphen consistently for synthetic input.
+
+**Modifica:** extended the existing result-set assertion with `<p>synthetic, text-42</p>` and checks the exact normalized output from both schema copies.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T17:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the `Datini`/`Datfin` boundary test covers a leap-day date but not SQL NULL inputs.

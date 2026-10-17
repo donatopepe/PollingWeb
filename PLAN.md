@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-17 | 77 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `StripHTML_functions_cover_empty_null_and_plain_text_inputs` SQL test 1/1 pass per entrambi gli schema; `git diff --check` exit 0. |
 | 2026-10-17 | 76 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Datini_and_Datfin_return_expected_synthetic_boundaries` SQL test 1/1 pass, incluso NULL input; `git diff --check` exit 0. |
 | 2026-10-17 | 75 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `ImportaBudget_no_match_institute_leaves_existing_synthetic_budgets_unchanged` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 74 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | `dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` exit 0; test SQL `Datini_and_Datfin_return_expected_synthetic_boundaries` 1/1 pass; `git diff --check` exit 0. |
