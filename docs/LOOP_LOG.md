@@ -6,7 +6,7 @@ Registro append-only delle iterazioni del loop.
 
 **Baseline:** il caso errore di `Esiti_Ordini_SAP` copre archiviazione, status RdA, log unico e output vuoto. Un controllo esplorativo che si aspettava la rimozione della riga sorgente LastOutput_OnLine è fallito (`SAP error output row was not consumed`); questa semantica non viene assunta.
 
-**Modifica:** aggiunta verifica che il log errore riporti `Matricola=N'BBSISTE'`, come da valore letterale nella stored procedure. Fixture in transazione rollbackabile. Nessuna modifica alla stored procedure.
+**Modifica:** aggiunte verifiche che il log errore riporti `Matricola=N'BBSISTE'` e preservi il `Rch_Progr`/`PageID` della richiesta sintetica, come selezionati dalla procedura. Fixture in transazione rollbackabile. Nessuna modifica alla stored procedure.
 
 **Evidenza reale:** build IntegrationTests → exit 0, 0 errori. Test SQL mirato `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback`, con configurazione container caricata senza stamparla → 1/1 pass, exit 0. `git diff --check` → exit 0.
 
