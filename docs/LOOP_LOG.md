@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T17:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the `Datini`/`Datfin` boundary test covers a leap-day date but not SQL NULL inputs.
+
+**Esito atteso:** both scalar functions propagate a NULL date as SQL NULL, alongside the existing exact leap-day boundary assertions.
+
+**Modifica:** extended the direct SQL test query with typed NULL arguments and assertions that both result columns are NULL.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `Datini_and_Datfin_return_expected_synthetic_boundaries` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T17:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the existing `ImportaBudget` no-match procedure check confirms only its return value; it does not guard against unrelated synthetic budget rows being modified.

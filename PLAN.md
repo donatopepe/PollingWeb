@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-17 | 76 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Datini_and_Datfin_return_expected_synthetic_boundaries` SQL test 1/1 pass, incluso NULL input; `git diff --check` exit 0. |
 | 2026-10-17 | 75 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `ImportaBudget_no_match_institute_leaves_existing_synthetic_budgets_unchanged` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 74 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | `dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` exit 0; test SQL `Datini_and_Datfin_return_expected_synthetic_boundaries` 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 73 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | Baseline test `Flusso_Ordini_SAP_ist_executes_with_synthetic_nb_item_and_rollback` ripristinato dopo ipotesi di parse master-record fallita; build IntegrationTests exit 0; test SQL baseline 1/1 pass; `git diff --check` exit 0. |
