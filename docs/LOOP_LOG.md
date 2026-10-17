@@ -2043,6 +2043,10 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --collect:'XPlat Code Coverage' --nologo -v quiet` → 162 passati/2 ignorati. Coverage report: `ValidaData` 67,6%, `IsNumeric` 51,0%, `Aggset` 22,7%, `ParserFatture` 2,9%; T2 resta aperto. Build Database e PollingClass entrambi su `net8.0` e `net48` exit 0; `git diff --check` exit 0. Soluzione non eseguita, macOS/Windows non verificati localmente.
 
+### 2026-10-17T18:00Z — T2 Unit test logica pura — BLOCKED (iterazione 48)
+
+**Verifica reale:** `PATH=/opt/dotnet:$PATH dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --collect:'XPlat Code Coverage' --nologo -v quiet` → 162 passati/2 ignorati (finale, dopo scarto dei due test esplorativi Aggset privi di database realistico). Coverage report: `ValidaData` 67,6%, `IsNumeric` 51,0%, `Aggset` 22,7%, `ParserFatture` 10,0%. Build `Database` e `PollingClass` net8.0/net48 exit 0 (net48 warnings); `git diff --check` exit 0. T2 incompleto oltre tre iterazioni; `[!]` secondo policy. Mitigazione: copertura DB alla suite d'integrazione e fixture SAP verificate; no refactor di dominio.
+
 ---
 
 ## 2026-10-16T18:xxZ — X1.3c PollingClass multi-target — DONE
