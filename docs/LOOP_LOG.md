@@ -2,6 +2,20 @@
 
 Registro append-only delle iterazioni del loop.
 
+## 2026-10-17T07:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` controllava l'archiviazione dell'errore e `RdA.Status=16`, ma non fissava che il log della transizione di errore venga scritto una volta sola. Inizialmente è stata provata anche un'asserzione su `RdE.Status=16`; il test ha fallito con `Synthetic response status was not updated for SAP error`. Ispezionando la stored procedure si è verificato che il ramo errore aggiorna RdA e il log, non RdE; l'asserzione non supportata è stata rimossa.
+
+**Modifica:** il test ora richiede esattamente un record `LogTime_Ciclo` per il GUID sintetico con `StatoID=16` e `StatoIntID=16`. Le fixture sono dentro la transazione rollbackabile.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → compilazione completata, 0 errori, exit 0. Il test SQL mirato, con configurazione container caricata senza stamparla, → 1/1 pass, exit 0. `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con un altro ramo/oggetto richiesto dalla DoD.
+
+**Blocchi:** nessuno per questo test; T3 resta incompleta.
+
+---
+
 ## 2026-10-17T07:02Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** il caso `Esiti_Ordini_SAP_converts_synthetic_warning_to_success_and_archives_original` verificava gli stati finali RdA/RdE ma non controllava l'esatto numero di righe di log per la transizione di successo.
