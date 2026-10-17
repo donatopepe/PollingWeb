@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T16:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `ImportaBudget_inserts_then_updates_synthetic_budget_and_rolls_back` checks update isolation from other institutes, but does not check that updating one synthetic budget leaves unrelated budgets in the same institute active.
+
+**Esito atteso:** after the update call, only the previous version for the same SAP ID and material is deactivated; unrelated existing synthetic budget rows remain active.
+
+**Modifica:** added an assertion on the 2098 synthetic budget row with a different SAP ID/material, requiring it not to be marked inactive.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `ImportaBudget_inserts_then_updates_synthetic_budget_and_rolls_back` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T00:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** test `AggiornaFornitori_updates_multiple_synthetic_suppliers_for_one_institute` already checks two synthetic suppliers are updated for institute 32003, but not that the resulting update stayed within that institute.
