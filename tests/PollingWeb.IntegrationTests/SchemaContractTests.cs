@@ -446,6 +446,28 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void ImportaBudget_no_match_institute_deactivates_only_its_existing_budgets()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30); " +
+                    "INSERT INTO eProcurement.dbo.DimBudget (IstID,CodFondo,SapID,Materiale,CodCdR,BudgetAttuale,BudgetResiduo,DataRif,IsActive) " +
+                    "VALUES (32003,N'SYNTHETIC',999998,N'NO-MATCH-A',N'TEST',75,55,DATEFROMPARTS(2098,12,30),1),(32004,N'SYNTHETIC',999997,N'NO-MATCH-B',N'TEST',85,65,DATEFROMPARTS(2098,12,30),1); " +
+                    "EXEC dbo.ImportaBudget @pi_istituto=32003,@po_valoreuscita=@output OUTPUT; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32003 AND SapID=999998 AND IsActive=1) THROW 51044,'ImportaBudget did not deactivate the target institute budget',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32004 AND SapID=999997 AND IsActive=1 AND BudgetAttuale=85 AND BudgetResiduo=65) THROW 51045,'ImportaBudget changed another institute budget',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void ImportaBudget_no_match_institute_leaves_existing_synthetic_budgets_unchanged()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))

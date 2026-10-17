@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T18:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the no-match `ImportaBudget` case exercises a synthetic institute but does not assert the procedure's initial deactivation remains scoped when another institute has an active budget.
+
+**Esito atteso:** a no-staging-row call deactivates the target institute's existing active budget, preserves an unrelated institute's active budget and amounts, and rolls back all fixtures.
+
+**Modifica:** added a separate rollbackable integration test inserting two synthetic budget rows for distinct institutes, calling `ImportaBudget` only for the target and asserting both scope outcomes.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0 (warning preesistenti); focused SQL test `ImportaBudget_no_match_institute_deactivates_only_its_existing_budgets` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T17:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `StripHTML_functions_cover_empty_null_and_plain_text_inputs` checks NULL, empty, and plain text for both deployed function copies, but not normalization of tags and punctuation.
