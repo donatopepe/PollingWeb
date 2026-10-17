@@ -72,6 +72,7 @@ namespace PollingWeb.IntegrationTests
                     "EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RDA_Esiti WHERE Num_Ordine=N'4502987654' AND Cod_Errore=N'E001') THROW 51007,'Synthetic SAP error was not archived',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RdA WHERE GUID=@guid AND Status=16) THROW 51008,'Synthetic request status was not updated',1; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.LogTime_Ciclo WHERE Rch_ID=@guid AND StatoID=20 AND StatoIntID=20) THROW 51037,'SAP error also produced a success transition',1; " +
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.LogTime_Ciclo WHERE Rch_ID=@guid AND StatoID=16 AND StatoIntID=16)<>1 THROW 51032,'SAP error transition was not logged exactly once',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.LogTime_Ciclo WHERE Rch_ID=@guid AND StatoID=16 AND StatoIntID=16 AND Matricola=N'BBSISTE') THROW 51035,'SAP error log did not record the expected actor',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.LogTime_Ciclo WHERE Rch_ID=@guid AND StatoID=16 AND StatoIntID=16 AND Rch_Progr=1 AND PageID=1) THROW 51036,'SAP error log did not retain request context',1; " +

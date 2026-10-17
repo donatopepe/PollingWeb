@@ -2,6 +2,22 @@
 
 Registro append-only delle iterazioni del loop.
 
+## 2026-10-17T08:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Esito atteso:** il test errore sintetico passa e assicura che la RdA in stato 16 non generi anche un log di transizione successo (stato 20).
+
+**Baseline riprodotto:** il test mirato pre-modifica `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` → 1/1 pass con SQL Server.
+
+**Modifica:** aggiunta asserzione rollbackabile `IF EXISTS` sul GUID per escludere qualsiasi riga `LogTime_Ciclo` con `StatoID=20`/`StatoIntID=20`.
+
+**Verifica reale:** build IntegrationTests → exit 0, 0 errori; test SQL mirato post-modifica → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con un altro ramo/oggetto richiesto dalla DoD.
+
+**Blocchi:** nessuno per questo caso; T3 resta incompleta.
+
+---
+
 ## 2026-10-17T08:03Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** il caso errore di `Esiti_Ordini_SAP` copre archiviazione, status RdA, log unico e output vuoto. Un controllo esplorativo che si aspettava la rimozione della riga sorgente LastOutput_OnLine è fallito (`SAP error output row was not consumed`); questa semantica non viene assunta.
