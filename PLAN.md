@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-18 | 95 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `ImportaBudget_inserts_then_updates_synthetic_budget_and_rolls_back` SQL test 1/1 pass con conteggio record per chiave; `git diff --check` exit 0. |
 | 2026-10-18 | 94 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (12 warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` SQL test 1/1 pass con `datetime` rounded-end-of-day input; `git diff --check` exit 0. |
 | 2026-10-17 | 93 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `AggiornaFornitori_updates_multiple_synthetic_suppliers_for_one_institute` SQL test 1/1 pass con verifica identità fornitori; `git diff --check` exit 0. |
 | 2026-10-17 | 92 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (12 warning preesistenti); `ImportaBudget_no_match_institute_deactivates_multiple_active_budgets` SQL test 1/1 pass; `git diff --check` exit 0. |

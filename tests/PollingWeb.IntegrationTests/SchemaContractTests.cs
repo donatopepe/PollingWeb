@@ -581,6 +581,7 @@ namespace PollingWeb.IntegrationTests
                     "UPDATE eProcurement.dbo.DimBudgetTemp SET BudgetRilasci=150,BudgetResiduo=120 WHERE Istituto=32000 AND Materiale=@material; " +
                     "EXEC dbo.ImportaBudget @pi_istituto=32000,@po_valoreuscita=@output OUTPUT; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32000 AND SapID=@sapId AND Materiale=@material AND BudgetAttuale=150 AND BudgetResiduo=120 AND IsActive=1) THROW 51001,'Synthetic update branch failed',1; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimBudget WHERE IstID=32000 AND SapID=@sapId AND Materiale=@material)<>2 THROW 51073,'Budget update created duplicate matching records',1; " +
                     "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID<>32000 AND IsActive=1) THROW 51038,'ImportaBudget deactivated budgets from another institute',1; " +
                     "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32000 AND (SapID<>@sapId OR Materiale<>@material) AND IsActive=0 AND DataRif=DATEFROMPARTS(2098,12,31)) THROW 51039,'ImportaBudget deactivated an unrelated institute budget',1; " +
                     "DELETE FROM eProcurement.dbo.DimBudgetTemp WHERE Istituto=32000 AND Materiale=@material; " +

@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T00:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the rollbackable `ImportaBudget` insert/update scenario verifies the updated row's values, but does not assert the total count for the same institute/SAP ID/material key after update.
+
+**Esito atteso:** after update, exactly the two expected historical/current rows for that compound key exist; the update must not create an additional duplicate.
+
+**Modifica:** added a count assertion for the synthetic institute, SAP ID, and material key to the existing transaction-backed insert/update test.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `ImportaBudget_inserts_then_updates_synthetic_budget_and_rolls_back` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T00:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the `Datini`/`Datfin` integration test covers a leap-day midday input and NULL propagation, but not `datetime` input already rounded to the end-of-day boundary.
