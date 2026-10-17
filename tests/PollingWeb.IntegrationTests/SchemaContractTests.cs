@@ -109,6 +109,29 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void StripHTML_functions_cover_empty_null_and_plain_text_inputs()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                foreach (var function in new[] { "dbo.StripHTML", "eProcurement.dbo.StripHTML" })
+                {
+                    using (var command = new SqlCommand(
+                        "SELECT " + function + "(CAST(NULL AS nvarchar(max))), " +
+                        function + "(N''), " + function + "(N'plain synthetic text')",
+                        connection))
+                    using (var reader = command.ExecuteReader())
+                    {
+                        Assert.True(reader.Read());
+                        Assert.True(reader.IsDBNull(0));
+                        Assert.Equal("", reader.GetString(1));
+                        Assert.Equal("plain synthetic text", reader.GetString(2));
+                    }
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void StripHTML_functions_return_expected_synthetic_text()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
@@ -266,8 +289,11 @@ namespace PollingWeb.IntegrationTests
                     "INSERT INTO eProcurement.dbo.DimSottoCatSAP (IDCatSAP,Materiale) VALUES (@sapId,@material); " +
                     "INSERT INTO eProcurement.dbo.DimBudgetTemp (Istituto,CodCDR,Materiale,BudgetRilasci,BudgetResiduo,CodFondo,Datarif) " +
                     "VALUES (32000,N'TEST',@material,100,70,N'SYNTHETIC',@date); " +
+                    "INSERT INTO eProcurement.dbo.DimBudget (IstID,CodFondo,SapID,Materiale,CodCdR,BudgetAttuale,BudgetResiduo,DataRif,IsActive) " +
+                    "VALUES (32000,N'SYNTHETIC',@sapId,@material,N'TEST',1,2,DATEFROMPARTS(2098,12,31),1); " +
                     "EXEC dbo.ImportaBudget @pi_istituto=32000,@po_valoreuscita=@output OUTPUT; " +
-                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32000 AND SapID=@sapId AND Materiale=@material AND BudgetAttuale=100 AND BudgetResiduo=70) THROW 51000,'Synthetic insert branch failed',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32000 AND SapID=@sapId AND Materiale=@material AND BudgetAttuale=100 AND BudgetResiduo=70 AND IsActive=1) THROW 51000,'Synthetic insert branch failed',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32000 AND DataRif=DATEFROMPARTS(2098,12,31) AND IsActive=0) THROW 51016,'Existing budget was not deactivated',1; " +
                     "UPDATE eProcurement.dbo.DimBudgetTemp SET BudgetRilasci=150,BudgetResiduo=120 WHERE Istituto=32000 AND Materiale=@material; " +
                     "EXEC dbo.ImportaBudget @pi_istituto=32000,@po_valoreuscita=@output OUTPUT; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32000 AND SapID=@sapId AND Materiale=@material AND BudgetAttuale=150 AND BudgetResiduo=120 AND IsActive=1) THROW 51001,'Synthetic update branch failed',1; " +

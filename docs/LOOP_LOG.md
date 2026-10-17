@@ -2057,11 +2057,11 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Modifica:** aggiunti test per `Flusso_Ordini_SAP` con fixture articolo/costo annuale e per `Flusso_Ordini_SAP_ist` con request/item NB dell'istituto sintetico; transazioni rollbackabili. Nessuna modifica alle routine/schema.
 
-### 2026-10-17T21:30Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 56)
+### 2026-10-17T22:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 57)
 
-**Modifica:** aggiunto test per `Flusso_Ordini_SAP_ist` con fixture sintetica NC a frequenza mensile, articolo/costo, controllo di righe output e rollback. Nessuna modifica alle stored procedure o allo schema.
+**Modifica:** esteso il test di `StripHTML` a null/vuoto/plain text su entrambi i database; esteso `ImportaBudget` per verificare che un budget attivo preesistente venga disattivato quando importa il nuovo periodo. Solo dati sintetici e rollback.
 
-**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Test SQL focalizzati → 9/9 pass (success/error `Esiti_Ordini_SAP`, ODA NB e NC mensile, altri flussi, budget, fornitori, azzeramento). `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` Website legacy; `git diff --check` → exit 0. T3 resta `[~]`: procedure/branch e verifica full suite restano incomplete; failure già noti in iterazione 49.
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Filtro SQL con 10 casi → 10/10 pass. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` Website legacy; `git diff --check` → exit 0. T3 resta `[~]`: non tutti gli oggetti/rami del DoD sono coperti e suite completa conserva i failure già registrati.
 
 ---
 
