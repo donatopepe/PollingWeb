@@ -35,18 +35,21 @@ namespace PollingWeb.IntegrationTests
             }
         }
 
-        private static List<string> Nomi(string database, string sql)
+        private static List<string> Nomi(string database, string sql, params SqlParameter[] parameters)
         {
             var risultato = new List<string>();
             using (var conn = new SqlConnection(TestDatabase.ConnectionString(database)))
             {
                 conn.Open();
                 using (var cmd = new SqlCommand(sql, conn))
-                using (var reader = cmd.ExecuteReader())
                 {
-                    while (reader.Read())
+                    cmd.Parameters.AddRange(parameters);
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        risultato.Add(reader.GetString(0));
+                        while (reader.Read())
+                        {
+                            risultato.Add(reader.GetString(0));
+                        }
                     }
                 }
             }
@@ -507,6 +510,27 @@ namespace PollingWeb.IntegrationTests
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimFornitori WHERE IstID=32003 AND RagSoc LIKE N'% updated')<>2 THROW 51022,'Synthetic bulk update failed',1; " +
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimFornitori WHERE IstID=32003 AND CFor IN (987654330,987654331) AND RagSoc LIKE N'% updated')<>2 THROW 51072,'Bulk update did not preserve supplier identities',1; " +
                     "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID<>32003 AND IstID IS NOT NULL AND RagSoc LIKE N'% updated') THROW 51023,'Bulk supplier update escaped institute scope',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void AggiornaFornitori_empty_target_does_not_affect_nearby_institute_with_same_supplier()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30); " +
+                    "INSERT INTO dbo.TargetSC00G100 (Istituto,Cfor,Ragione_Sociale) VALUES (32013,987654350,N'Synthetic neighboring supplier'); " +
+                    "EXEC dbo.AggiornaFornitori @pi_istituto=32014,@po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM dbo.TargetSC00G100 WHERE Istituto=32013 AND Cfor=987654350 AND Ragione_Sociale=N'Synthetic neighboring supplier') THROW 51077,'Empty-target supplier update touched neighboring institute source row',1; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID=32014) THROW 51078,'Empty-target supplier update created an unexpected supplier',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {

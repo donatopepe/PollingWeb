@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T01:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the empty-target `AggiornaFornitori` test checks no created rows for the requested institute, but not whether a neighboring institute's same-supplier source row remains unchanged.
+
+**Esito atteso:** refreshing an institute with no target suppliers leaves another institute's matching synthetic supplier source unchanged and creates no target supplier row.
+
+**Modifica:** added a transaction-backed SQL case with a neighboring institute supplier and invokes the procedure for a distinct empty institute; asserts source values remain and target has no supplier rows.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `AggiornaFornitori_empty_target_does_not_affect_nearby_institute_with_same_supplier` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T01:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the batch success test requires exactly two success-transition rows, but an exploratory inverse assertion attempted to rule out any other transition entries for those requests.
