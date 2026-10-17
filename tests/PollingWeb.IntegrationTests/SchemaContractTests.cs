@@ -81,6 +81,34 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Esiti_Ordini_SAP_marks_synthetic_successful_order_and_request()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier=NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,IstID,Istituto,Status,NOrdSAP) " +
+                    "VALUES (@guid,987654327,1,N'TEST',1,1,15,4502987655); " +
+                    "INSERT INTO eProcurement.dbo.LogTime_Ciclo (Rch_ID,Rch_Progr,PageID,Matricola,StatoID,StatoIntID) " +
+                    "VALUES (@guid,1,1,N'TEST',15,15); " +
+                    "INSERT INTO eProcurement.dbo.RdE (GUID,Progressivo,PageID,IstID,RdAID,Status) VALUES (NEWID(),987654327,1,1,@guid,15); " +
+                    "INSERT INTO eProcurement.dbo.RDA_Esiti_LastOutput_OnLine (Num_Ordine,Mandante,Societa,Posizione,Cod_Errore,Desc_Errore) " +
+                    "VALUES (N'4502987655',N'000',N'1000',N'001',NULL,N'Synthetic success'); " +
+                    "EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RDA_Esiti WHERE Num_Ordine=N'4502987655' AND Cod_Errore IS NULL) THROW 51011,'Synthetic success was not archived',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RdA WHERE GUID=@guid AND Status=20) THROW 51012,'Successful order status was not updated',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RdE WHERE RdAID=@guid AND Status=20) THROW 51013,'Successful request status was not updated',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void StripHTML_functions_return_expected_synthetic_text()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))

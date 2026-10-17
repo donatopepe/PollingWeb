@@ -2057,7 +2057,11 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Modifica:** aggiunti test per `Flusso_Ordini_SAP` con fixture articolo/costo annuale e per `Flusso_Ordini_SAP_ist` con request/item NB dell'istituto sintetico; transazioni rollbackabili. Nessuna modifica alle routine/schema.
 
-**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Test focused su 7 casi T3 (due flussi SAP con item, Flusso_RDA_ist, Esiti_Ordini_SAP, ImportaBudget, AggiornaFornitori, AzzeraTargetSC00G100) → 7/7 pass; il filtro esteso completo di 13 test era verde nell'iterazione precedente. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249`; `git diff --check` → exit 0. T3 resta `[~]`: copertura di ulteriori rami/oggetti necessaria; failure suite preesistenti restano riportate nell'iterazione 49.
+### 2026-10-17T21:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 55)
+
+**Modifica:** aggiunto caso successo per `Esiti_Ordini_SAP`: fixture sintetiche RdA/RdE/esito senza errore, assert su archivio e stato finale di RdA/RdE; tutto entro transazione rollback. Nessun cambio alle stored procedure.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Test focused su 8 casi SQL → 8/8 pass (inclusi esito SAP positivo, error path, articoli ODA NB, budget/fornitori e azzeramento). `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` (Website WebForms); `git diff --check` → exit 0. T3 resta `[~]`: non sono coperti tutti gli oggetti e i rami elencati nella DoD; suite completa conserva i failure preesistenti registrati in iterazione 49.
 
 ---
 
