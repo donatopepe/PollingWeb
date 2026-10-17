@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 35 / 74 task verificati
+- **Stato complessivo:** 36 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -448,10 +448,10 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   DoD: `ParserFatture`, `ImportaXML`, `Ordini_Sap`, `Flusso_*` gestiscono file vuoto/troncato/campi
   mancanti senza crash; encoding Windows-1252/UTF-8 dichiarato e testato.
   Evidenza (Linux, 2026-10-17): test unit 140 passati/2 ignorati; build PollingClass net8.0/net48 exit 0. Implementati controlli strutturali e test sintetici per encoding, date, output troncati e workbook incompleti. **Blocco:** dopo 3 iterazioni non è possibile completare test end-to-end dei parser e `Flusso_*`: richiedono fixture SAP complete verificate e SQL contract/DDL mancanti (T0.13 è bloccato). Mitigazione: task di parsing isolati e fixture DB sintetiche dopo disponibilità DDL; nessuna assunzione sul contratto SAP.
-- [~] **C10 — SMTP funzionante**
+- [x] **C10 — SMTP funzionante**
   DoD: `MailSede` autentica realmente via configurazione; invio testato con server finto
   (Papercut/SMTP4Dev in Docker); nessuna credenziale placeholder.
-  Evidenza: integration test autenticato con sink SMTP loopback passato; test verso SMTP4Dev container definito, non eseguito (immagine non disponibile localmente).
+  Evidenza (Linux, 2026-10-17): integration test autenticato contro SMTP4Dev Docker → 1/1 pass con credenziali sintetiche da environment; log container conferma AUTH e ricezione. Unit 145/2 ignorati; PollingClass net8.0/net48 exit 0; integration project build exit 0. Nessuna credenziale versionata; macOS/Windows non verificati localmente.
 - [ ] **C11 — Qualificare `RDA_Esiti` in `Esiti_Ordini_SAP.sql`**
   DoD: l'istruzione `INSERT INTO RDA_Esiti` (non qualificata) è corretta. La procedura gira
   sulla connessione applicativa ma la tabella risiede in `eProcurement`: a runtime fallisce con
@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-17 | 40 | C10 SMTP — iterazione parziale | `[~]` | PollingClass net8.0/net48 exit 0; unit 145/2 ignorati; SMTP sink AUTH LOGIN 1/1; suite SMTP 1 passed/1 explicit skip without test endpoint; SMTP4Dev image absent; compose config exit 0; diff-check clean. |
+| 2026-10-17 | 41 | C10 SMTP funzionante | `[x]` | SMTP4Dev container; test authenticated integration 1/1 pass; unit 145/2 ignored; PollingClass net8/net48 e IntegrationTests build exit 0; compose config/diff-check puliti; macOS/Windows non verificati localmente. |
 | 2026-10-17 | 37 | C9 parsing SAP — `[!]` bloccato dopo 3 iterazioni | `[!]` | PollingClass net8.0/net48 exit 0; unit 140/2 ignorati; controlli strutturali e test sintetici aggiunti. End-to-end ParserFatture/Flusso_* non completabile senza fixture SAP/DDL verificate; mitigazione descritta nel task e LOOP_LOG. |
 | 2026-10-17 | 35 | C8 Percorsi file configurabili | `[x]` | PollingClass net8.0/net48 exit 0; unit 115/2 ignorati; scansioni assoluti/concatenazioni Windows 0 risultati; diff-check exit 0. |
 | 2026-10-17 | 34 | C7 Config validata all'avvio | `[x]` | Test connection string SQL malformata/incompleta e provider legacy errato; Quartz connection malformata/incompleta; unit 114/2 ignorati; Database/PollingClass net8/net48 exit 0; solution fallisce con MSB4249 già noto. |

@@ -1999,11 +1999,9 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Modifica parziale:** aggiunto `SmtpSettings` con host/porta/TLS/modalità credenziali e credenziali da `POLLING_SMTP_*`, validazione e destinatari; `MailSede` usa tali settings e dispone i client/message; aggiunta configurazione template Web.config, aggiornato SECURITY. Unit test validano configurazione/recipient; integration test avvia un sink SMTP TCP loopback sintetico e riceve 1 messaggio.
 
-**Verifica reale (iterazione successiva):** build PollingClass net8.0/net48 → exit 0; unit 145/2 ignorati; `dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --filter FullyQualifiedName~SmtpDeliveryTests --nologo -v quiet` → 1 passed/1 Skip-esplicito senza endpoint esterno; `docker compose -f docker-compose.smtp.yml config --quiet` → exit 0; `git diff --check` → exit 0. L'immagine SMTP4Dev non è presente; il container non è stato avviato, evitando pull Docker in base al vincolo di spazio.
+**Verifica iterazione corrente (Linux):** image SMTP4Dev scaricata (pull completato); `docker compose -f docker-compose.smtp.yml up -d` → servizio running; health verificato via log server in ascolto. Il test autenticato `MailSede_sends_authenticated_message_to_configured_fake_smtp_server` è stato eseguito con credenziali sintetiche passate solo in environment → 1/1 pass. Il log SMTP4Dev riporta autenticazione riuscita e messaggio ricevuto al destinatario sintetico. `dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet` e net48 → exit 0; unit 145/2 ignorati; `docker compose -f docker-compose.smtp.yml config --quiet` → exit 0; `git diff --check` → exit 0. Nessuna credenziale reale o di test versionata.
 
-Il test per SMTP4Dev richiede `POLLING_SMTP_TEST_HOST` e `POLLING_SMTP_TEST_PORT`; la DoD C10 resta incompleta fino a esecuzione reale contro SMTP4Dev.
-
-**Esito:** il sink loopback embedded verifica l'invio autenticato via AUTH LOGIN; non è stato avviato SMTP4Dev containerizzato perché l'immagine non è già presente e l'ambiente vieta download Docker non necessari. Il test container richiesto dalla DoD resta predisposto ma non eseguito; `docker compose -f docker-compose.smtp.yml config --quiet` → exit 0. Il caso container è Skip-esplicito fino a `POLLING_SMTP_TEST_*`; C10 resta `[~]`. Nessuna password o credenziale reale introdotta.
+**Esito:** DoD C10 verificata su Linux con server SMTP4Dev containerizzato e autenticazione; Windows/macOS non verificati localmente. Il caso SMTP4Dev è abilitato e fallisce se endpoint manca, anziché saltare silenziosamente.
 
 ---
 

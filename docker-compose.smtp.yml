@@ -7,3 +7,6 @@ services:
     environment:
       ServerOptions__HostName: localhost
       ServerOptions__AuthenticationRequired: "true"
+      ServerOptions__AuthenticationMode: UsernamePassword
+      ServerOptions__Users__0__Username: synthetic-user
+      ServerOptions__Users__0__Password: synthetic-password
