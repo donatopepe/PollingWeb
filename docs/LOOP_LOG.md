@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T17:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the existing `ImportaBudget` no-match procedure check confirms only its return value; it does not guard against unrelated synthetic budget rows being modified.
+
+**Esito atteso:** calling `ImportaBudget` for an institute without staging rows returns empty output and preserves an unrelated active synthetic budget row exactly.
+
+**Modifica:** added a rollbackable SQL integration case with an unrelated institute's synthetic budget, invokes the no-match branch, and asserts unchanged active status and amounts.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `ImportaBudget_no_match_institute_leaves_existing_synthetic_budgets_unchanged` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T17:17Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** T3 lists `Datini` and `Datfin`, but no integration test directly invokes them.

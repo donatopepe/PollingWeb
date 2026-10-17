@@ -441,6 +441,28 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void ImportaBudget_no_match_institute_leaves_existing_synthetic_budgets_unchanged()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30); " +
+                    "INSERT INTO eProcurement.dbo.DimBudget (IstID,CodFondo,SapID,Materiale,CodCdR,BudgetAttuale,BudgetResiduo,DataRif,IsActive) " +
+                    "VALUES (32002,N'SYNTHETIC',999999,N'NO-MATCH',N'TEST',75,55,DATEFROMPARTS(2098,12,30),1); " +
+                    "EXEC dbo.ImportaBudget @pi_istituto=-32768,@po_valoreuscita=@output OUTPUT; " +
+                    "IF @output<>N'' THROW 51042,'No-match ImportaBudget returned unexpected output',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32002 AND SapID=999999 AND Materiale=N'NO-MATCH' AND IsActive=1 AND BudgetAttuale=75 AND BudgetResiduo=55) THROW 51043,'No-match ImportaBudget changed an unrelated synthetic budget',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Remaining_sap_procedures_return_success_for_no_match_synthetic_inputs()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
