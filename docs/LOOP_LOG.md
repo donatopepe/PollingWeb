@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T23:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the synthetic SAP error integration case covers archiving the error and updating the request/log state, but not whether the online result row remains queued or is consumed.
+
+**Esito atteso:** determine queue behavior on the error path without altering procedure semantics; retain only assertions supported by actual result.
+
+**Modifica:** tried asserting that the error result is removed from `RDA_Esiti_LastOutput_OnLine`; the focused SQL test failed, showing the procedure leaves the error result row in the online queue. Removed that unsupported assertion; no new assertion retained in this iteration.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused baseline SQL test `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` → 1/1 pass, exit 0; `git diff --check` → exit 0. The exploratory queue-consumption assertion failed and was removed.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per la verifica baseline; T3 resta incompleta.
+
+
 ## 2026-10-17T22:51Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` checks archival, status changes, and success-transition counts for two successful orders but not the output parameter value.
