@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-17 | 39 | C10 SMTP — iterazione parziale | `[~]` | PollingClass net8.0/net48 exit 0; unit 145/2 ignorati; sink loopback SMTP AUTH LOGIN 1/1; test SMTP4Dev gated non eseguito (immagine assente); `docker compose -f docker-compose.smtp.yml config --quiet` exit 0; scansione nessuna credenziale hardcoded. |
+| 2026-10-17 | 40 | C10 SMTP — iterazione parziale | `[~]` | PollingClass net8.0/net48 exit 0; unit 145/2 ignorati; SMTP sink AUTH LOGIN 1/1; suite SMTP 1 passed/1 explicit skip without test endpoint; SMTP4Dev image absent; compose config exit 0; diff-check clean. |
 | 2026-10-17 | 37 | C9 parsing SAP — `[!]` bloccato dopo 3 iterazioni | `[!]` | PollingClass net8.0/net48 exit 0; unit 140/2 ignorati; controlli strutturali e test sintetici aggiunti. End-to-end ParserFatture/Flusso_* non completabile senza fixture SAP/DDL verificate; mitigazione descritta nel task e LOOP_LOG. |
 | 2026-10-17 | 35 | C8 Percorsi file configurabili | `[x]` | PollingClass net8.0/net48 exit 0; unit 115/2 ignorati; scansioni assoluti/concatenazioni Windows 0 risultati; diff-check exit 0. |
 | 2026-10-17 | 34 | C7 Config validata all'avvio | `[x]` | Test connection string SQL malformata/incompleta e provider legacy errato; Quartz connection malformata/incompleta; unit 114/2 ignorati; Database/PollingClass net8/net48 exit 0; solution fallisce con MSB4249 già noto. |
