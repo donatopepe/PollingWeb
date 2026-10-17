@@ -2057,11 +2057,11 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Modifica:** aggiunti test per `Flusso_Ordini_SAP` con fixture articolo/costo annuale e per `Flusso_Ordini_SAP_ist` con request/item NB dell'istituto sintetico; transazioni rollbackabili. Nessuna modifica alle routine/schema.
 
-### 2026-10-17T23:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 59)
+### 2026-10-18T00:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 60)
 
-**Modifica:** aggiunto caso NB per `Flusso_RDA_ist` con request/item/costo annuale sintetici, verifica output header+item e rollback. Un test esplorativo di rimozione fornitore è stato scartato dopo aver verificato il SQL: `AggiornaFornitori` non elimina fornitori assenti dalla staging; il contratto non viene inventato. Nessun cambio alla logica SQL.
+**Modifiche:** testati due fornitori sintetici in inserimento/aggiornamento; aggiunto esito SAP misto (warning + errore) nel test rollbackabile; aggiunti test `Datini`/`Datfin` su leap day e confine d'anno; aggiunto flusso `Flusso_RDA_ist` NB con item/costo e assert su header+item. Nessuna modifica SQL.
 
-**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Filtro SQL mirato su 11 casi → 11/11 pass. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1 `MSB4249` Website; `git diff --check` → exit 0. T3 resta `[~]`: non tutti gli oggetti/rami della DoD sono coperti e la full integration suite ha failure noti precedenti.
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Filtro SQL su 13 casi → 13/13 pass. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1 `MSB4249` Website; `git diff --check` → exit 0. T3 resta `[~]`: altri oggetti e branch della DoD non sono ancora coperti e la full suite non è verde.
 
 ---
 

@@ -281,6 +281,29 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void AggiornaFornitori_updates_multiple_synthetic_suppliers_for_one_institute()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30); " +
+                    "INSERT INTO dbo.TargetSC00G100 (Istituto,Cfor,Ragione_Sociale) VALUES (32003,987654330,N'Synthetic supplier A'),(32003,987654331,N'Synthetic supplier B'); " +
+                    "EXEC dbo.AggiornaFornitori @pi_istituto=32003,@po_valoreuscita=@output OUTPUT; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimFornitori WHERE IstID=32003 AND CFor IN (987654330,987654331))<>2 THROW 51021,'Synthetic bulk insert failed',1; " +
+                    "UPDATE dbo.TargetSC00G100 SET Ragione_Sociale=Ragione_Sociale+N' updated' WHERE Istituto=32003; " +
+                    "EXEC dbo.AggiornaFornitori @pi_istituto=32003,@po_valoreuscita=@output OUTPUT; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimFornitori WHERE IstID=32003 AND RagSoc LIKE N'% updated')<>2 THROW 51022,'Synthetic bulk update failed',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void AggiornaFornitori_inserts_then_updates_synthetic_supplier_and_rolls_back()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
@@ -290,12 +313,13 @@ namespace PollingWeb.IntegrationTests
                     "BEGIN TRANSACTION; BEGIN TRY " +
                     "DECLARE @output varchar(30); " +
                     "INSERT INTO dbo.TargetSC00G100 (Istituto,Cfor,Ragione_Sociale,Indirizzo,Prov,Cap,Citta,Codfis,Piva) " +
-                    "VALUES (32001,987654321,N'Synthetic Supplier',N'Example Road',N'XY',N'00001',N'Test City',N'0000000000000001',N'00000000001'); " +
+                    "VALUES (32001,987654321,N'Synthetic Supplier',N'Example Road',N'XY',N'00001',N'Test City',N'0000000000000001',N'00000000001'), " +
+                    "(32001,987654332,N'Synthetic Supplier Two',N'Example Road 2',N'XZ',N'00002',N'Test City 2',N'0000000000000002',N'00000000002'); " +
                     "EXEC dbo.AggiornaFornitori @pi_istituto=32001,@po_valoreuscita=@output OUTPUT; " +
-                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID=32001 AND CFor=987654321 AND RagSoc=N'Synthetic Supplier') THROW 51002,'Synthetic supplier insert branch failed',1; " +
-                    "UPDATE dbo.TargetSC00G100 SET Ragione_Sociale=N'Synthetic Supplier Updated' WHERE Istituto=32001 AND Cfor=987654321; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimFornitori WHERE IstID=32001 AND CFor IN (987654321,987654332))<>2 THROW 51002,'Synthetic supplier bulk insert branch failed',1; " +
+                    "UPDATE dbo.TargetSC00G100 SET Ragione_Sociale=Ragione_Sociale+N' Updated' WHERE Istituto=32001; " +
                     "EXEC dbo.AggiornaFornitori @pi_istituto=32001,@po_valoreuscita=@output OUTPUT; " +
-                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID=32001 AND CFor=987654321 AND RagSoc=N'Synthetic Supplier Updated') THROW 51003,'Synthetic supplier update branch failed',1; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimFornitori WHERE IstID=32001 AND CFor IN (987654321,987654332) AND RagSoc LIKE N'%Updated')<>2 THROW 51003,'Synthetic supplier bulk update branch failed',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {
@@ -534,6 +558,29 @@ namespace PollingWeb.IntegrationTests
                 {
                     Assert.Equal("2024-03-15 23:59:59.997|2024-03-15 00:00:00.000",
                         (string)cmd.ExecuteScalar());
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void Datini_Datfin_cover_leap_day_and_year_boundary_dates()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "SELECT CONVERT(varchar(23),dbo.Datini(DATEFROMPARTS(2024,2,29)),121), " +
+                    "CONVERT(varchar(23),dbo.Datfin(DATEFROMPARTS(2024,2,29)),121), " +
+                    "CONVERT(varchar(23),dbo.Datini(DATEFROMPARTS(2024,12,31)),121), " +
+                    "CONVERT(varchar(23),dbo.Datfin(DATEFROMPARTS(2025,1,1)),121)",
+                    connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    Assert.True(reader.Read());
+                    Assert.Equal("2024-02-29 23:59:59.997", reader.GetString(0));
+                    Assert.Equal("2024-02-29 00:00:00.000", reader.GetString(1));
+                    Assert.Equal("2024-12-31 23:59:59.997", reader.GetString(2));
+                    Assert.Equal("2025-01-01 00:00:00.000", reader.GetString(3));
                 }
             }
         }
