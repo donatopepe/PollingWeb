@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T21:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Esiti_Ordini_SAP_converts_synthetic_warning_to_success_and_archives_original` verifies warning archival, normalization, statuses, and transition log, but not output parameter reset on this success path.
+
+**Esito atteso:** after warning normalization and successful state transition, the procedure returns an empty output string.
+
+**Modifica:** added a focused assertion on the existing rollbackable synthetic warning case to require empty `@po_valoreuscita`.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `Esiti_Ordini_SAP_converts_synthetic_warning_to_success_and_archives_original` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T19:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** existing `AggiornaFornitori` cases cover non-empty inserts and updates; no direct test checks the empty-target branch's output initialization and absence of side effects.
