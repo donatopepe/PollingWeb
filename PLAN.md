@@ -479,7 +479,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [~] **T3 — Integration test stored procedure e funzioni**
   DoD: test per `Datini`, `Datfin`, `StripHTML`, `Flusso_RDA*`, `Flusso_Ordini_SAP*`,
   `Esiti_Ordini_SAP`, `ImportaBudget`, `AggiornaFornitori`, `AzzeraTargetSC00G100`.
-  Evidenza (Linux, 2026-10-18, iterazione 61): build IntegrationTests exit 0; SchemaContractTests SQL 27/27 pass, inclusa procedura Esiti con due successi e assert su log di transizione. Full integration: 29 pass/9 skip/2 fail (conteggio schema preesistente e SMTP env); escluso SMTP, 29 pass/9 skip/1 fail. T3 incompleta; solution build `MSB4249`.
+  Evidenza (Linux, 2026-10-18, iterazione 62): build IntegrationTests exit 0; SchemaContractTests 28/28 pass. Test nuovo prova che un ordine positivo resta `Status=20` quando un altro ordine ha un errore; solution build `MSB4249`. T3 resta incompleta; full suite mantiene failure già noti.
 - [ ] **T4 — Integration test DAL su entrambi i TFM**
   DoD: round-trip CRUD per tutti i TableAdapter + `ViewTaskService`, eseguiti su net48 e net8.0.
   Evidenza: test verdi con container SQL Server.
@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-18 | 61 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; SchemaContractTests 27/27 pass. Full suite 29 pass/9 skip/2 fail (schema count e SMTP); senza SMTP 29/9/1. Solution `MSB4249`; T3 non completa. |
+| 2026-10-18 | 62 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; test focused 6/6 e SchemaContractTests 28/28 pass. Build soluzione exit 1 `MSB4249`; T3 incompleta, full-suite failures già noti. |
 | 2026-10-17 | 42 | C10 SMTP funzionante | `[x]` | SMTP4Dev container; authenticated integration 1/1 pass; unit 145/2 ignored; PollingClass net8/net48 and IntegrationTests build exit 0; compose config clean; Windows/macOS not locally verified. |
 | 2026-10-17 | 43 | C11 Qualificare RDA_Esiti | `[x]` | `Esiti_Ordini_SAP` integration call from Polling in rollback transaction → 1/1 pass after deploy; integration project build exit 0. Full integration suite has unrelated table-count failure (Polling expected 9, actual 10); solution build exit 1/MSB4249 Website. |
 | 2026-10-17 | 37 | C9 parsing SAP — `[!]` bloccato dopo 3 iterazioni | `[!]` | PollingClass net8.0/net48 exit 0; unit 140/2 ignorati; controlli strutturali e test sintetici aggiunti. End-to-end ParserFatture/Flusso_* non completabile senza fixture SAP/DDL verificate; mitigazione descritta nel task e LOOP_LOG. |

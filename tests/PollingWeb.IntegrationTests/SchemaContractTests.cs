@@ -113,6 +113,28 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Esiti_Ordini_SAP_success_remains_success_when_another_order_has_an_error()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier=NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,IstID,Istituto,Status,NOrdSAP) VALUES (@guid,987654351,1,N'TEST',1,1,15,4502987776); " +
+                    "INSERT INTO eProcurement.dbo.RDA_Esiti_LastOutput_OnLine (Num_Ordine,Mandante,Societa,Posizione,Cod_Errore,Desc_Errore) VALUES " +
+                    "(N'4502987776',N'000',N'1000',N'001',NULL,N'Synthetic success'),(N'4502988288',N'000',N'1000',N'002',N'E004',N'Other synthetic error'); " +
+                    "EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RdA WHERE GUID=@guid AND Status=20) THROW 51029,'Successful order was affected by an unrelated error',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
