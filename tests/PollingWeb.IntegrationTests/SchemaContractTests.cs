@@ -519,6 +519,27 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void ImportaBudget_no_match_institute_preserves_budget_amounts_while_deactivating()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30); " +
+                    "INSERT INTO eProcurement.dbo.DimBudget (IstID,CodFondo,SapID,Materiale,CodCdR,BudgetAttuale,BudgetResiduo,DataRif,IsActive) " +
+                    "VALUES (32005,N'SYNTHETIC',999996,N'NO-MATCH-C',N'TEST',175,125,DATEFROMPARTS(2098,12,29),1); " +
+                    "EXEC dbo.ImportaBudget @pi_istituto=32005,@po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32005 AND SapID=999996 AND IsActive=0 AND BudgetAttuale=175 AND BudgetResiduo=125 AND DataRif=DATEFROMPARTS(2098,12,29)) THROW 51053,'No-match ImportaBudget failed to deactivate while preserving existing budget values',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void ImportaBudget_no_match_institute_leaves_existing_synthetic_budgets_unchanged()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))

@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-17 | 82 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (12 warning preesistenti); `ImportaBudget_no_match_institute_preserves_budget_amounts_while_deactivating` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 81 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Flusso_RDA_ist_replaces_stale_export_for_same_order_across_institutes` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 80 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Flusso_RDA_ist_replaces_stale_export_for_another_request_in_target_institute` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 79 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; `Flusso_RDA_removes_previous_export_for_same_request_before_replacing_it` SQL test 1/1 pass; `git diff --check` exit 0. |

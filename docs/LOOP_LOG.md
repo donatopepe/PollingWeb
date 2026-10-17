@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T19:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the no-match `ImportaBudget` tests verify active-state and institute scope but not that pre-existing budget amounts/reference date remain unchanged when the procedure deactivates that institute's budgets.
+
+**Esito atteso:** on a no-staging-row call, the target row becomes inactive while `BudgetAttuale`, `BudgetResiduo`, and `DataRif` remain exactly as seeded; rollback cleans all synthetic data.
+
+**Modifica:** added a focused rollbackable SQL integration test with an independent synthetic institute and exact assertions for deactivation plus unchanged amounts/date.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `ImportaBudget_no_match_institute_preserves_budget_amounts_while_deactivating` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T18:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `Flusso_RDA_ist` deletes previous export rows by generated order number and type, but the integration case did not assert that an output row tagged to a different institute with the same order key is removed.
