@@ -353,6 +353,7 @@ namespace PollingWeb.IntegrationTests
                     "UPDATE dbo.TargetSC00G100 SET Ragione_Sociale=Ragione_Sociale+N' updated' WHERE Istituto=32003; " +
                     "EXEC dbo.AggiornaFornitori @pi_istituto=32003,@po_valoreuscita=@output OUTPUT; " +
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.DimFornitori WHERE IstID=32003 AND RagSoc LIKE N'% updated')<>2 THROW 51022,'Synthetic bulk update failed',1; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID<>32003 AND IstID IS NOT NULL AND RagSoc LIKE N'% updated') THROW 51023,'Bulk supplier update escaped institute scope',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {

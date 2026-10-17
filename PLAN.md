@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-18 | 70 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | `dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` exit 0; `POLLING_DB_$1=[REDACTED] dotnet test ... --filter 'FullyQualifiedName~AggiornaFornitori_updates_multiple_synthetic_suppliers_for_one_institute'` 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-18 | 62 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; test focused 6/6 e SchemaContractTests 28/28 pass. Build soluzione exit 1 `MSB4249`; T3 incompleta, full-suite failures già noti. |
 | 2026-10-17 | 63 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | Caso `AzzeraTargetSC00G100` copre selettività tra istituti con fixture sintetiche e rollback; test SQL 1/1 pass dopo il primo skip per assenza variabile DB. Build IntegrationTests exit 0. |
 | 2026-10-17 | 64 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | `Esiti_Ordini_SAP` ora verifica un solo log di transizione successo del caso warning; build IntegrationTests exit 0 e test SQL mirato 1/1 pass. |

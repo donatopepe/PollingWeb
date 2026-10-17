@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T00:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** test `AggiornaFornitori_updates_multiple_synthetic_suppliers_for_one_institute` already checks two synthetic suppliers are updated for institute 32003, but not that the resulting update stayed within that institute.
+
+**Esito atteso:** all matching supplier updates are confined to institute 32003; all other institutes remain unaffected.
+
+**Modifica:** added rollbackable `IF EXISTS` assertion rejecting any updated supplier row for a different non-null institute.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 Registro append-only delle iterazioni del loop.
 
 ## 2026-10-17T09:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
