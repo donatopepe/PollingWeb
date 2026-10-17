@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T00:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the synthetic `ImportaBudget` update path verifies the expected active row and total compound-key count, but does not explicitly reject a stale active row with previous amount values for that key.
+
+**Esito atteso:** after updating the staged budget, no active record for that institute/SAP ID/material key retains values other than the new current amount and residual.
+
+**Modifica:** added an `IF EXISTS` assertion on active same-key records with old values to the existing transaction-backed insert/update scenario.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `ImportaBudget_inserts_then_updates_synthetic_budget_and_rolls_back` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T00:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the rollbackable `ImportaBudget` insert/update scenario verifies the updated row's values, but does not assert the total count for the same institute/SAP ID/material key after update.
