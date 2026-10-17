@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T17:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Flusso_Ordini_SAP_ist_executes_with_synthetic_request_inside_rollback` checked only that the current session received some ODA output, not that the emitted rows were all scoped to the requested institute.
+
+**Esito atteso:** the synthetic institute flow emits a master ODA record for institute 1 and emits no ODA rows with another or missing institute code.
+
+**Modifica:** tightened the existing rollbackable flow assertion to require a master record with `Codist=1`, plus an assertion rejecting any same-session ODA output outside that institute.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `Flusso_Ordini_SAP_executes_with_synthetic_request_inside_rollback` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T16:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `ImportaBudget_inserts_then_updates_synthetic_budget_and_rolls_back` checks update isolation from other institutes, but does not check that updating one synthetic budget leaves unrelated budgets in the same institute active.

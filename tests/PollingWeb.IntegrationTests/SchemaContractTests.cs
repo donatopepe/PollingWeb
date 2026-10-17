@@ -457,7 +457,8 @@ namespace PollingWeb.IntegrationTests
                     "INSERT INTO eProcurement.dbo.DimSottoCatSAP (IDCatSAP,Materiale) VALUES (1,N'SYNTHETIC'); " +
                     "INSERT INTO eProcurement.dbo.JoinCatSottoCat (CatID,SCID,SapID,CodPrg) VALUES (1,1,1,N'TEST'); " +
                     "EXEC dbo.Flusso_Ordini_SAP_ist @pi_istituto=1,@po_valoreuscita=@output OUTPUT; " +
-                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Tiporecord=N'ODA') THROW 51009,'Synthetic ODA institute flow produced no rows',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Tiporecord=N'ODA' AND Codist=1 AND Riga LIKE N'M%') THROW 51009,'Synthetic ODA institute flow produced no master row for requested institute',1; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Tiporecord=N'ODA' AND (Codist<>1 OR Codist IS NULL)) THROW 51040,'Synthetic ODA institute flow escaped institute scope',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {
