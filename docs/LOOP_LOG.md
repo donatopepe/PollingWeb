@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T19:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** current `ImportaBudget` no-match cases focus on pre-existing budgets and do not isolate the no-staging-row/no-existing-row branch's output value.
+
+**Esito atteso:** with no matching staging data for the synthetic institute, procedure initializes/returns an empty output string; transaction is rolled back.
+
+**Modifica:** added a minimal integration case that seeds the output variable with a sentinel, calls the procedure for an institute with no matching rows, and asserts the output was reset to empty.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `ImportaBudget_no_match_institute_empty_rows_returns_empty_output` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T19:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the no-match `ImportaBudget` tests verify active-state and institute scope but not that pre-existing budget amounts/reference date remain unchanged when the procedure deactivates that institute's budgets.

@@ -519,6 +519,25 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void ImportaBudget_no_match_institute_empty_rows_returns_empty_output()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30)='unexpected'; " +
+                    "EXEC dbo.ImportaBudget @pi_istituto=32006,@po_valoreuscita=@output OUTPUT; " +
+                    "IF @output<>N'' THROW 51054,'Empty-row ImportaBudget returned unexpected output',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void ImportaBudget_no_match_institute_preserves_budget_amounts_while_deactivating()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
