@@ -318,10 +318,12 @@ namespace PollingWeb.IntegrationTests
                 using (var command = new SqlCommand(
                     "BEGIN TRANSACTION; BEGIN TRY " +
                     "DECLARE @output varchar(30); " +
-                    "INSERT INTO dbo.TargetSC00G100 (Istituto,Cfor,Ragione_Sociale) VALUES (32002,987654321,N'Synthetic supplier'); " +
+                    "INSERT INTO dbo.TargetSC00G100 (Istituto,Cfor,Ragione_Sociale) VALUES " +
+                    "(32002,987654321,N'Synthetic requested institute'),(32003,987654321,N'Synthetic other institute'); " +
                     "EXEC dbo.AzzeraTargetSC00G100 @pi_istituto=32002,@po_valoreuscita=@output OUTPUT; " +
                     "IF EXISTS (SELECT 1 FROM dbo.TargetSC00G100 WHERE Istituto=32002) THROW 51004,'Synthetic institute was not cleared',1; " +
-                    "IF @output<>'' THROW 51005,'Unexpected output value',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM dbo.TargetSC00G100 WHERE Istituto=32003 AND Cfor=987654321) THROW 51005,'Synthetic row for another institute was deleted',1; " +
+                    "IF @output<>'' THROW 51006,'Unexpected output value',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {

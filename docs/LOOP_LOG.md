@@ -2,6 +2,20 @@
 
 Registro append-only delle iterazioni del loop.
 
+## 2026-10-17T06:36Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** il test `AzzeraTargetSC00G100_deletes_only_requested_synthetic_institute` cancellava e verificava una sola riga. Non dimostrava che l'operazione fosse limitata all'istituto richiesto.
+
+**Modifica:** aggiunta una seconda riga sintetica per un altro istituto nella stessa transazione; il test ora verifica sia la cancellazione del target selezionato sia la conservazione dell'altro. Entrambe le righe sono rollbackate.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → compilazione completata, 0 errori, exit 0. `PATH=/opt/dotnet:$PATH dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-build --no-restore --nologo -v quiet --filter FullyQualifiedName~AzzeraTargetSC00G100` → 1 test trovato, 1 ignorato perché `POLLING_DB_PASSWORD` non è presente nel processo. La verifica SQL del nuovo caso resta da eseguire con il DB configurato. `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 dopo aver verificato il caso SQL con environment DB disponibile.
+
+**Blocchi:** credenziale DB non disponibile nel processo di questa sessione; nessun valore è stato letto o registrato.
+
+---
+
 Formato riga:
 `## <timestamp UTC> — <TASK ID> <titolo> — <stato>`
 poi: contesto, modifiche, evidenza (comando + output), prossimo task, blocchi.
