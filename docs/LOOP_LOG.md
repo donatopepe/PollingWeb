@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T17:17Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** T3 lists `Datini` and `Datfin`, but no integration test directly invokes them.
+
+**Esito atteso:** SQL boundary functions return exact expected values for a synthetic leap-day input: `Datini` at end-of-day and `Datfin` at midnight, independent of language date formatting.
+
+**Modifica:** added a database integration test using ISO 8601 conversion and compares exact `DateTime` values for both functions.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `Datini_and_Datfin_return_expected_synthetic_boundaries` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T17:07Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `Flusso_Ordini_SAP_ist_executes_with_synthetic_nb_item_and_rollback` exercises the selected institute's order but did not add a second ready order from a different institute to ensure the filter excludes it.

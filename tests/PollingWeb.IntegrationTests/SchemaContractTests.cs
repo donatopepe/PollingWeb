@@ -169,6 +169,24 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Datini_and_Datfin_return_expected_synthetic_boundaries()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "SELECT dbo.Datini(CONVERT(datetime,'2096-02-29T12:34:56',126)), dbo.Datfin(CONVERT(datetime,'2096-02-29T12:34:56',126))",
+                    connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    Assert.True(reader.Read());
+                    Assert.Equal(new DateTime(2096, 2, 29, 23, 59, 59, 997), reader.GetDateTime(0));
+                    Assert.Equal(new DateTime(2096, 2, 29, 0, 0, 0), reader.GetDateTime(1));
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void StripHTML_functions_cover_empty_null_and_plain_text_inputs()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
