@@ -2053,11 +2053,11 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Modifiche precedenti all'iterazione 52:** introdotti test per entrambe le `StripHTML`, `Esiti_Ordini_SAP` con errore sintetico in rollback, `Flusso_RDA` e `Flusso_Ordini_SAP` con fixture RdA/item sintetiche, flussi per istituto senza match, rami insert/update di `ImportaBudget` e `AggiornaFornitori`, e invocazione di `AzzeraTargetSC00G100`. Le relative evidenze sono negli commit/registro precedenti.
 
-### 2026-10-17T20:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 52)
+### 2026-10-17T20:30Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 54)
 
-**Modifica:** aggiunti controlli più forti ai test: `AzzeraTargetSC00G100` verifica la rimozione mirata del record sintetico; `Flusso_RDA_ist` esegue anche con item/costo sintetici; il test `Esiti_Ordini_SAP` include ora anche una `RdE` sintetica per attraversare il percorso relativo agli esiti. Nessun cambio alle stored procedure o allo schema.
+**Modifica:** aggiunti test per `Flusso_Ordini_SAP` con fixture articolo/costo annuale e per `Flusso_Ordini_SAP_ist` con request/item NB dell'istituto sintetico; transazioni rollbackabili. Nessuna modifica alle routine/schema.
 
-**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. `PATH=/opt/dotnet:$PATH POLLING_DB_$1=[REDACTED] dotnet test ... --filter '<13 filtri T3>'` → 13/13 pass su SQL Server 2022. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` (Website WebForms legacy); `git diff --check` → exit 0. T3 resta `[~]`: i 13 test coprono casi sintetici, ma non tutti i rami funzionali/procedure; la suite completa ha failure preesistenti SMTP/schema count registrate nell'iterazione 49.
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Test focused su 7 casi T3 (due flussi SAP con item, Flusso_RDA_ist, Esiti_Ordini_SAP, ImportaBudget, AggiornaFornitori, AzzeraTargetSC00G100) → 7/7 pass; il filtro esteso completo di 13 test era verde nell'iterazione precedente. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249`; `git diff --check` → exit 0. T3 resta `[~]`: copertura di ulteriori rami/oggetti necessaria; failure suite preesistenti restano riportate nell'iterazione 49.
 
 ---
 

@@ -479,7 +479,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [~] **T3 — Integration test stored procedure e funzioni**
   DoD: test per `Datini`, `Datfin`, `StripHTML`, `Flusso_RDA*`, `Flusso_Ordini_SAP*`,
   `Esiti_Ordini_SAP`, `ImportaBudget`, `AggiornaFornitori`, `AzzeraTargetSC00G100`.
-  Evidenza (Linux, 2026-10-17, iterazione 53): build IntegrationTests exit 0; filtro SQL ripetuto 13/13 pass. `dotnet build PollingWeb.sln --nologo -v quiet` exit 1 `MSB4249`. T3 resta incompleta: non tutti i rami/oggetti sono verificati; dettagli in `docs/LOOP_LOG.md`.
+  Evidenza (Linux, 2026-10-17, iterazione 54): build IntegrationTests exit 0; test SQL su casi `Flusso_Ordini_SAP_ist`/`Flusso_Ordini_SAP` con item NB e altri percorsi sintetici passano. T3 non completa: gli oggetti/rami non testati restano; soluzione fallisce con `MSB4249`. Evidenza dettagliata nel log.
 - [ ] **T4 — Integration test DAL su entrambi i TFM**
   DoD: round-trip CRUD per tutti i TableAdapter + `ViewTaskService`, eseguiti su net48 e net8.0.
   Evidenza: test verdi con container SQL Server.
@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-17 | 53 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; filtro SQL ripetuto 13/13 pass; soluzione build exit 1 `MSB4249`; diff-check 0. Residui di copertura procedure/branch documentati in `LOOP_LOG.md`. |
+| 2026-10-17 | 54 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; test focused 7/7 pass, inclusi rami con item NB; soluzione build exit 1 `MSB4249`; diff-check 0. Altri rami/procedure e suite completa restano da chiudere. |
 | 2026-10-17 | 42 | C10 SMTP funzionante | `[x]` | SMTP4Dev container; authenticated integration 1/1 pass; unit 145/2 ignored; PollingClass net8/net48 and IntegrationTests build exit 0; compose config clean; Windows/macOS not locally verified. |
 | 2026-10-17 | 43 | C11 Qualificare RDA_Esiti | `[x]` | `Esiti_Ordini_SAP` integration call from Polling in rollback transaction → 1/1 pass after deploy; integration project build exit 0. Full integration suite has unrelated table-count failure (Polling expected 9, actual 10); solution build exit 1/MSB4249 Website. |
 | 2026-10-17 | 37 | C9 parsing SAP — `[!]` bloccato dopo 3 iterazioni | `[!]` | PollingClass net8.0/net48 exit 0; unit 140/2 ignorati; controlli strutturali e test sintetici aggiunti. End-to-end ParserFatture/Flusso_* non completabile senza fixture SAP/DDL verificate; mitigazione descritta nel task e LOOP_LOG. |

@@ -163,6 +163,11 @@ namespace PollingWeb.IntegrationTests
                     "UPDATE eProcurement.dbo.RdA SET CdRUOCode=N'TEST01' WHERE GUID=@guid; " +
                     "INSERT INTO eProcurement.dbo.DimSottoCatSAP (IDCatSAP, Materiale) VALUES (1, N'SYNTHETIC'); " +
                     "INSERT INTO eProcurement.dbo.JoinCatSottoCat (CatID, SCID, SapID, CodPrg) VALUES (1, 1, 1, N'TEST'); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt_Costo_per_Anno (GUIDArt,DataInizioAnno,DataFineAnno,GGAnno,CostoAnno,AnnoCompetenza) " +
+                    "SELECT GUIDArt,GETDATE(),GETDATE(),1,10,2099 FROM eProcurement.dbo.RDAArt WHERE RdAID=@guid AND GUIDArt IS NOT NULL; " +
+                    "UPDATE eProcurement.dbo.RDAArt SET GUIDArt=NEWID() WHERE RdAID=@guid AND GUIDArt IS NULL; " +
+                    "INSERT INTO eProcurement.dbo.RDAArt_Costo_per_Anno (GUIDArt,DataInizioAnno,DataFineAnno,GGAnno,CostoAnno,AnnoCompetenza) " +
+                    "SELECT GUIDArt,GETDATE(),GETDATE(),1,10,2099 FROM eProcurement.dbo.RDAArt WHERE RdAID=@guid AND GUIDArt IS NOT NULL; " +
                     "SET @guidText = CONVERT(varchar(40), @guid); " +
                     "EXEC dbo.Flusso_Ordini_SAP @pi_guid=@guidText, @po_valoreuscita=@output OUTPUT; " +
                     "SELECT COUNT(*) FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID; " +
@@ -260,6 +265,60 @@ namespace PollingWeb.IntegrationTests
                     {
                         Assert.Equal(string.Empty, command.ExecuteScalar());
                     }
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void Flusso_Ordini_SAP_ist_executes_with_synthetic_nb_item_and_rollback()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier=NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,Istituto,IstID,Status,Oggetto,DataModifica,CFor,GruppoAcquisti,TipoOrdine,Frequenza,DataInizioCompetenza,DataFineCompetenza,CdRUOCode) " +
+                    "VALUES (@guid,987654325,1,N'TEST',1,1,15,N'Synthetic NB test',GETDATE(),1001,N'001',N'NB',1,GETDATE(),GETDATE(),N'TEST03'); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt (IDArt,RdAID,SapID,GruppoMerci,DescrDett_Ord,QtaC,CostoConcordatoNoIva,DataPrevCons,TipoContabilizzazione) " +
+                    "VALUES (987654325,@guid,1,N'001',N'Synthetic NB item',2,20,GETDATE(),N'Y'); " +
+                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode,IstID,CodiceColl) VALUES (N'TEST03',1,N'003'); " +
+                    "INSERT INTO eProcurement.dbo.DimSottoCatSAP (IDCatSAP,Materiale) VALUES (1,N'SYNTHETIC'); " +
+                    "INSERT INTO eProcurement.dbo.JoinCatSottoCat (CatID,SCID,SapID,CodPrg) VALUES (1,1,1,N'TEST'); " +
+                    "EXEC dbo.Flusso_Ordini_SAP_ist @pi_istituto=1,@po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Tiporecord=N'ODA') THROW 51009,'Synthetic ODA institute flow produced no rows',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void Flusso_Ordini_SAP_ist_executes_with_synthetic_nb_item_inside_rollback()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier=NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,Istituto,IstID,Status,Oggetto,DataModifica,CFor,GruppoAcquisti,TipoOrdine,Frequenza,DataInizioCompetenza,DataFineCompetenza,CdRUOCode) " +
+                    "VALUES (@guid,987654326,1,N'TEST',47,47,15,N'Synthetic institute order',GETDATE(),1001,N'001',N'NB',1,GETDATE(),GETDATE(),N'TEST04'); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt (IDArt,RdAID,SapID,GruppoMerci,DescrDett_Ord,QtaC,CostoConcordatoNoIva,DataPrevCons,TipoContabilizzazione,GUIDArt) " +
+                    "VALUES (987654326,@guid,1,N'001',N'Synthetic institute item',2,20,GETDATE(),N'Y',NEWID()); " +
+                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode,IstID,CodiceColl) VALUES (N'TEST04',47,N'004'); " +
+                    "INSERT INTO eProcurement.dbo.DimSottoCatSAP (IDCatSAP,Materiale) VALUES (1,N'SYNTHETIC'); " +
+                    "INSERT INTO eProcurement.dbo.JoinCatSottoCat (CatID,SCID,SapID,CodPrg) VALUES (1,1,1,N'TEST'); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt_Costo_per_Anno (GUIDArt,DataInizioAnno,DataFineAnno,GGAnno,CostoAnno,AnnoCompetenza) " +
+                    "SELECT GUIDArt,GETDATE(),GETDATE(),1,20,2099 FROM eProcurement.dbo.RDAArt WHERE RdAID=@guid; " +
+                    "EXEC dbo.Flusso_Ordini_SAP_ist @pi_istituto=47,@po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Tiporecord=N'ODA') THROW 51010,'Synthetic ODA institute item flow produced no rows',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
                 }
             }
         }
