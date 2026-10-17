@@ -258,6 +258,30 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Flusso_RDA_ist_replaces_stale_export_for_another_request_in_target_institute()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,IstID,Istituto,Status,Oggetto,DataModifica,CFor,GruppoAcquisti,TipoOrdine,Frequenza,DataInizioCompetenza,DataFineCompetenza) " +
+                    "VALUES (NEWID(),987654328,1,N'TEST',1,1,15,N'Synthetic target institute request',GETDATE(),1001,N'001',N'NB',1,GETDATE(),GETDATE()); " +
+                    "INSERT INTO eProcurement.dbo.Tbl_Export_SAP_OnLine (Riga,Spid,Codist,Elaborato,Tiporecord,NumRda) " +
+                    "VALUES (N'Synthetic stale export from prior institute request',@@SPID,2,0,N'RDA',N'4502654328'); " +
+                    "EXEC dbo.Flusso_RDA_ist @pi_istituto=1,@po_valoreuscita=@output OUTPUT; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Riga=N'Synthetic stale export from prior institute request') THROW 51048,'Stale institute export was not removed',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Codist=1 AND Tiporecord=N'RDA') THROW 51049,'Institute request export was not generated',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Flusso_RDA_ist_executes_with_synthetic_request_inside_rollback()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))

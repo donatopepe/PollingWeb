@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T20:36Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Flusso_RDA_ist` executes per-institute exports, but no test verifies deletion of an existing stale output row for the computed order number, including one associated with another institute.
+
+**Esito atteso:** calling the procedure for institute 1 removes the stale row sharing its generated order number and writes current institute output, with fixture changes rolled back.
+
+**Modifica:** added a rollbackable synthetic request plus a stale marker row keyed to the procedure-computed order number but tagged to a different institute; assertions verify stale row removal and institute output creation. Removed an exploratory second-order output assertion after observed procedure behavior did not support its assumed prefix/sequence.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `Flusso_RDA_ist_replaces_stale_export_for_another_request_in_target_institute` → 1/1 pass, exit 0; `git diff --check` → exit 0. Intermediate assertion failures were corrected/removed based on actual output; final test passed.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T18:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `Flusso_RDA` was covered for output creation but not replacement of an existing output row for the same generated order number and institute.
