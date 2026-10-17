@@ -6,7 +6,7 @@ Registro append-only delle iterazioni del loop.
 
 **Baseline:** `Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback` controllava l'archiviazione dell'errore e `RdA.Status=16`, ma non fissava che il log della transizione di errore venga scritto una volta sola. Inizialmente è stata provata anche un'asserzione su `RdE.Status=16`; il test ha fallito con `Synthetic response status was not updated for SAP error`. Ispezionando la stored procedure si è verificato che il ramo errore aggiorna RdA e il log, non RdE; l'asserzione non supportata è stata rimossa.
 
-**Modifica:** il test ora richiede esattamente un record `LogTime_Ciclo` per il GUID sintetico con `StatoID=16` e `StatoIntID=16`. Le fixture sono dentro la transazione rollbackabile.
+**Modifica:** il test ora richiede esattamente un record `LogTime_Ciclo` per il GUID sintetico con `StatoID=16` e `StatoIntID=16`, e controlla che `@po_valoreuscita` sia vuoto. Le fixture sono dentro la transazione rollbackabile.
 
 **Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → compilazione completata, 0 errori, exit 0. Il test SQL mirato, con configurazione container caricata senza stamparla, → 1/1 pass, exit 0. `git diff --check` → exit 0.
 
