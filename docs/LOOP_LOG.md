@@ -8,11 +8,11 @@ Registro append-only delle iterazioni del loop.
 
 **Modifica:** aggiunta una seconda riga sintetica per un altro istituto nella stessa transazione; il test ora verifica sia la cancellazione del target selezionato sia la conservazione dell'altro. Entrambe le righe sono rollbackate.
 
-**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → compilazione completata, 0 errori, exit 0. `PATH=/opt/dotnet:$PATH dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-build --no-restore --nologo -v quiet --filter FullyQualifiedName~AzzeraTargetSC00G100` → 1 test trovato, 1 ignorato perché `POLLING_DB_PASSWORD` non è presente nel processo. La verifica SQL del nuovo caso resta da eseguire con il DB configurato. `git diff --check` → exit 0.
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → compilazione completata, 0 errori, exit 0. Prima esecuzione mirata senza `POLLING_DB_PASSWORD` → 1 ignorato; poi, caricando la configurazione di test dal container senza stamparla, `dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-build --no-restore --nologo -v quiet --filter FullyQualifiedName~AzzeraTargetSC00G100` → 1/1 pass, exit 0. `git diff --check` → exit 0.
 
-**Prossimo task:** continuare T3 dopo aver verificato il caso SQL con environment DB disponibile.
+**Prossimo task:** continuare T3 con un altro ramo/oggetto mancante.
 
-**Blocchi:** credenziale DB non disponibile nel processo di questa sessione; nessun valore è stato letto o registrato.
+**Blocchi:** nessuno per questo caso; T3 rimane incompleta.
 
 ---
 

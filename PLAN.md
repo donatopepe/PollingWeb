@@ -479,7 +479,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [~] **T3 — Integration test stored procedure e funzioni**
   DoD: test per `Datini`, `Datfin`, `StripHTML`, `Flusso_RDA*`, `Flusso_Ordini_SAP*`,
   `Esiti_Ordini_SAP`, `ImportaBudget`, `AggiornaFornitori`, `AzzeraTargetSC00G100`.
-  Evidenza (Linux, 2026-10-17, iterazione 63): il test `AzzeraTargetSC00G100_deletes_only_requested_synthetic_institute` estende il caso rollbackabile a due istituti, verificando che la procedura cancelli solo il target richiesto. `dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; test mirato invocato senza `POLLING_DB_PASSWORD` → ignorato automaticamente (SQL non verificato in questa sessione). T3 resta incompleta.
+  Evidenza (Linux, 2026-10-17, iterazione 63): il test `AzzeraTargetSC00G100_deletes_only_requested_synthetic_institute` estende il caso rollbackabile a due istituti, verificando che la procedura cancelli solo il target richiesto. `dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; prima invocazione mirata senza variabile DB ignorata; successiva esecuzione con la configurazione SQL dal container → `AzzeraTargetSC00G100_deletes_only_requested_synthetic_institute` 1/1 pass. T3 resta incompleta.
 - [ ] **T4 — Integration test DAL su entrambi i TFM**
   DoD: round-trip CRUD per tutti i TableAdapter + `ViewTaskService`, eseguiti su net48 e net8.0.
   Evidenza: test verdi con container SQL Server.
