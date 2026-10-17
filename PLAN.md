@@ -6,7 +6,7 @@
 
 - **Revisione piano:** 2 (2026-10-16) — introduce il track cross-platform (X1–X4), cambia
   l'obiettivo e il vincolo n.4 rispetto alla revisione 1
-- **Stato complessivo:** 36 / 74 task verificati
+- **Stato complessivo:** 37 / 74 task verificati
 - **Revisione piano:** 5 (2026-10-16) — corretta la misura di accoppiamento a Quartz dell'ADR 0005
   (era stimata al 55% dell'assembly, misurata al ~8%); soglia anti-svuotamento da 95% a **90%**
   per `X1.3c`; `X1.3b` scomposto in `X1.3b1`–`X1.3b5`, una classe di schedulazione per task.
@@ -452,13 +452,13 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   DoD: `MailSede` autentica realmente via configurazione; invio testato con server finto
   (Papercut/SMTP4Dev in Docker); nessuna credenziale placeholder.
   Evidenza (Linux, 2026-10-17): integration test autenticato contro SMTP4Dev Docker → 1/1 pass con credenziali sintetiche da environment; log container conferma AUTH e ricezione. Unit 145/2 ignorati; PollingClass net8.0/net48 exit 0; integration project build exit 0. Nessuna credenziale versionata; macOS/Windows non verificati localmente.
-- [ ] **C11 — Qualificare `RDA_Esiti` in `Esiti_Ordini_SAP.sql`**
+- [x] **C11 — Qualificare `RDA_Esiti` in `Esiti_Ordini_SAP.sql`**
   DoD: l'istruzione `INSERT INTO RDA_Esiti` (non qualificata) è corretta. La procedura gira
   sulla connessione applicativa ma la tabella risiede in `eProcurement`: a runtime fallisce con
   `Invalid object name 'RDA_Esiti'`, e il difetto non emerge alla creazione per name resolution
   differita. Scegliere con evidenza fra qualificare (`eProcurement.dbo.RDA_Esiti`) o spostare
   la tabella, e documentare la scelta.
-  Evidenza: test di integrazione che esegue la procedura su schema deployato senza errori.
+  Evidenza (Linux, 2026-10-17): `INSERT` punta a `eProcurement.dbo.RDA_Esiti`; `SchemaContractTests.Esiti_Ordini_SAP_executes_with_eProcurement_archive_target` esegue la procedura dal DB `Polling` in transazione rollbackable su SQL Server 2022 deployato → 1/1 pass. La suite integration completa segnala anche un failure preesistente non correlato: conteggio tabelle `Polling` atteso 9, rilevato 10.
   Fonte: ADR 0001 §4 (A7), scoperto in `T0.12`.
 
 ### Fase 6 — Test (T)
@@ -679,7 +679,8 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-17 | 41 | C10 SMTP funzionante | `[x]` | SMTP4Dev container; test authenticated integration 1/1 pass; unit 145/2 ignored; PollingClass net8/net48 e IntegrationTests build exit 0; compose config/diff-check puliti; macOS/Windows non verificati localmente. |
+| 2026-10-17 | 42 | C10 SMTP funzionante | `[x]` | SMTP4Dev container; authenticated integration 1/1 pass; unit 145/2 ignored; PollingClass net8/net48 and IntegrationTests build exit 0; compose config clean; Windows/macOS not locally verified. |
+| 2026-10-17 | 43 | C11 Qualificare RDA_Esiti | `[x]` | `Esiti_Ordini_SAP` integration call from Polling in rollback transaction → 1/1 pass after deploy; integration project build exit 0. Full integration suite has unrelated table-count failure (Polling expected 9, actual 10); solution build exit 1/MSB4249 Website. |
 | 2026-10-17 | 37 | C9 parsing SAP — `[!]` bloccato dopo 3 iterazioni | `[!]` | PollingClass net8.0/net48 exit 0; unit 140/2 ignorati; controlli strutturali e test sintetici aggiunti. End-to-end ParserFatture/Flusso_* non completabile senza fixture SAP/DDL verificate; mitigazione descritta nel task e LOOP_LOG. |
 | 2026-10-17 | 35 | C8 Percorsi file configurabili | `[x]` | PollingClass net8.0/net48 exit 0; unit 115/2 ignorati; scansioni assoluti/concatenazioni Windows 0 risultati; diff-check exit 0. |
 | 2026-10-17 | 34 | C7 Config validata all'avvio | `[x]` | Test connection string SQL malformata/incompleta e provider legacy errato; Quartz connection malformata/incompleta; unit 114/2 ignorati; Database/PollingClass net8/net48 exit 0; solution fallisce con MSB4249 già noto. |

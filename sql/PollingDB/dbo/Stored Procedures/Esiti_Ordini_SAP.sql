@@ -25,7 +25,7 @@ declare
 set @PROCname = 'Esiti_Ordini_SAP'
 
 --conservo il file degli esiti originale
-INSERT INTO RDA_Esiti (Mandante, Societa, Num_Ordine, Posizione, Cod_Errore, Desc_Errore, Data_FileOutput) 
+INSERT INTO eProcurement.dbo.RDA_Esiti (Mandante, Societa, Num_Ordine, Posizione, Cod_Errore, Desc_Errore, Data_FileOutput)
 SELECT	Mandante, Societa, Num_Ordine, Posizione, Cod_Errore, Desc_Errore, Data_FileOutput 
 FROM    eProcurement.dbo.RDA_Esiti_LastOutput_OnLine 
 

@@ -69,24 +69,18 @@ ha risolto l'ambiguità con due prove convergenti:
 Sono quindi state spostate qui e rimosse da `sql/PollingDB/`. Dettagli in
 [ADR 0001](../../docs/adr/0001-sql-schema-source-of-truth.md) §4 (A2).
 
-## ⚠️ Difetto latente scoperto durante lo spostamento
+## C11 — correzione della tabella archivio in `Esiti_Ordini_SAP`
 
-`sql/PollingDB/dbo/Stored Procedures/Esiti_Ordini_SAP.sql` riga 28 esegue:
+La tabella archivio `RDA_Esiti` appartiene a questo database (`eProcurement.dbo.RDA_Esiti`).
+La procedura `sql/PollingDB/dbo/Stored Procedures/Esiti_Ordini_SAP.sql` è installata nel
+`Polling` applicativo ed è invocata tramite la connessione `this.dbInfo`; pertanto un nome
+`RDA_Esiti` non qualificato si risolve nel database errato. L'INSERT ora specifica
+`eProcurement.dbo.RDA_Esiti`, mantenendo la collocazione della DDL e qualificando
+coerentemente il sorgente esistente.
 
-```sql
-INSERT INTO RDA_Esiti (Mandante, Societa, Num_Ordine, ...)   -- NON qualificata
-SELECT ... FROM eProcurement.dbo.RDA_Esiti_LastOutput_OnLine -- qualificata
-```
-
-La procedura è invocata con `this.dbInfo` (connessione **applicativa**), quindi `RDA_Esiti`
-non qualificata si risolve nel database `Polling`, dove la tabella **non esiste**: sta qui, in
-`eProcurement`. A runtime l'istruzione fallisce con `Invalid object name 'RDA_Esiti'`.
-
-Il difetto è **preesistente** e non è stato corretto qui: correggerlo significa scegliere se
-qualificare la tabella (`eProcurement.dbo.RDA_Esiti`) o spostarla. È un problema di
-correttezza SQL, tracciato nella fase `C` del piano. Non viene nascosto dal deploy, perché SQL
-Server non valida gli oggetti referenziati alla creazione delle procedure: si manifesta solo
-all'esecuzione.
+La verifica d'integrazione esegue la procedura nel database `Polling` dentro una transazione
+rollbackable: con schema deployato il riferimento cross-database si risolve e non si lasciano
+modifiche ai dati.
 
 ## Cosa resta scoperto dal codice e non esiste in nessun database
 

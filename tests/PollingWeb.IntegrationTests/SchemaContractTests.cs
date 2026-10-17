@@ -54,6 +54,17 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Esiti_Ordini_SAP_executes_with_eProcurement_archive_target()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand("BEGIN TRANSACTION; BEGIN TRY DECLARE @output varchar(40); EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION; THROW; END CATCH;", connection))
+                    command.ExecuteNonQuery();
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Polling_ha_gli_oggetti_attesi()
         {
             Assert.Equal(9, Conteggio("Polling", "SELECT COUNT(*) FROM sys.tables"));

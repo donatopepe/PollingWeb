@@ -2005,6 +2005,20 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 ---
 
+## 2026-10-17T13:45Z — C11 RDA_Esiti qualificazione — IN PROGRESS
+
+**Baseline:** `sql/PollingDB/dbo/Stored Procedures/Esiti_Ordini_SAP.sql` eseguiva `INSERT INTO RDA_Esiti` non qualificata; DDL esiste in `sql/eProcurement/dbo/Tables/RDA_Esiti.sql`; l'app invoca la procedura usando `DatabaseInfo` applicativo `Polling`. Evidenza attesa: riprodurre l'errore cross-database e verificarne la correzione su SQL Server deployato.
+
+**Modifica:** l'INSERT ora usa `eProcurement.dbo.RDA_Esiti`, coerente con la collocazione DDL e gli altri riferimenti della procedura. La verifica d'integrazione esegue `dbo.Esiti_Ordini_SAP` dal database `Polling` entro transazione rollbackable; nessuna fixture persistente aggiunta.
+
+**Verifica reale:** deploy eseguito con `POLLING_DB_$1=[REDACTED] ./scripts/db-deploy.sh --mode recreate --with-seed` → exit 0, schema Polling/eProcurement/Quartz applicato; `dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0; con `PATH=/opt/dotnet:$PATH`, `POLLING_DB_PASSWORD` di deploy e SMTP test env sintetico, test filtrato `Esiti_Ordini_SAP_executes_with_eProcurement_archive_target` → 1/1 pass. `./scripts/test-integration.sh` con `PATH=/opt/dotnet:$PATH` → fallisce per test non correlato `Polling_ha_gli_oggetti_attesi`: previsto 9 tabelle, trovato 10; il test C11 passa nella stessa suite.
+
+**Verifica soluzione:** `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` (Website WebForms, limite noto).
+
+**Esito:** C11 chiuso `[x]`; la tabella archivio viene risolta nel DB proprietario. Non attestata la suite completa verde (resta il contract count Polling 9 vs 10), né macOS/Windows.
+
+---
+
 ## 2026-10-16T18:xxZ — X1.3c PollingClass multi-target — DONE
 
 **Modifica.** `PollingClass.csproj` multi-target `net48;net8.0`. Per net8 vengono esclusi condizionalmente solo i metadata, attributi, metodi SOAP e base class ASMX che richiedono `System.Web.Services`; il target net48 li mantiene per la compatibilità legacy. Aggiunta la namespace import mancante nel test factory Quartz. Nessuna logica di dominio modificata. X3.3 resta incaricato della migrazione dei client SOAP.
