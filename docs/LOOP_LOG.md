@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T22:37Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** existing `Flusso_Ordini_SAP` integration case checks only that some export row is emitted; it does not assert success output reset or that output is tagged as an ODA record for the institute.
+
+**Esito atteso:** a rollbackable synthetic order request produces an ODA row for institute 1 and resets a sentinel output parameter to empty.
+
+**Modifica:** added an independent transaction-backed success-flow test with synthetic cost-center, request, item, and category mapping fixtures; asserts output parameter and ODA row.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `Flusso_Ordini_SAP_exports_and_returns_empty_output` → 1/1 pass, exit 0; `git diff --check` → exit 0. Also tried a speculative stale-record assertion using an assumed order-key encoding; it failed and was discarded, leaving no unverified assertion in the final patch.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T20:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `AzzeraTargetSC00G100` test verifies isolation with a single target row; it does not assert removal of multiple target rows in one call.
