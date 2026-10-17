@@ -2057,11 +2057,11 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Modifica:** aggiunti test per `Flusso_Ordini_SAP` con fixture articolo/costo annuale e per `Flusso_Ordini_SAP_ist` con request/item NB dell'istituto sintetico; transazioni rollbackabili. Nessuna modifica alle routine/schema.
 
-### 2026-10-18T00:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 60)
+### 2026-10-18T00:30Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 61)
 
-**Modifiche:** testati due fornitori sintetici in inserimento/aggiornamento; aggiunto esito SAP misto (warning + errore) nel test rollbackabile; aggiunti test `Datini`/`Datfin` su leap day e confine d'anno; aggiunto flusso `Flusso_RDA_ist` NB con item/costo e assert su header+item. Nessuna modifica SQL.
+**Modifica:** aggiunto test `Esiti_Ordini_SAP` multi-richiesta: due ordini sintetici, due RdE/log iniziali e due esiti senza errore; verifica archivio, stati `RdA`/`RdE` e log di transizione entrambi entro rollback.
 
-**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Filtro SQL su 13 casi → 13/13 pass. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1 `MSB4249` Website; `git diff --check` → exit 0. T3 resta `[~]`: altri oggetti e branch della DoD non sono ancora coperti e la full suite non è verde.
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. `dotnet test ... --filter FullyQualifiedName~SchemaContractTests` con SQL → 27/27 pass. Full suite con SQL → 29 pass, 9 skip, 2 fail (`Polling_ha_gli_oggetti_attesi` sul conteggio schema noto; SMTP senza endpoint env); escludendo SMTP → 29 pass, 9 skip, 1 failure count schema. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1 `MSB4249`; `git diff --check` → exit 0. T3 resta `[~]`: non tutti i branch/routine elencati sono coperti, full suite non verde.
 
 ---
 

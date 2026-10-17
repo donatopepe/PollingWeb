@@ -113,6 +113,34 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guidA uniqueidentifier=NEWID(), @guidB uniqueidentifier=NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,IstID,Istituto,Status,NOrdSAP) VALUES " +
+                    "(@guidA,987654340,1,N'TEST',1,1,15,4502987660),(@guidB,987654341,1,N'TEST',1,1,15,4502987661); " +
+                    "INSERT INTO eProcurement.dbo.RdE (GUID,Progressivo,PageID,IstID,RdAID,Status) VALUES (NEWID(),987654340,1,1,@guidA,15),(NEWID(),987654341,1,1,@guidB,15); " +
+                    "INSERT INTO eProcurement.dbo.LogTime_Ciclo (Rch_ID,Rch_Progr,PageID,Matricola,StatoID,StatoIntID) VALUES (@guidA,1,1,N'TEST',15,15),(@guidB,2,1,N'TEST',15,15); " +
+                    "INSERT INTO eProcurement.dbo.RDA_Esiti_LastOutput_OnLine (Num_Ordine,Mandante,Societa,Posizione,Cod_Errore,Desc_Errore) VALUES " +
+                    "(N'4502987660',N'000',N'1000',N'001',NULL,N'Synthetic success A'),(N'4502987661',N'000',N'1000',N'001',NULL,N'Synthetic success B'); " +
+                    "EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.RDA_Esiti WHERE Num_Ordine IN (N'4502987660',N'4502987661') AND Cod_Errore IS NULL)<>2 THROW 51023,'Synthetic successes were not archived',1; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.RdA WHERE GUID IN (@guidA,@guidB) AND Status=20)<>2 THROW 51024,'Successful synthetic orders were not marked',1; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.RdE WHERE RdAID IN (@guidA,@guidB) AND Status=20)<>2 THROW 51025,'Successful synthetic requests were not marked',1; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.LogTime_Ciclo WHERE Rch_ID IN (@guidA,@guidB) AND StatoID=20 AND StatoIntID=20)<>2 THROW 51026,'Success transition log entries were not written',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void StripHTML_functions_cover_empty_null_and_plain_text_inputs()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
