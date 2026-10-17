@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T18:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Flusso_RDA_ist` deletes previous export rows by generated order number and type, but the integration case did not assert that an output row tagged to a different institute with the same order key is removed.
+
+**Esito atteso:** when processing the synthetic target request, the stale export with the matching generated order key is removed regardless of its old institute marker, and current target-institute output exists; all data rolls back.
+
+**Modifica:** added a focused rollbackable test for cross-institute stale-row replacement. An initial inverse expectation (that the foreign marker should be preserved) failed and confirmed the procedure's actual global key behavior; renamed/revised the test to assert the observed matching-key deletion.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `Flusso_RDA_ist_replaces_stale_export_for_same_order_across_institutes` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T20:36Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `Flusso_RDA_ist` executes per-institute exports, but no test verifies deletion of an existing stale output row for the computed order number, including one associated with another institute.
