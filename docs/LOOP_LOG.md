@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T01:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the batch success test requires exactly two success-transition rows, but an exploratory inverse assertion attempted to rule out any other transition entries for those requests.
+
+**Esito atteso:** establish whether the procedure emits only a success transition for successful synthetic orders; retain only behavior supported by the current stored-procedure contract and fixture.
+
+**Modifica:** attempted to assert all `LogTime_Ciclo` rows for both requests were status 20; the SQL integration test failed, showing this fixture/procedure also has other transition records. Removed the unsupported assertion; no code assertion change retained this iteration.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused baseline SQL test `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` → 1/1 pass, exit 0; `git diff --check` → exit 0. The exploratory assertion failed and was removed.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica baseline; T3 resta incompleta.
+
+
 ## 2026-10-18T00:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the two-success `Esiti_Ordini_SAP` case checks that two archived success records exist but does not assert that there are exactly two, so duplicate archival could pass.
