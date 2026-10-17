@@ -479,7 +479,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 - [~] **T3 — Integration test stored procedure e funzioni**
   DoD: test per `Datini`, `Datfin`, `StripHTML`, `Flusso_RDA*`, `Flusso_Ordini_SAP*`,
   `Esiti_Ordini_SAP`, `ImportaBudget`, `AggiornaFornitori`, `AzzeraTargetSC00G100`.
-  Evidenza (Linux, 2026-10-17, iterazione 58): build IntegrationTests exit 0; test SQL focalizzati 10/10 pass, incluse warning SAP normalizzato/archiviato e flusso RDA istituto NC multi-periodo. Restano routine/rami da coprire; soluzione fallisce con `MSB4249`.
+  Evidenza (Linux, 2026-10-17, iterazione 59): build IntegrationTests exit 0; test SQL focalizzati 11/11 pass, incluso flusso RDA istituto NB con item e costo e output multiplo. T3 non completa; build soluzione nota `MSB4249`, altri rami/procedure da verificare.
 - [ ] **T4 — Integration test DAL su entrambi i TFM**
   DoD: round-trip CRUD per tutti i TableAdapter + `ViewTaskService`, eseguiti su net48 e net8.0.
   Evidenza: test verdi con container SQL Server.
@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-17 | 58 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; filtro SQL 10/10 pass, compresi warning SAP e flusso RDA NC mensile; solution exit 1 `MSB4249`; diff-check 0. T3/full-suite incomplete. |
+| 2026-10-17 | 59 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0; filtro SQL 11/11 pass, incluso RDA NB item; solution exit 1 `MSB4249`; diff-check 0. Restano branch/oggetti T3. |
 | 2026-10-17 | 42 | C10 SMTP funzionante | `[x]` | SMTP4Dev container; authenticated integration 1/1 pass; unit 145/2 ignored; PollingClass net8/net48 and IntegrationTests build exit 0; compose config clean; Windows/macOS not locally verified. |
 | 2026-10-17 | 43 | C11 Qualificare RDA_Esiti | `[x]` | `Esiti_Ordini_SAP` integration call from Polling in rollback transaction → 1/1 pass after deploy; integration project build exit 0. Full integration suite has unrelated table-count failure (Polling expected 9, actual 10); solution build exit 1/MSB4249 Website. |
 | 2026-10-17 | 37 | C9 parsing SAP — `[!]` bloccato dopo 3 iterazioni | `[!]` | PollingClass net8.0/net48 exit 0; unit 140/2 ignorati; controlli strutturali e test sintetici aggiunti. End-to-end ParserFatture/Flusso_* non completabile senza fixture SAP/DDL verificate; mitigazione descritta nel task e LOOP_LOG. |

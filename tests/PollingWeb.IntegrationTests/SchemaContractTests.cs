@@ -96,11 +96,14 @@ namespace PollingWeb.IntegrationTests
                     "INSERT INTO eProcurement.dbo.RdE (GUID,Progressivo,PageID,IstID,RdAID,Status) VALUES (NEWID(),987654327,1,1,@guid,15); " +
                     "INSERT INTO eProcurement.dbo.RDA_Esiti_LastOutput_OnLine (Num_Ordine,Mandante,Societa,Posizione,Cod_Errore,Desc_Errore) " +
                     "VALUES (N'4502987655',N'000',N'1000',N'001',N'W001',N'Synthetic warning'); " +
+                    "INSERT INTO eProcurement.dbo.RDA_Esiti_LastOutput_OnLine (Num_Ordine,Mandante,Societa,Posizione,Cod_Errore,Desc_Errore) " +
+                    "VALUES (N'4502987656',N'000',N'1000',N'002',N'E002',N'Synthetic error'); " +
                     "EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RDA_Esiti WHERE Num_Ordine=N'4502987655' AND Cod_Errore=N'W001') THROW 51011,'Original synthetic warning was not archived',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RDA_Esiti_LastOutput_OnLine WHERE Num_Ordine=N'4502987655' AND Cod_Errore IS NULL) THROW 51018,'Synthetic warning was not normalized',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RdA WHERE GUID=@guid AND Status=20) THROW 51012,'Successful order status was not updated',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RdE WHERE RdAID=@guid AND Status=20) THROW 51013,'Successful request status was not updated',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RDA_Esiti WHERE Num_Ordine=N'4502987656' AND Cod_Errore=N'E002') THROW 51019,'Synthetic error result was not archived',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {
@@ -168,6 +171,31 @@ namespace PollingWeb.IntegrationTests
                     connection))
                 {
                     Assert.True(Convert.ToInt32(command.ExecuteScalar()) > 0);
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void Flusso_RDA_ist_executes_synthetic_nb_request_and_item_inside_rollback()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier=NEWID(), @art uniqueidentifier=NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,Istituto,IstID,Status,Oggetto,DataModifica,CFor,GruppoAcquisti,TipoOrdine,Frequenza,DataInizioCompetenza,DataFineCompetenza) " +
+                    "VALUES (@guid,987654329,1,N'TEST',1,1,15,N'Synthetic request NB',GETDATE(),1001,N'001',N'NB',1,GETDATE(),GETDATE()); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt (IDArt,RdAID,GUIDArt,GruppoMerci,DescrDett_Ord,QtaC,CostoConcordatoNoIva,DataInizioCompetenza,DataFineCompetenza) VALUES (987654329,@guid,@art,N'001',N'Synthetic NB item',1,100,GETDATE(),GETDATE()); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt_Costo_per_Anno (GUIDArt,DataInizioAnno,DataFineAnno,GGAnno,CostoAnno,AnnoCompetenza) VALUES (@art,GETDATE(),GETDATE(),1,100,2099); " +
+                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode,IstID,CodiceColl) VALUES (N'TEST06',1,N'006'); " +
+                    "UPDATE eProcurement.dbo.RdA SET CdRUOCode=N'TEST06' WHERE GUID=@guid; " +
+                    "EXEC dbo.Flusso_RDA_ist @pi_istituto=1,@po_valoreuscita=@output OUTPUT; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Tiporecord=N'RDA')<2 THROW 51020,'Synthetic RDA institute NB flow produced insufficient rows',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
                 }
             }
         }

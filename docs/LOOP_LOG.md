@@ -2057,11 +2057,11 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Modifica:** aggiunti test per `Flusso_Ordini_SAP` con fixture articolo/costo annuale e per `Flusso_Ordini_SAP_ist` con request/item NB dell'istituto sintetico; transazioni rollbackabili. Nessuna modifica alle routine/schema.
 
-### 2026-10-17T22:30Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 58)
+### 2026-10-17T23:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS (iterazione 59)
 
-**Modifica:** aggiunto caso NC multi-periodo per `Flusso_RDA_ist` con item/costo sintetici e assert su più righe output; `Esiti_Ordini_SAP` ora verifica il trattamento dei warning: archivia il codice originale e azzera il warning corrente, lasciando verificabile il percorso di successo. Scritture rollbackate.
+**Modifica:** aggiunto caso NB per `Flusso_RDA_ist` con request/item/costo annuale sintetici, verifica output header+item e rollback. Un test esplorativo di rimozione fornitore è stato scartato dopo aver verificato il SQL: `AggiornaFornitori` non elimina fornitori assenti dalla staging; il contratto non viene inventato. Nessun cambio alla logica SQL.
 
-**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Filtro SQL su 10 casi T3 → 10/10 pass. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1 `MSB4249` (Website WebForms legacy); `git diff --check` → exit 0. T3 resta `[~]`: non tutti gli oggetti/rami del DoD sono coperti; restano i failure full suite preesistenti già registrati.
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. Filtro SQL mirato su 11 casi → 11/11 pass. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1 `MSB4249` Website; `git diff --check` → exit 0. T3 resta `[~]`: non tutti gli oggetti/rami della DoD sono coperti e la full integration suite ha failure noti precedenti.
 
 ---
 
