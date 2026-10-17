@@ -2015,7 +2015,15 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Verifica soluzione:** `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` (Website WebForms, limite noto).
 
-**Esito:** C11 chiuso `[x]`; la tabella archivio viene risolta nel DB proprietario. Non attestata la suite completa verde (resta il contract count Polling 9 vs 10), né macOS/Windows.
+**Esito C11:** chiuso `[x]` nel commit precedente; vedi §8 e `sql/eProcurement/README.md`.
+
+---
+
+## 2026-10-17T14:00Z — T2 Unit test logica pura — IN PROGRESS
+
+**Baseline riprodotto:** le suite preesistenti coprivano soprattutto validazioni, filtro SQL e configurazione; Aggset e ParserFatture restano scarsamente coperte. Aggiunta configurazione Coverlet e due test sui wrapper Aggset che verificano il messaggio d'errore e la inner exception. Evitati refactoring alla logica di dominio.
+
+**Verifica reale:** `PATH=/opt/dotnet:$PATH dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --collect:'XPlat Code Coverage' --nologo -v quiet` → 149 passati/2 ignorati. Report Cobertura: ValidaData 67,6%, Aggset 22,7%, ParserFatture 2,9%; T2 non completato per copertura insufficiente. Build `Database/Database.csproj` net8.0 e net48 exit 0; build `PollingClass/PollingClass.csproj` net8.0 e net48 exit 0 (net48: 5 warning); `git diff --check` exit 0. Soluzione non eseguita: blocco Website noto.
 
 ---
 

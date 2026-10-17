@@ -39,7 +39,26 @@ namespace PollingWeb.UnitTests
             }
         }
 
-        // ------------------------------------------------------------------ ValidaData
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("not-an-address")]
+        public void Aggset_query_wrapper_preserves_inner_failure_without_database(string sql)
+        {
+            var error = Assert.Throws<InvalidOperationException>(() =>
+                Database.TableInterface.Aggset.EseguiQuery("synthetic", sql, null));
+            Assert.Equal("EseguiQuery failed.", error.Message);
+            Assert.NotNull(error.InnerException);
+        }
+
+        [Fact]
+        public void Aggset_command_wrapper_preserves_inner_failure_without_database()
+        {
+            var error = Assert.Throws<InvalidOperationException>(() =>
+                Database.TableInterface.Aggset.Eseguicomando("synthetic command", null));
+            Assert.Equal("Eseguicomando failed.", error.Message);
+            Assert.NotNull(error.InnerException);
+        }
 
         [Fact]
         public void ValidaData_accetta_il_valore_assente()
