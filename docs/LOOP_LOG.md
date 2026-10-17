@@ -2,6 +2,20 @@
 
 Registro append-only delle iterazioni del loop.
 
+## 2026-10-17T07:02Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** il caso `Esiti_Ordini_SAP_converts_synthetic_warning_to_success_and_archives_original` verificava gli stati finali RdA/RdE ma non controllava l'esatto numero di righe di log per la transizione di successo.
+
+**Modifica:** aggiunta asserzione che il GUID sintetico abbia esattamente un log con `StatoID=20` e `StatoIntID=20`; resta nella transazione con rollback del test.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori. Test mirato eseguito con configurazione SQL del container caricata senza stamparla: `dotnet test tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-build --no-restore --nologo -v quiet --filter FullyQualifiedName~Esiti_Ordini_SAP_converts_synthetic_warning_to_success_and_archives_original` → 1/1 pass, exit 0. `git diff --check` → exit 0. Build soluzione non parte dal task legacy già noto; nell'iterazione precedente `dotnet build PollingWeb.sln --nologo -v quiet` ha prodotto MSB4249.
+
+**Prossimo task:** continuare T3 con un altro ramo/oggetto richiesto dalla DoD.
+
+**Blocchi:** nessuno per questo caso; T3 resta incompleta.
+
+---
+
 ## 2026-10-17T06:36Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** il test `AzzeraTargetSC00G100_deletes_only_requested_synthetic_institute` cancellava e verificava una sola riga. Non dimostrava che l'operazione fosse limitata all'istituto richiesto.

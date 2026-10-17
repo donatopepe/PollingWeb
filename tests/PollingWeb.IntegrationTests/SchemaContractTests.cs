@@ -103,6 +103,7 @@ namespace PollingWeb.IntegrationTests
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RDA_Esiti_LastOutput_OnLine WHERE Num_Ordine=N'4502987655' AND Cod_Errore IS NULL) THROW 51018,'Synthetic warning was not normalized',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RdA WHERE GUID=@guid AND Status=20) THROW 51012,'Successful order status was not updated',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RdE WHERE RdAID=@guid AND Status=20) THROW 51013,'Successful request status was not updated',1; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.LogTime_Ciclo WHERE Rch_ID=@guid AND StatoID=20 AND StatoIntID=20)<>1 THROW 51030,'Successful order transition was not logged exactly once',1; " +
                     "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RDA_Esiti WHERE Num_Ordine=N'4502987656' AND Cod_Errore=N'E002') THROW 51019,'Synthetic error result was not archived',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
