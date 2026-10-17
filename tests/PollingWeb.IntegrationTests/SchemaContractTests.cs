@@ -63,13 +63,15 @@ namespace PollingWeb.IntegrationTests
                     "BEGIN TRANSACTION; BEGIN TRY " +
                     "DECLARE @guid uniqueidentifier=NEWID(), @output varchar(40); " +
                     "INSERT INTO eProcurement.dbo.RdA (GUID, Progressivo, PageID, Matricola, IstID, Istituto, Status, NOrdSAP) " +
-                    "VALUES (@guid, 987654323, 1, N'TEST', 1, 1, 15, 987654323); " +
+                    "VALUES (@guid, 987654323, 1, N'TEST', 1, 1, 15, 4502987654); " +
                     "INSERT INTO eProcurement.dbo.LogTime_Ciclo (Rch_ID, Rch_Progr, PageID, Matricola, StatoID, StatoIntID) " +
                     "VALUES (@guid, 1, 1, N'TEST', 15, 15); " +
                     "INSERT INTO eProcurement.dbo.RdE (GUID,Progressivo,PageID,IstID,RdAID,Status) VALUES (NEWID(),987654323,1,1,@guid,15); " +
                     "INSERT INTO eProcurement.dbo.RDA_Esiti_LastOutput_OnLine (Num_Ordine, Mandante, Societa, Posizione, Cod_Errore, Desc_Errore) " +
                     "VALUES (N'4502987654', N'000', N'1000', N'001', N'E001', N'Synthetic error'); " +
                     "EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RDA_Esiti WHERE Num_Ordine=N'4502987654' AND Cod_Errore=N'E001') THROW 51007,'Synthetic SAP error was not archived',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.RdA WHERE GUID=@guid AND Status=16) THROW 51008,'Synthetic request status was not updated',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
                 {

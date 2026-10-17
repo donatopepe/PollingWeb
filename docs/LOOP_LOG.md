@@ -2057,7 +2057,7 @@ Windows/macOS non verificati localmente; la soluzione completa continua a fallir
 
 **Modifica:** aggiunti controlli più forti ai test: `AzzeraTargetSC00G100` verifica la rimozione mirata del record sintetico; `Flusso_RDA_ist` esegue anche con item/costo sintetici; il test `Esiti_Ordini_SAP` include ora anche una `RdE` sintetica per attraversare il percorso relativo agli esiti. Nessun cambio alle stored procedure o allo schema.
 
-**Evidenza reale:** `dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. `POLLING_DB_PASSWORD` configurata solo nell'ambiente di comando; `dotnet test ... --filter '<13 filtri T3>'` → 13/13 pass su SQL Server 2022. `dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` (Website WebForms legacy); `git diff --check` → exit 0. T3 resta `[~]`: i test aumentati non coprono ancora tutti i branch funzionali per ogni stored procedure/funzione; la suite completa ha failure preesistenti SMTP/schema count già registrate nell'iterazione 49.
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0. `PATH=/opt/dotnet:$PATH POLLING_DB_$1=[REDACTED] dotnet test ... --filter '<13 filtri T3>'` → 13/13 pass su SQL Server 2022. `PATH=/opt/dotnet:$PATH dotnet build PollingWeb.sln --nologo -v quiet` → exit 1, `MSB4249` (Website WebForms legacy); `git diff --check` → exit 0. T3 resta `[~]`: i 13 test coprono casi sintetici, ma non tutti i rami funzionali/procedure; la suite completa ha failure preesistenti SMTP/schema count registrate nell'iterazione 49.
 
 ---
 
