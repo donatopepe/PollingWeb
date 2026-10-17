@@ -60,6 +60,16 @@ namespace PollingWeb.UnitTests
             Assert.NotNull(error.InnerException);
         }
 
+        [Theory]
+        [InlineData("31/12/2024", true)]
+        [InlineData("2024-12-31", true)]
+        [InlineData("not-a-date", false)]
+        [InlineData("2024-13-45", false)]
+        public void ValidaData_copre_formati_iso_e_input_non_validi(string value, bool expected)
+        {
+            Assert.Equal(expected, ValidaData.Esegui(value));
+        }
+
         [Fact]
         public void ValidaData_accetta_il_valore_assente()
         {
@@ -159,6 +169,16 @@ namespace PollingWeb.UnitTests
         public void IsNumeric_accetta_un_numero_valido(string valore)
         {
             ConCultura("it-IT", () => Assert.True(IsNumeric.Esegui(valore)));
+        }
+
+        [Theory]
+        [InlineData("1.5", 1, true)]
+        [InlineData("1234.567", 2, true)]
+        [InlineData("not-a-number", 2, false)]
+        [InlineData("1", 0, true)]
+        public void IsNumeric_gestisce_precisione_e_input_invalidi(string valore, int decimali, bool expected)
+        {
+            Assert.Equal(expected, IsNumeric.Esegui(valore, decimali));
         }
 
         [Theory]
