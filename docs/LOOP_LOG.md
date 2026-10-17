@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T17:07Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Flusso_Ordini_SAP_ist_executes_with_synthetic_nb_item_and_rollback` exercises the selected institute's order but did not add a second ready order from a different institute to ensure the filter excludes it.
+
+**Esito atteso:** the focused transaction executes the target-institute order and leaves the foreign-institute ready order out of the output for this session.
+
+**Modifica:** attempted to assert a master output row by parsing its legacy fixed-width format. Baseline failure showed that assumption was invalid (`Synthetic ODA institute flow produced no master row for requested institute`), so both new assertions were removed. No valid improvement remained within this attempt; the baseline test was restored unchanged. Existing output-scope coverage from iteration 72 remains intact.
+
+**Evidenza reale:** after restoring the baseline test, `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `Flusso_Ordini_SAP_ist_executes_with_synthetic_nb_item_and_rollback` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T17:00Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `Flusso_Ordini_SAP_ist_executes_with_synthetic_request_inside_rollback` checked only that the current session received some ODA output, not that the emitted rows were all scoped to the requested institute.
