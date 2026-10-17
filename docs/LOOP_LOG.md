@@ -2,6 +2,22 @@
 
 Registro append-only delle iterazioni del loop.
 
+## 2026-10-17T09:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `ImportaBudget_inserts_then_updates_synthetic_budget_and_rolls_back` verifica inserimento, update e disattivazione del budget precedente per il solo istituto sintetico; non controlla possibili effetti su altri istituti.
+
+**Esito atteso:** dopo le due chiamate alla stored procedure, nessun budget attivo appartenente a un altro istituto deve essere disattivato.
+
+**Modifica:** aggiunta asserzione nella stessa transazione/rollback, dopo l'update, che non esistano righe `IsActive=1` di istituti diversi da quello sintetico.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori. Test mirato con configurazione SQL del container caricata senza stamparla → `ImportaBudget_inserts_then_updates_synthetic_budget_and_rolls_back` 1/1 pass, exit 0. `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con un altro oggetto o ramo non ancora coperto.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+---
+
 ## 2026-10-17T08:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Esito atteso:** il test errore sintetico passa e assicura che la RdA in stato 16 non generi anche un log di transizione successo (stato 20).
