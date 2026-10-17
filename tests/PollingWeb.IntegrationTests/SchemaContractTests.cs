@@ -231,6 +231,33 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Flusso_RDA_removes_previous_export_for_same_request_before_replacing_it()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier=NEWID(), @guidText varchar(40), @output varchar(40); " +
+                    "SET @guidText=CONVERT(varchar(40),@guid); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,IstID,Istituto,Status,Oggetto,DataModifica,CFor,GruppoAcquisti,TipoOrdine,Frequenza,DataInizioCompetenza,DataFineCompetenza) " +
+                    "VALUES (@guid,987654329,1,N'TEST',1,1,15,N'Synthetic request replacement',GETDATE(),1001,N'001',N'NB',1,GETDATE(),GETDATE()); " +
+                    "SET @guidText=CONVERT(varchar(40),@guid); " +
+                    "INSERT INTO eProcurement.dbo.Tbl_Export_SAP_OnLine (Riga,Spid,Codist,Elaborato,Tiporecord,NumRda) " +
+                    "VALUES (N'Synthetic stale request row',@@SPID,1,0,N'RDA',N'4502654329'); " +
+                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode,IstID,CodiceColl) VALUES (N'TEST29',1,N'029'); " +
+                    "EXEC dbo.Flusso_RDA @pi_guid=@guidText,@po_valoreuscita=@output OUTPUT; " +
+                    "IF EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Riga=N'Synthetic stale request row') THROW 51046,'Stale synthetic request export was not replaced',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Codist=1 AND Tiporecord=N'RDA' AND NumRda=N'4502654329') THROW 51047,'Synthetic request export was not created',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Flusso_RDA_ist_executes_with_synthetic_request_inside_rollback()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))

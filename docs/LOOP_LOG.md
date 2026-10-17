@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T18:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Flusso_RDA` was covered for output creation but not replacement of an existing output row for the same generated order number and institute.
+
+**Esito atteso:** procedure removes an existing synthetic stale export with the computed order number and institute, then writes the current request output; rollback removes fixtures.
+
+**Modifica:** added a rollbackable SQL integration case that seeds the request and a matching stale export, invokes `Flusso_RDA`, and checks the stale marker is gone and new RDA output is present.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori; focused SQL test `Flusso_RDA_removes_previous_export_for_same_request_before_replacing_it` → 1/1 pass, exit 0; `git diff --check` → exit 0. Initial fixtures using an incorrect order-number assumption and a too-long `NumRda` value failed; corrected to match the procedure's computed order number and column width before final passing run.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T18:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the no-match `ImportaBudget` case exercises a synthetic institute but does not assert the procedure's initial deactivation remains scoped when another institute has an active budget.
