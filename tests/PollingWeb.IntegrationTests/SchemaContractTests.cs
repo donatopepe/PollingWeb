@@ -147,6 +147,57 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void AggiornaFornitori_inserts_then_updates_synthetic_supplier_and_rolls_back()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30); " +
+                    "INSERT INTO dbo.TargetSC00G100 (Istituto,Cfor,Ragione_Sociale,Indirizzo,Prov,Cap,Citta,Codfis,Piva) " +
+                    "VALUES (32001,987654321,N'Synthetic Supplier',N'Example Road',N'XY',N'00001',N'Test City',N'0000000000000001',N'00000000001'); " +
+                    "EXEC dbo.AggiornaFornitori @pi_istituto=32001,@po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID=32001 AND CFor=987654321 AND RagSoc=N'Synthetic Supplier') THROW 51002,'Synthetic supplier insert branch failed',1; " +
+                    "UPDATE dbo.TargetSC00G100 SET Ragione_Sociale=N'Synthetic Supplier Updated' WHERE Istituto=32001 AND Cfor=987654321; " +
+                    "EXEC dbo.AggiornaFornitori @pi_istituto=32001,@po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimFornitori WHERE IstID=32001 AND CFor=987654321 AND RagSoc=N'Synthetic Supplier Updated') THROW 51003,'Synthetic supplier update branch failed',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void ImportaBudget_inserts_then_updates_synthetic_budget_and_rolls_back()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @material nvarchar(10)=N'T' + RIGHT(REPLACE(CONVERT(nvarchar(36),NEWID()),N'-',N''),9), " +
+                    "@sapId int=(SELECT ISNULL(MAX(IDCatSAP),0)+1000 FROM eProcurement.dbo.DimSottoCatSAP), " +
+                    "@date datetime=DATEFROMPARTS(2099,12,31), @output varchar(30); " +
+                    "INSERT INTO eProcurement.dbo.DimSottoCatSAP (IDCatSAP,Materiale) VALUES (@sapId,@material); " +
+                    "INSERT INTO eProcurement.dbo.DimBudgetTemp (Istituto,CodCDR,Materiale,BudgetRilasci,BudgetResiduo,CodFondo,Datarif) " +
+                    "VALUES (32000,N'TEST',@material,100,70,N'SYNTHETIC',@date); " +
+                    "EXEC dbo.ImportaBudget @pi_istituto=32000,@po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32000 AND SapID=@sapId AND Materiale=@material AND BudgetAttuale=100 AND BudgetResiduo=70) THROW 51000,'Synthetic insert branch failed',1; " +
+                    "UPDATE eProcurement.dbo.DimBudgetTemp SET BudgetRilasci=150,BudgetResiduo=120 WHERE Istituto=32000 AND Materiale=@material; " +
+                    "EXEC dbo.ImportaBudget @pi_istituto=32000,@po_valoreuscita=@output OUTPUT; " +
+                    "IF NOT EXISTS (SELECT 1 FROM eProcurement.dbo.DimBudget WHERE IstID=32000 AND SapID=@sapId AND Materiale=@material AND BudgetAttuale=150 AND BudgetResiduo=120 AND IsActive=1) THROW 51001,'Synthetic update branch failed',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Remaining_sap_procedures_return_success_for_no_match_synthetic_inputs()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
