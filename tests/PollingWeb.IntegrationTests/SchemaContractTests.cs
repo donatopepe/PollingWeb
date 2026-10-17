@@ -54,13 +54,42 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
-        public void Esiti_Ordini_SAP_executes_with_eProcurement_archive_target()
+        public void Esiti_Ordini_SAP_executes_with_synthetic_error_result_and_rollback()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
             {
                 connection.Open();
-                using (var command = new SqlCommand("BEGIN TRANSACTION; BEGIN TRY DECLARE @output varchar(40); EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION; THROW; END CATCH;", connection))
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier=NEWID(), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID, Progressivo, PageID, Matricola, IstID, Istituto, Status, NOrdSAP) " +
+                    "VALUES (@guid, 987654323, 1, N'TEST', 1, 1, 15, 987654323); " +
+                    "INSERT INTO eProcurement.dbo.LogTime_Ciclo (Rch_ID, Rch_Progr, PageID, Matricola, StatoID, StatoIntID) " +
+                    "VALUES (@guid, 1, 1, N'TEST', 15, 15); " +
+                    "INSERT INTO eProcurement.dbo.RDA_Esiti_LastOutput_OnLine (Num_Ordine, Mandante, Societa, Posizione, Cod_Errore, Desc_Errore) " +
+                    "VALUES (N'4502987654', N'000', N'1000', N'001', N'E001', N'Synthetic error'); " +
+                    "EXEC dbo.Esiti_Ordini_SAP @po_valoreuscita=@output OUTPUT; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
                     command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void StripHTML_functions_return_expected_synthetic_text()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                foreach (var function in new[] { "dbo.StripHTML", "eProcurement.dbo.StripHTML" })
+                {
+                    using (var command = new SqlCommand("SELECT " + function + "(N'<b>synthetic-name</b>')", connection))
+                    {
+                        Assert.Equal(" synthetic name ", command.ExecuteScalar());
+                    }
+                }
             }
         }
 
@@ -76,8 +105,38 @@ namespace PollingWeb.IntegrationTests
                     "INSERT INTO eProcurement.dbo.RdA (GUID, Progressivo, PageID, Matricola, IstID, Istituto, Status, " +
                     "Oggetto, DataModifica, CFor, GruppoAcquisti, TipoOrdine, Frequenza, DataInizioCompetenza, DataFineCompetenza) " +
                     "VALUES (@guid, 987654321, 1, N'TEST', 1, 1, 15, N'Synthetic test request', GETDATE(), 1001, N'001', N'NB', 1, GETDATE(), GETDATE()); " +
+                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode, IstID, CodiceColl) VALUES (N'TEST01', 1, N'001'); " +
                     "DECLARE @guidText varchar(40) = CONVERT(varchar(40), @guid); " +
                     "EXEC dbo.Flusso_RDA @pi_guid=@guidText, @po_valoreuscita=@output OUTPUT; " +
+                    "SELECT COUNT(*) FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    Assert.True(Convert.ToInt32(command.ExecuteScalar()) > 0);
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
+        public void Flusso_Ordini_SAP_executes_with_synthetic_request_inside_rollback()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @guid uniqueidentifier = NEWID(), @guidText varchar(40), @output varchar(40); " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID, Progressivo, PageID, Matricola, IstID, Istituto, Status, " +
+                    "Oggetto, DataModifica, CFor, GruppoAcquisti, TipoOrdine, Frequenza, DataInizioCompetenza, DataFineCompetenza) " +
+                    "VALUES (@guid, 987654322, 1, N'TEST', 1, 1, 15, N'Synthetic order test', GETDATE(), 1001, N'001', N'NB', 1, GETDATE(), GETDATE()); " +
+                    "INSERT INTO eProcurement.dbo.RDAArt (IDArt, RdAID, SapID, QtaC, CostoConcordatoNoIva, DescrDett_Ord, DataPrevCons, TipoContabilizzazione) " +
+                    "VALUES (987654322, @guid, 1, 1, 10, N'Synthetic item', GETDATE(), N'Y'); " +
+                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode, IstID, CodiceColl) VALUES (N'TEST01', 1, N'001'); " +
+                    "UPDATE eProcurement.dbo.RdA SET CdRUOCode=N'TEST01' WHERE GUID=@guid; " +
+                    "INSERT INTO eProcurement.dbo.DimSottoCatSAP (IDCatSAP, Materiale) VALUES (1, N'SYNTHETIC'); " +
+                    "INSERT INTO eProcurement.dbo.JoinCatSottoCat (CatID, SCID, SapID, CodPrg) VALUES (1, 1, 1, N'TEST'); " +
+                    "SET @guidText = CONVERT(varchar(40), @guid); " +
+                    "EXEC dbo.Flusso_Ordini_SAP @pi_guid=@guidText, @po_valoreuscita=@output OUTPUT; " +
                     "SELECT COUNT(*) FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))
