@@ -679,6 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
+| 2026-10-17 | 87 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning; `AzzeraTargetSC00G100_clears_all_rows_for_target_institute_only` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 86 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `AzzeraTargetSC00G100_empty_target_clears_output_without_deleting_other_rows` SQL test 1/1 pass; `git diff --check` exit 0. |
 | 2026-10-17 | 85 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Esiti_Ordini_SAP_converts_synthetic_warning_to_success_and_archives_original` SQL test 1/1 pass con assert output vuoto; `git diff --check` exit 0. |
 | 2026-10-17 | 84 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `AggiornaFornitori_empty_target_clears_output_without_touching_rows` SQL test 1/1 pass; `git diff --check` exit 0. |

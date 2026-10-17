@@ -391,6 +391,29 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void AzzeraTargetSC00G100_clears_all_rows_for_target_institute_only()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(30); " +
+                    "INSERT INTO dbo.TargetSC00G100 (Istituto,Cfor,Ragione_Sociale) VALUES " +
+                    "(32010,987654340,N'Synthetic target one'),(32010,987654341,N'Synthetic target two'),(32011,987654340,N'Synthetic neighboring institute'); " +
+                    "EXEC dbo.AzzeraTargetSC00G100 @pi_istituto=32010,@po_valoreuscita=@output OUTPUT; " +
+                    "IF EXISTS (SELECT 1 FROM dbo.TargetSC00G100 WHERE Istituto=32010) THROW 51060,'Target institute rows remained after clear',1; " +
+                    "IF NOT EXISTS (SELECT 1 FROM dbo.TargetSC00G100 WHERE Istituto=32011 AND Cfor=987654340) THROW 51061,'Neighboring institute row was deleted',1; " +
+                    "IF @output<>'' THROW 51062,'Target clear output was not empty',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void AzzeraTargetSC00G100_empty_target_clears_output_without_deleting_other_rows()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))

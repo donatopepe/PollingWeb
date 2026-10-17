@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T20:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `AzzeraTargetSC00G100` test verifies isolation with a single target row; it does not assert removal of multiple target rows in one call.
+
+**Esito atteso:** the procedure removes all synthetic rows for the requested institute, preserves a neighboring institute's row, and returns empty output; all changes roll back.
+
+**Modifica:** added a transaction-backed case with two target rows and one neighboring-institute row, then asserted full target cleanup and neighboring row retention.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `AzzeraTargetSC00G100_clears_all_rows_for_target_institute_only` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T20:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `AzzeraTargetSC00G100` has a populated-target test but lacks a direct empty-target assertion for output reset and non-interference.
