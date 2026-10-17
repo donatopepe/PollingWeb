@@ -162,6 +162,7 @@ namespace PollingWeb.IntegrationTests
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.RdA WHERE GUID IN (@guidA,@guidB) AND Status=20)<>2 THROW 51024,'Successful synthetic orders were not marked',1; " +
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.RdE WHERE RdAID IN (@guidA,@guidB) AND Status=20)<>2 THROW 51025,'Successful synthetic requests were not marked',1; " +
                     "IF (SELECT COUNT(*) FROM eProcurement.dbo.LogTime_Ciclo WHERE Rch_ID IN (@guidA,@guidB) AND StatoID=20 AND StatoIntID=20)<>2 THROW 51026,'Success transition log entries were not written',1; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.RDA_Esiti WHERE Num_Ordine IN (N'4502987660',N'4502987661') AND Cod_Errore IS NULL)<>2 THROW 51075,'Repeated success processing duplicated archived results',1; " +
                     "IF @output<>'' THROW 51067,'Multiple-success Esiti_Ordini_SAP output was not empty',1; " +
                     "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
                     connection))

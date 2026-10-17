@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T00:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** the two-success `Esiti_Ordini_SAP` case checks that two archived success records exist but does not assert that there are exactly two, so duplicate archival could pass.
+
+**Esito atteso:** the two synthetic successful inputs result in exactly two archived success rows for those order numbers.
+
+**Modifica:** added count-equals-two assertion over the two synthetic order IDs in the existing rollbackable batch test.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `Esiti_Ordini_SAP_marks_multiple_synthetic_successful_orders_and_logs_transition` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T00:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the synthetic `ImportaBudget` update path verifies the expected active row and total compound-key count, but does not explicitly reject a stale active row with previous amount values for that key.
