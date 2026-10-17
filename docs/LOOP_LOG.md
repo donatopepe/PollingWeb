@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-17T21:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** existing no-match `ImportaBudget` tests cover a single existing target budget but do not assert that the procedure deactivates all active budgets for the institute in one invocation.
+
+**Esito atteso:** for multiple active synthetic budgets and no matching staging rows, every target-institute budget becomes inactive and none remains active; transaction is rolled back.
+
+**Modifica:** added a rollbackable SQL integration test seeding two active synthetic budgets for a separate institute, invokes `ImportaBudget`, and checks both deactivation count and absence of active target rows.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `ImportaBudget_no_match_institute_deactivates_multiple_active_budgets` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-17T23:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the synthetic SAP error case confirms the error is archived, but only asserts existence, not uniqueness, of the archived row.
