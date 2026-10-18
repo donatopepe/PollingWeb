@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T02:48Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** i casi `StripHTML` coprivano testo sintetico, markup, accenti, punteggiatura e spazi consecutivi; mancava una verifica che un testo privo di markup conservi CRLF anziché convertirli o rimuoverli.
+
+**Esito atteso:** entrambe le copie SQL restituiscono `plain\r\nsynthetic` byte-per-byte per input senza markup.
+
+**Modifica:** aggiunto il valore multilinea sintetico alla query condivisa e asserzione CRLF sulle due funzioni.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning preesistenti/0 errori; con password solo nell’ambiente di processo, test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 secondo la DoD.
+
+**Blocchi:** nessuno; T3 resta incompleta.
+
 ## 2026-10-18T02:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** i casi `StripHTML` verificavano la virgola e il trattino, ma non la trasformazione di apostrofo ASCII, backtick e apostrofo tipografico. La funzione sostituisce ognuno di questi caratteri con uno spazio; non elimina né compatta gli spazi risultanti.
