@@ -65,9 +65,12 @@ namespace PollingWeb.UnitTests
         [MemberData(nameof(JobTypes))]
         public void Daily_recurring_job_data_value_is_consumed_as_false_by_each_job(Type jobType)
         {
-            var onetime = FornitoriSchedulePolicy.DailyRecurringOnetimeValue();
-            Assert.Equal("false", onetime);
-            Assert.False(Convert.ToBoolean(onetime));
+            var dailyData = new JobDataMap
+            {
+                ["onetime"] = FornitoriSchedulePolicy.DailyRecurringOnetimeValue()
+            };
+            Assert.Equal("false", dailyData.GetString("onetime"));
+            Assert.False(Convert.ToBoolean(dailyData.GetString("onetime")));
             Assert.True(typeof(IJob).IsAssignableFrom(jobType));
         }
 
