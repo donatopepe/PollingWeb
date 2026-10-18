@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T08:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `StripHTML` non aveva un caso plain per il caret (`^`); il carattere non è nella lista di sostituzioni della funzione.
+
+**Esito atteso:** `A^B` resta invariato in entrambe le copie SQL.
+
+**Modifica:** aggiunto input sintetico e asserzione exact-result alla query condivisa. Il primo build ha trovato un `+` mancante nella concatenazione C#; corretto prima del test DB.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Segreto fornito solo nell’ambiente del processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T07:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** i test coprivano varie normalizzazioni di `StripHTML`, ma non il mantenimento di `%` in testo plain. L’implementazione non include `%` tra i caratteri sostituiti.
