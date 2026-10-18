@@ -63,6 +63,16 @@ namespace PollingWeb.UnitTests
 
         [Theory]
         [MemberData(nameof(JobTypes))]
+        public void Daily_recurring_job_data_value_is_consumed_as_false_by_each_job(Type jobType)
+        {
+            var onetime = FornitoriSchedulePolicy.DailyRecurringOnetimeValue();
+            Assert.Equal("false", onetime);
+            Assert.False(Convert.ToBoolean(onetime));
+            Assert.True(typeof(IJob).IsAssignableFrom(jobType));
+        }
+
+        [Theory]
+        [MemberData(nameof(JobTypes))]
         public void Legacy_job_types_are_constructible_and_expose_Quartz_execute_contract(Type jobType)
         {
             Assert.NotNull(Activator.CreateInstance(jobType));
