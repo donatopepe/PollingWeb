@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using PollingClass;
 using Xunit;
 
@@ -6,6 +7,27 @@ namespace PollingWeb.UnitTests
 {
     public class OrdiniSchedulerPolicyTests
     {
+        [Fact]
+        public void Daily_job_data_projection_preserves_legacy_keys_and_values()
+        {
+            var data = OrdiniJobDataPolicy.JobData("inst", "proc", true, false, "ODA");
+            Assert.Equal(new[] { "codist", "idprocesso", "onetime", "tipoExport" }, data.Keys.OrderBy(key => key));
+            Assert.Equal("inst", data["codist"]);
+            Assert.Equal("proc", data["idprocesso"]);
+            Assert.Equal("false", data["onetime"]);
+            Assert.Equal("ODA", data["tipoExport"]);
+        }
+
+        [Fact]
+        public void Interval_job_data_projection_preserves_receipt_keys_and_flags()
+        {
+            var data = OrdiniJobDataPolicy.IntervalJobData("inst", "proc", false, 0, "ODA");
+            Assert.Equal("inst", data["codist"]);
+            Assert.Equal("proc", data["idprocesso"]);
+            Assert.Equal("true", data["onetime"]);
+            Assert.Equal(string.Empty, data["tipoExport"]);
+        }
+
         [Theory]
         [InlineData(true, 0, "ODA", true, "ODA")]
         [InlineData(true, 5, "ODA", false, "ODA")]

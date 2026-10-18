@@ -14,10 +14,9 @@ namespace PollingClass
             IJobDetail job = sendFile
                 ? JobBuilder.Create<JobOrdini_SAP_Invio>().WithIdentity("JOB_" + processId + "_" + institutionCode, "IDG").Build()
                 : JobBuilder.Create<JobOrdini_SAP_Esito>().WithIdentity("JOB_" + processId + "_" + institutionCode, "IDG").Build();
-            job.JobDataMap.Add("codist", institutionCode);
-            job.JobDataMap.Add("idprocesso", processId);
-            job.JobDataMap.Add("tipoExport", OrdiniJobDataPolicy.TipoExport(sendFile, tipoExport));
-            job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.DailyRecurringOnetimeValue());
+            var jobData = OrdiniJobDataPolicy.JobData(institutionCode, processId, sendFile,
+                Convert.ToBoolean(FornitoriSchedulePolicy.DailyRecurringOnetimeValue()), tipoExport);
+            foreach (var entry in jobData) job.JobDataMap.Add(entry.Key, entry.Value);
 
             var weekdays = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
                 DayOfWeek.Thursday, DayOfWeek.Friday };
@@ -58,11 +57,9 @@ namespace PollingClass
             IJobDetail job = sendFile
                 ? JobBuilder.Create<JobOrdini_SAP_Invio>().WithIdentity(jobId, "IDG").Build()
                 : JobBuilder.Create<JobOrdini_SAP_Esito>().WithIdentity(jobId, "IDG").Build();
-            var arguments = OrdiniJobDataPolicy.IntervalArguments(sendFile, intervalMinutes, tipoExport);
-            job.JobDataMap.Add("codist", institutionCode);
-            job.JobDataMap.Add("idprocesso", processId);
-            job.JobDataMap.Add("tipoExport", arguments.TipoExport);
-            job.JobDataMap.Add("onetime", arguments.OneTime.ToString().ToLowerInvariant());
+            var jobData = OrdiniJobDataPolicy.IntervalJobData(institutionCode, processId,
+                sendFile, intervalMinutes, tipoExport);
+            foreach (var entry in jobData) job.JobDataMap.Add(entry.Key, entry.Value);
             ITrigger trigger;
             if (intervalMinutes == 0)
             {
