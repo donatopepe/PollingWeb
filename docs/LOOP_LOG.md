@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T08:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `StripHTML` verificava le vocali gravi minuscole, non l’input isolato `À`; `REPLACE` SQL è soggetto alla collation case-insensitive dell’istanza.
+
+**Esito atteso:** caratterizzare l’output di entrambe le copie per `À`; prima verifica ipotizzava `A`.
+
+**Modifica:** aggiunto il caso isolato al result set e asserzione condivisa. Il test ha osservato `a`, non `A`; l’asserzione è stata corretta sul risultato effettivo, coerente con la collation. Il primo build aveva inoltre segnalato un `+` mancante nella concatenazione C#, corretto prima del run finale.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; SQL test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale solo nell’ambiente del processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T08:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** la funzione SQL normalizza le cinque vocali con accento grave ma non l’accento acuto `á`; quest’ultimo non era testato isolatamente.
