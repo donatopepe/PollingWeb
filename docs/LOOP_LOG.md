@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T04:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `StripHTML` test copriva un elemento e elementi fratelli adiacenti, ma non tag annidati con testo prima, dentro e dopo l’elemento interno.
+
+**Esito atteso:** `<b>outer <i>inner</i> end</b>` diventa ` outer  inner  end `: ogni tag completo viene rimpiazzato da uno spazio, il testo intermedio resta invariato.
+
+**Modifica:** aggiunto il caso sintetico annidato e l’asserzione al test comune delle due copie SQL.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 12 warning preesistenti/0 errori; test SQL mirato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale disponibile solo nell’ambiente del processo.
+
+**Prossimo task:** continuare T3, ancora incompleta.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T04:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** i test `StripHTML` coprivano tag semplici ma non attributi nell’apertura. L’implementazione cerca i delimitatori `<` e `>` e sostituisce il tag completo: il testo visibile `alpha` deve rimanere tra gli spazi delle sostituzioni dei tag.
