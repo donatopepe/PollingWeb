@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T02:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** both deployed `StripHTML` copies are tested for punctuation and markup, but the SQL function explicitly normalizes Italian accented vowels and these mappings are not characterized by the integration test.
+
+**Esito atteso:** for synthetic `città, già`, both SQL function copies replace accented `à` with `a` and comma with a space, producing `citta  gia`.
+
+**Modifica:** extended the shared SQL result-set test with accented text and asserts exact normalization from each database copy.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T02:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** existing `StripHTML` integration covers NULL, empty, plain text, and a well-formed markup string; malformed/unclosed tag input is not characterized.
