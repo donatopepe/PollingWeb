@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T18:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `SQL01QuartzGateway.ScheduleDaily` creava `JobSQL01` senza `onetime`; `JobSQL01.Execute` chiama `Convert.ToBoolean(JobDataMap.GetString("onetime"))`, quindi il job giornaliero falliva con valore mancante prima di `ExportSQL01.Leggi_File`.
+
+**Esito atteso:** il job daily porta `onetime=false`, senza alterare gli intervalli one-time; test helper e build entrambi i TFM.
+
+**Modifica:** aggiunto il campo quotidiano con `FornitoriSchedulePolicy.DailyRecurringOnetimeValue()` condiviso già usato dai gateway daily budget/fatture; test SQL01 dedicato.
+
+**Evidenza reale:** build PollingClass net8.0/net48 `--no-restore --nologo -v quiet` → exit 0 per entrambi, 12 warning/0 errori ciascuno. `SQL01SchedulerPolicyTests` → 8/8 pass; suite unit → 187 pass, 2 skip; `git diff --check` exit 0. Nessun job o database avviato.
+
+**Prossimo:** continuare X2.3 con audit mapping nei gateway e job rimanenti.
+
+**Blocchi:** runtime SQL non verificato, credenziale autorizzata assente. macOS/Windows non verificati.
+
 ## 2026-10-18T18:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `ImportBudgetQuartzGateway.ScheduleDaily` creava `JobBudget` con `codist` e `idprocesso` ma non `onetime`; `JobBudget.Execute` converte quel valore in bool, quindi il trigger daily forniva null al convertitore. Il caso fatture simile era stato corretto nell'iterazione precedente.
