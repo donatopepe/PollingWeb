@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T18:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** i gateway interval impostano `onetime=true` quando `intervalMinutes == 0`, altrimenti `false`; la policy condivisa/contract test copriva la variante daily, non la semantica interval.
+
+**Esito atteso:** intervallo zero si converte in true (one-time); intervallo positivo si converte in false (ricorrente dopo delay), valore negativo rifiutato dalla policy.
+
+**Modifica:** aggiunto `IntervalOnetimeValue` con validazione riusando `IsValidInterval`; i contract test costruiscono `JobDataMap` sintetiche per 0, 1 e 30 minuti e verificano stringa e bool convertito. I gateway esistenti non modificati.
+
+**Evidenza reale:** PollingClass build net8/net48 `--no-restore --nologo -v quiet` → exit 0 ciascuna, 12 warning/0 errori. WorkerJobContractTests → 31/31 pass; unit suite → 198 pass, 2 skip; `git diff --check` exit 0. Nessun scheduler/DB invocato.
+
+**Prossimo:** proseguire X2.3 con contratti JobDataMap e consumo, senza claim di esecuzione reale.
+
+**Blocchi:** runtime SQL non verificato; nessuna credenziale usata. macOS/Windows non verificati localmente.
+
 ## 2026-10-18T18:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** i test precedenti coprivano il valore stringa del flag helper e i sei job types; non costruivano però un oggetto Quartz `JobDataMap`, né verificavano il recupero della chiave con l'API usata da Execute.
