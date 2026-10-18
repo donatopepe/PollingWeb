@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T23:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** supplier daily gateway wrote `codist`, `idprocesso`, and recurring `onetime` directly; order/budget/invoice/SQL01 use shared policy where applicable.
+
+**Expected:** use shared projection with `tipoExport` omitted, retaining legacy three-key map and recurring flag. Scheduler identity, override and cron unchanged.
+
+**Change:** supplier daily map now uses `OrdiniJobDataPolicy.JobData(... includeTipoExport: false)`.
+
+**Evidence:** PollingClass net8/net48 build exit 0, 12 warnings/0 errors each; focused supplier/job-contract tests 56/56; full suite 228 pass, 2 skip; `git diff --check` exit 0. No scheduler/DB runtime.
+
+**Next:** continue X2.3; verify remaining interval job-data mappings. SQL execution remains unavailable.
+
 ## 2026-10-18T23:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** SQL01 daily gateway directly added `codist`, `idprocesso`, and recurring `onetime`; invoice/budget/order gateways already use shared pure projection where applicable.
