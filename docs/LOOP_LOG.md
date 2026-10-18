@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T02:03Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Flusso_RDA_ist` has per-institute single-request fixtures, but no explicit multi-request test for output parameter reset and aggregate export rows.
+
+**Esito atteso:** with two ready synthetic requests for the target institute, procedure emits at least two RDA rows in the current session and clears the output sentinel; all inserted fixtures roll back.
+
+**Modifica:** added a transaction-backed multi-request case with two synthetic `RdA` records sharing the institute/cost-center fixture and checks row count plus empty output.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (12 warning preesistenti); focused SQL test `Flusso_RDA_ist_clears_output_for_multiple_requests` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T01:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** the synthetic bulk supplier refresh verifies row count, updated names, identities and institute scope, but not propagation of nullable source columns to the destination rows.

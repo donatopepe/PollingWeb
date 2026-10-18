@@ -292,6 +292,29 @@ namespace PollingWeb.IntegrationTests
         }
 
         [RequiresDatabaseFact]
+        public void Flusso_RDA_ist_clears_output_for_multiple_requests()
+        {
+            using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(
+                    "BEGIN TRANSACTION; BEGIN TRY " +
+                    "DECLARE @output varchar(40)='sentinel'; " +
+                    "INSERT INTO eProcurement.dbo.RdA (GUID,Progressivo,PageID,Matricola,Istituto,IstID,Status,Oggetto,DataModifica,CFor,GruppoAcquisti,TipoOrdine,Frequenza,DataInizioCompetenza,DataFineCompetenza,CdRUOCode) VALUES " +
+                    "(NEWID(),987654335,1,N'TEST',1,1,15,N'Synthetic RDA output A',GETDATE(),1001,N'001',N'NB',1,GETDATE(),GETDATE(),N'TEST35'),(NEWID(),987654336,1,N'TEST',1,1,15,N'Synthetic RDA output B',GETDATE(),1001,N'001',N'NB',1,GETDATE(),GETDATE(),N'TEST35'); " +
+                    "INSERT INTO eProcurement.dbo.DimCentridiResp (UoCode,IstID,CodiceColl) VALUES (N'TEST35',1,N'035'); " +
+                    "EXEC dbo.Flusso_RDA_ist @pi_istituto=1,@po_valoreuscita=@output OUTPUT; " +
+                    "IF @output<>'' THROW 51081,'Multi-request institute RDA flow returned unexpected output',1; " +
+                    "IF (SELECT COUNT(*) FROM eProcurement.dbo.Tbl_Export_SAP_OnLine WHERE Spid=@@SPID AND Codist=1 AND Tiporecord=N'RDA')<2 THROW 51082,'Multi-request institute RDA flow produced too few rows',1; " +
+                    "ROLLBACK TRANSACTION; END TRY BEGIN CATCH IF @@TRANCOUNT>0 ROLLBACK TRANSACTION; THROW; END CATCH;",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [RequiresDatabaseFact]
         public void Flusso_RDA_ist_executes_with_synthetic_request_inside_rollback()
         {
             using (var connection = new SqlConnection(TestDatabase.ConnectionString("Polling")))
