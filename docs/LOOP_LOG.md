@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T18:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** i cinque `*QuartzGateway.ScheduleInterval` duplicavano la selezione `onetime=true` per zero e `false` per positivo. Policy pura equivalente era già introdotta ma i gateway non la usavano, lasciando regola divergere; negativi erano respinti individualmente prima del mapping.
+
+**Esito atteso:** tutti i gateway usano `IntervalOnetimeValue`, che valida e preserva zero=true, positivo=false; trigger identities/start times restano intatti.
+
+**Modifica:** sostituite le stringhe duplicate nei gateway supplier, budget, fatture, SQL01 e ordini con helper condiviso; test contract esteso per interval negativo che deve lanciare `ArgumentOutOfRangeException`.
+
+**Evidenza reale:** build PollingClass net8/net48 `--no-restore --nologo -v quiet` → exit 0 ciascuna, 12 warning/0 errori. WorkerJobContractTests → 32/32 pass; suite unit → 199 pass, 2 skip; `git diff --check` exit 0. Nessun Quartz scheduler o SQL avviato.
+
+**Prossimo:** continuare X2.3, completando mapping dei job senza inventare job execution/DB evidenza.
+
+**Blocchi:** runtime SQL non verificato. Nessuna credenziale usata; piattaforme macOS/Windows non verificate localmente.
+
 ## 2026-10-18T18:30Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** i gateway interval impostano `onetime=true` quando `intervalMinutes == 0`, altrimenti `false`; la policy condivisa/contract test copriva la variante daily, non la semantica interval.
