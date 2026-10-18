@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T07:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** i test coprivano varie normalizzazioni di `StripHTML`, ma non il mantenimento di `%` in testo plain. L’implementazione non include `%` tra i caratteri sostituiti.
+
+**Esito atteso:** entrambe le copie restituiscono `100%` senza modifiche.
+
+**Modifica:** aggiunto input plain sintetico e asserzione per ciascuna funzione. La prima build ha trovato un operatore `+` mancante nella concatenazione; corretto prima del test SQL.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale solo nell’ambiente di processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T07:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** la query test conteneva già il caso isolato `N''''`, ma mancava l’asserzione associata al risultato ordinal 26; il test non verificava quindi direttamente quel caso.
