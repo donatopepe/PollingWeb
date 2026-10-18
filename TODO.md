@@ -1,23 +1,23 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Continue T3 with one minimal synthetic SQL integration assertion, leaving SQL/domain behavior unchanged.
+Continue T3 with one synthetic SQL integration assertion without changing SQL/domain behavior.
 
 ## Metric / threshold
-1/1 uncovered behavior verified; IntegrationTests project build exits 0; focused test passes against both SQL function copies; `git diff --check` exits 0.
+1/1 uncovered behavior verified; project build exit 0, focused SQL test passes against both function copies, diff check exit 0.
 
 ## Ordered steps
-1. Verify clean `main`, current index, T3 plan and test/log baseline. **Done.**
-2. Select gap: case-insensitive HTML tags; current SQL uses case-insensitive default collation for `CHARINDEX`, while the tests only use lowercase tags. Expected uppercase `<B>alpha</B>` to be stripped like lowercase. **Done.**
-3. Add synthetic input/assertion to shared test. **Done.**
-4. Build → exit 0; focused test first exposed one extra replacement space, corrected expected output, rerun → 1/1 pass; `git diff --check` → exit 0. **Done.**
-5. Record actual result in PLAN and LOOP_LOG; atomic T3 commit and push. **In progress.**
+1. Confirm clean main, read current T3 log/test/function source. **Done.**
+2. Baseline gap: numeric-only HTML entity (`&#65;`) not tested. `StripHTML` removes markup tags, not character entities, so expected text remains unchanged. **Done.**
+3. Add only a synthetic assertion to the shared test. **Done.**
+4. Build → exit 0, 12 existing warnings; filtered SQL test → 1/1 pass; `git diff --check` → exit 0. **Done.**
+5. Record actual evidence, commit atomically with T3 ID, push. **Pending.**
 
 ## Constraints
-No SQL changes or real records; credentials only in process environment. Do not download images, claim other OS/full-solution verification, or leak secret-bearing patterns.
+Do not modify SQL definitions; synthetic input only. DB credential stays process environment. No image pulls; no claims for unavailable operating systems or full solution build.
 
 ## Acceptance
-- [x] Both deployed `StripHTML` copies strip uppercase `<B>alpha</B>` to ` alpha `.
-- [x] Build, focused SQL test, and whitespace check pass.
-- [x] PLAN §8 and LOOP_LOG show observed outcomes.
-- [ ] T3 commit pushed on main; tree clean.
+- [x] Both `dbo.StripHTML` and `eProcurement.dbo.StripHTML` preserve `&#65;` unchanged.
+- [ ] IntegrationTests build, focused test, and diff check succeed.
+- [ ] PLAN §8 and LOOP_LOG record actual evidence.
+- [ ] Conventional T3 commit pushed; worktree clean.
