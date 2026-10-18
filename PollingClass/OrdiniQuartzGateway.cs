@@ -28,7 +28,8 @@ namespace PollingClass
                     ParseHour(normalizedCron), ParseMinute(normalizedCron), weekdays)).Build();
             if (OrdiniSchedulerPolicy.ShouldUnscheduleExistingTrigger(overrideExisting)
                 && scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult()) scheduler.UnscheduleJob(trigger.Key).GetAwaiter().GetResult();
-            if (scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult()) return false;
+            var triggerExists = scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult();
+            if (!OrdiniSchedulerPolicy.CanScheduleDailyTrigger(triggerExists, overrideExisting)) return false;
             scheduler.ScheduleJob(job, trigger).GetAwaiter().GetResult();
             return true;
         }

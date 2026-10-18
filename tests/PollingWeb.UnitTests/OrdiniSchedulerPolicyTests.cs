@@ -43,6 +43,16 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData(false, false, true)]
+        [InlineData(false, true, true)]
+        [InlineData(true, false, false)]
+        [InlineData(true, true, true)]
+        public void Daily_trigger_duplicate_policy_preserves_override_contract(bool triggerExists, bool overrideExisting, bool expected)
+        {
+            Assert.Equal(expected, OrdiniSchedulerPolicy.CanScheduleDailyTrigger(triggerExists, overrideExisting));
+        }
+
+        [Theory]
         [InlineData("0 30 8 ? * MON-FRI")]
         [InlineData("0 0 0 ? * MON-FRI")]
         [InlineData("0 59 23 ? * MON-FRI")]

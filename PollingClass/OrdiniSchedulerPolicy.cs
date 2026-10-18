@@ -35,5 +35,9 @@ namespace PollingClass
         public static bool IsSendJob(bool sendFile) { return sendFile; }
         public static bool IsReceiptJob(bool sendFile) { return !sendFile; }
         public static bool ShouldUnscheduleExistingTrigger(bool overrideExisting) { return overrideExisting; }
+        public static bool CanScheduleDailyTrigger(bool triggerExists, bool overrideExisting)
+        {
+            return !triggerExists || overrideExisting;
+        }
     }
 }
