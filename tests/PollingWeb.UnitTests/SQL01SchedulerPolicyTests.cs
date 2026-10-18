@@ -12,6 +12,12 @@ namespace PollingWeb.UnitTests
             Assert.True(typeof(IFornitoriSchedulingGateway).IsAssignableFrom(typeof(SQL01QuartzGateway)));
         }
 
+        [Fact]
+        public void Daily_sql01_job_explicitly_selects_recurring_execution()
+        {
+            Assert.Equal("false", FornitoriSchedulePolicy.DailyRecurringOnetimeValue());
+        }
+
         [Theory]
         [InlineData("0 30 8 ? * MON-FRI")]
         [InlineData("0 0 0 ? * MON-FRI")]
