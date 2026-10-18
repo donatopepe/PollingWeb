@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T19:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** l'iterazione precedente proponeva controllo su `OrdiniJobDataPolicy.TipoExport`. Ispezione di `OrdiniSchedulerPolicyTests` ha mostrato che cinque casi già coprono send con ODA/RDA, send null normalizzato e receipt che ignora input. Nessun nuovo test necessario; si evita duplicazione.
+
+**Esito atteso:** due build PollingClass (net8/net48), focused policy tests e unit suite passano; diff check pulito.
+
+**Modifiche:** nessun codice; aggiornati solo TODO e registri per correggere TODO obsoleto senza duplicare test.
+
+**Evidenza reale:** `dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet` → exit 0, 0 warning; equivalente `-f net48` → exit 0, 12 warning. `dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet --filter FullyQualifiedName~OrdiniSchedulerPolicyTests` → 16/16 pass; suite unit completa → 204 pass, 2 skip. `git diff --check` → exit 0.
+
+**Prossimo:** continuare X2.3 su un gap reale non ancora coperto.
+
+**Blocchi:** nessun runtime SQL o scheduler testato; credenziali non utilizzate.
+
 ## 2026-10-18T19:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `JobOrdini_SAP_Invio.Execute` legge `tipoExport`; `OrdiniQuartzGateway` invia il valore prodotto da `OrdiniJobDataPolicy.TipoExport`. La policy non aveva test unitari diretti per send, receipt e null.
