@@ -216,7 +216,8 @@ namespace PollingWeb.IntegrationTests
                         function + "(N'<p>synthetic, text-42</p>'), " +
                         function + "(N'left <b>middle'), " +
                         function + "(N'città, già'), " +
-                        function + "(N'àèìòù')",
+                        function + "(N'àèìòù'), " +
+                        function + "(N'caffè')",
                         connection))
                     using (var reader = command.ExecuteReader())
                     {
@@ -228,6 +229,7 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal("left  middle", reader.GetString(4));
                         Assert.Equal("citta  gia", reader.GetString(5));
                         Assert.Equal("aeiou", reader.GetString(6));
+                        Assert.Equal("caffe", reader.GetString(7));
                     }
                 }
             }
