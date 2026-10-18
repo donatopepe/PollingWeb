@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T04:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** i casi `StripHTML` non controllavano le HTML character entity. Il codice rimuove i tag tra `<` e `>` ma non decodifica sequenze entity prive di tag.
+
+**Esito atteso:** l’input sintetico `&#65;` rimane identico dopo entrambe le funzioni SQL.
+
+**Modifica:** aggiunto il caso entity numerica al result set e l’asserzione per entrambe le copie.
+
+**Evidenza reale:** build `tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale solo nell’ambiente del processo.
+
+**Prossimo task:** continuare T3; la DoD complessiva resta incompleta.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T04:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** i casi di rimozione markup usavano tag minuscoli; mancava una verifica del riconoscimento dei tag HTML maiuscoli. La funzione individua `<` e `>` con `CHARINDEX`, dipendente dalla collation del database.
