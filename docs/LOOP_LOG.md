@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T17:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `ImportFattureQuartzGateway.ScheduleDaily` creava `JobImportFatture` con `codist` e `idprocesso`, ma ometteva `onetime`; `JobImportFatture.Execute` converte sempre `JobDataMap.GetString("onetime")` in boolean. Il percorso giornaliero quindi passa null a `Convert.ToBoolean` e il catch del job registra l'errore senza elaborare la fattura.
+
+**Esito atteso:** job fatture daily porta `onetime=false`, coerente con ricorrenza; il percorso interval già valorizza entrambe le varianti. Test policy esatto e builds entrambi TFMs.
+
+**Modifica:** il gateway daily aggiunge `onetime` dal nuovo helper puro `DailyInvoiceOnetimeValue()`; test unit verifica il valore false. Nessun trigger/job avviato.
+
+**Evidenza reale:** PollingClass build net8.0 e net48 `--no-restore --nologo -v quiet` → entrambi exit 0, 12 warning/0 errori. `ImportFattureScheduleAdapterTests` → 9/9 pass; unit suite intera → 185 pass, 2 skip; `git diff --check` exit 0. Nessun accesso DB.
+
+**Prossimo:** continuare X2.3 verificando i restanti job/gateway per campi JobDataMap richiesti da `Execute`.
+
+**Blocchi:** nessuno per il test offline; nessun runtime SQL verificato. macOS/Windows non verificati.
+
 ## 2026-10-18T17:30Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** i tipi TaskService 2 e 6 usano entrambi `JobOrdini_SAP_Invio`, ma il chiamante legacy `TaskService.aspx.cs:RischedulaTask` passa rispettivamente `ODA` e `RDA`. La policy introdotta nell'iterazione precedente selezionava il job type, ma non preservava questo parametro distinto.

@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-18 | 147 | X2.3 — Porting dei job — parziale | `[~]` | Aggiunta policy pura `OrderExportType`: TaskService tipo 2→ODA e 6→RDA, altri tipi rifiutati; 7 test dedicati. PollingClass build net8.0/net48 exit 0 (12 warning ciascuno); WorkerJobContractTests 22/22 pass; UnitTests 184 passati/2 ignorati; `git diff --check` exit 0. Nessun job/DB eseguito; X2.3 incompleto. |
+| 2026-10-18 | 148 | X2.3 — Porting dei job — parziale | `[~]` | Corretto `ImportFattureQuartzGateway`: il job daily imposta `onetime=false`, richiesto da `JobImportFatture.Execute` per non convertire null; policy pura e test aggiunto. PollingClass net8.0/net48 exit 0 (12 warning ciascuno); test mirati invoice 9/9 pass; UnitTests 185 passati/2 ignorati; `git diff --check` exit 0. Nessun DB/job eseguito. |
 | 2026-10-18 | 104 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass con markup malformato; `git diff --check` exit 0. |
 | 2026-10-18 | 103 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` test SQL 1/1 pass con fine anno; `git diff --check` exit 0. |
 | 2026-10-18 | 102 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `Flusso_RDA_ist_clears_output_for_multiple_requests` test SQL 1/1 pass; `git diff --check` exit 0. |
