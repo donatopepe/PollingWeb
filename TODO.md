@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Unify existing interval gateways on the pure X2.3 policy for `onetime`, verifying zero/positive behavior remains unchanged.
+Strengthen X2.3 order job contract coverage: ensure the order send job's required `tipoExport` JobDataMap value is present and routing policy is tested for send/receipt modes.
 
 ## Metric / threshold
-All five interval gateway implementations use `IntervalOnetimeValue`; tests prove zero→true, positive→false, negative throws; PollingClass net8/net48 builds and unit suite pass. No scheduler/DB invocation.
+Test `OrdiniJobDataPolicy.TipoExport` returns the supplied export type for send, empty for receipt, and preserves null normalization; PollingClass net8/net48 build and unit suite pass. No DB/scheduler invocation.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, prompt/plan; inspect interval gateway implementations and current policy tests. **Done.**
-2. Baseline: gateways duplicate inline string true/false branches; one-time semantics vary only by interval == 0. **Done.**
-3. Replace those duplicated values with shared policy and add invalid-negative assertion. **Done.**
-4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused WorkerJobContractTests 32/32 pass; unit suite 199 pass/2 skip; diff check exit 0. **Done.**
-5. Update plan/log, commit and push. **In progress.**
+1. Verify clean main, CodeGraph, plan and order job/gateway source. **Done.**
+2. Baseline: send Execute reads `tipoExport`; gateway supplies it through policy, but policy has no direct unit tests. **Done.**
+3. Add focused pure policy tests for send/receipt/null cases. **Done.**
+4. PollingClass net8/net48 builds exit 0 (12 warnings each); order policy tests 16/16 pass; unit suite 204 pass/2 skip; diff check exit 0. **Done.**
+5. Update PLAN/log; commit and push. **In progress.**
 
 ## Constraints
-Keep identities, trigger timing, and scheduler side effects unchanged; do not start a scheduler or connect to SQL.
+No schedule/domain mutation, DB, credentials, or scheduler startup.
 
 ## Acceptance
-- [ ] Interval gateway values use validated shared policy without changing timing behavior.
-- [ ] Both target builds/tests/diff check pass.
-- [ ] Evidence and commits published; tree clean.
+- [ ] Export-type mapping tests cover send/receipt and null normalization.
+- [ ] Both builds/tests/diff check pass.
+- [ ] Evidence recorded and task commit pushed; tree clean.
