@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Reuse the tested order JobDataMap projection for the budget gateway's daily job data (one nonduplicative gateway contract step).
+Use the tested shared job-data projection in the invoice daily gateway, retaining its legacy map keys and recurring flag.
 
 ## Metric / threshold
-Budget daily gateway constructs its legacy three keys via the tested pure policy, preserving its job type, key names, values and string encoding. Both TFMs/tests/diff check pass; no Quartz/DB runtime.
+Invoice daily adds `codist`, `idprocesso`, `onetime=false`, with no order-only `tipoExport`; job type/trigger behavior unchanged. Builds/tests/diff check pass, no scheduler/DB run.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, prompt/plan order, inspect map writes and existing projection. **Done.**
-2. Baseline: order uses shared map projection, budget daily writes same contract keys separately. **Done.**
-3. Wire budget daily gateway to shared projection; existing tests already pin exact projection keys/values, avoid duplicate coverage. **Done.**
-4. PollingClass net8/net48 exit 0 (5 warnings each); focused budget+order policy 40/40; suite 228 pass/2 skip; diff check exit 0. **Done.**
-5. Record evidence, commit and push. **In progress.**
+1. Confirm clean main, CodeGraph, prompt/plan order, inspect invoice daily map. **Done.**
+2. Baseline: budget and order use projection; invoice daily still writes three values directly. **Done.**
+3. Reuse projection with selector omitted. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused invoice+policy 41/41; suite 228 pass/2 skip; diff check exit 0. **Done.**
+5. Update evidence, commit and push. **In progress.**
 
 ## Constraints
-Preserve existing Quartz job identity and values; do not start scheduler/job or access DB.
+No Quartz start/job execution/DB access; preserve invoice legacy key set.
 
 ## Acceptance
-- [ ] Budget daily projection uses tested keys and values.
+- [ ] Invoice daily map generated through policy, exact three legacy keys.
 - [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO updated; pushed; clean tree confirmed.
+- [ ] Records updated; push verified clean.
