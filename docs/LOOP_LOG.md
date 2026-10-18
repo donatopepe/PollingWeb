@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T20:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** i job Quartz leggono dal `JobDataMap` le chiavi `codist`, `idprocesso`, `onetime`; il job invio ordini legge anche `tipoExport`. I test di sorgente coprivano handler errori e attributi, non queste letture obbligatorie.
+
+**Esito atteso:** il contratto sorgente copre tutti i campi consumati dai job, senza eseguire effetti di dominio o scheduler.
+
+**Modifica:** aggiunte asserzioni ai sei casi in `WorkerJobContractTests` per le tre chiavi comuni e per `tipoExport` in `JobOrdini_SAP_Invio`.
+
+**Evidenza reale:** test mirato `Legacy_job_types_are_constructible_and_expose_Quartz_execute_contract` → 6/6 pass. PollingClass net8 exit 0, 0 warning; net48 exit 0, 12 warning. Unit suite → 210 pass, 2 skip. `git diff --check` exit 0. Nessun job o database invocato.
+
+**Prossimo:** X2.3, mantenere test puri e successivamente pianificare integration runtime con DB autorizzato.
+
+**Blocchi:** runtime DB e macOS/Windows non verificati.
+
 ## 2026-10-18T19:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** i sei job Quartz catturano eccezioni e invocano `PollingExceptionHandler.Esegui(ex)`; i contract test controllavano tipo Quartz, map e attributo ma non legavano il sorgente ai failure handler.

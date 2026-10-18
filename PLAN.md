@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-18 | 160 | X2.3 — Porting dei job — parziale | `[~]` | WorkerJobContractTests per 6 job ora asserisce sorgente chiama `PollingExceptionHandler.Esegui(ex)` nel catch; focused source contract 6/6 pass. PollingClass build net8 exit 0/0 warning, net48 exit 0/12 warning; UnitTests 210 passati/2 ignorati; `git diff --check` exit 0. Nessun job/DB eseguito. |
+| 2026-10-18 | 161 | X2.3 — Porting dei job — parziale | `[~]` | Contract test sorgente dei sei job verifica `GetString` per `codist`, `idprocesso`, `onetime`; job invio verifica anche `tipoExport`. Focused 6/6 pass; PollingClass build net8 exit 0/0 warning, net48 exit 0/12 warning; UnitTests 210/2 ignorati; diff check exit 0. Nessun job/DB eseguito. |
 | 2026-10-18 | 104 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass con markup malformato; `git diff --check` exit 0. |
 | 2026-10-18 | 103 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` test SQL 1/1 pass con fine anno; `git diff --check` exit 0. |
 | 2026-10-18 | 102 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `Flusso_RDA_ist_clears_output_for_multiple_requests` test SQL 1/1 pass; `git diff --check` exit 0. |
