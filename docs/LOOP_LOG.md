@@ -1,14 +1,14 @@
 # LOOP LOG — PollingWeb remediation
 
-## 2026-10-18T01:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+## 2026-10-18T02:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
-**Baseline:** test `StripHTML` aveva già i casi di normalizzazione per una frase (`città, già`) e le cinque vocali isolate; non verificava una parola con accento nel mezzo, evitando così di fissare solo il comportamento di sostituzione a livello di carattere.
+**Baseline:** questa ripresa ha trovato il caso `caffè` già incluso in `SchemaContractTests.cs` e il suo esito già registrato in §8 di `PLAN.md`; tuttavia non c'era ancora evidenza successiva al commit nel log aggiornato locale. Il problema di copertura è già risolto nel commit `5506676`.
 
-**Esito atteso:** entrambe le copie SQL normalizzano `caffè` in `caffe`.
+**Esito atteso:** nessun nuovo comportamento da aggiungere; ripetere build progetto e test SQL mirato deve produrre exit 0 e 1/1 pass.
 
-**Modifica:** aggiunto input sintetico `caffè` e asserzione del risultato a entrambe le copie nello stesso test condiviso.
+**Modifica:** nessuna modifica al codice; registrata la verifica ripetuta.
 
-**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0 (warning CS0162/CS0219/CS0169 preesistenti); con variabile di connessione in ambiente non tracciata, test mirato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0.
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0; test SQL mirato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0.
 
 **Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
 
