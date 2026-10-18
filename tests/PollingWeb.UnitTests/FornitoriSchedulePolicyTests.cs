@@ -6,6 +6,12 @@ namespace PollingWeb.UnitTests
 {
     public class FornitoriSchedulePolicyTests
     {
+        [Fact]
+        public void Supplier_daily_jobs_explicitly_select_recurring_execution()
+        {
+            Assert.Equal("false", FornitoriSchedulePolicy.DailyRecurringOnetimeValue());
+        }
+
         [Theory]
         [InlineData("0 8", "MON-FRI", "0 0 8 ? * MON-FRI")]
         [InlineData("35 9", "MON-FRI   ", "0 35 9 ? * MON-FRI")]
