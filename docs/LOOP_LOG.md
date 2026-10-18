@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T17:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** il routing legacy esplicito in `PollingWeb/TaskService.aspx.cs:RischedulaTask` associa Tipo 1→fornitori, 2→invio ODA, 3→esito ordini, 4→budget, 5→SQL01, 6→invio RDA, 7→fatture. La policy poteva essere resa riusabile/testabile senza database né attivare trigger.
+
+**Esito atteso:** policy pura riproduce i sette instradamenti e rigetta tipi non supportati; test offline passano e PollingClass compila su entrambi i target.
+
+**Modifica:** aggiunti `ProcessFamily` e `JobType` a `FornitoriSchedulePolicy`; test tabellari per i tipi 1–7, invalidi 0/8, oltre ai sei job contract test già presenti. Nessuna modifica a TaskService WebForms o gateway, nessuna pianificazione/Job Execute.
+
+**Evidenza reale:** PollingClass build net8.0 e net48 con `--no-restore --nologo -v quiet` → entrambi exit 0, 12 warning/0 errori ciascuno. Test mirati `WorkerJobContractTests` → 15/15 pass; unit suite completa → 177 pass, 2 skip, exit 0. `git diff --check` exit 0.
+
+**Prossimo task:** X2.3, progettare un consumer worker del mapping in modo testabile, evitando scritture di schedule senza fixture SQL autorizzata.
+
+**Blocchi:** credenziale DB autorizzata assente; niente esecuzione integration dei job. macOS/Windows non verificati localmente.
+
 ## 2026-10-18T17:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** i sei job Quartz sono classi `IJob` che consumano `JobDataMap`; le gateway esistenti creano job/trigger su chiamate legacy. Nessun dispatcher worker alimenta oggi parametri da TaskService; avvio runtime DB escluso per login SQL 18456 senza credenziale autorizzata.
