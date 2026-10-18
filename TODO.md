@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Reuse tested pure job-data projection in SQL01 daily gateway while preserving its legacy three-key map.
+Reuse the pure shared job-data projection for the supplier gateway's daily schedule, without altering its Quartz identities, override or trigger behavior.
 
 ## Metric / threshold
-SQL01 daily creates `codist`, `idprocesso`, `onetime=false`, excludes order-only `tipoExport`; job type, identity, cron and override semantics unchanged. Builds/tests/diff check pass; no runtime scheduler/DB.
+Fornitori daily job map is constructed through shared policy, retaining the legacy three keys and `onetime=false`. Both TFMs and relevant/full tests pass; no scheduler or DB runtime.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, PROMPT/PLAN order, inspect SQL01 daily map. **Done.**
-2. Baseline: order, budget and invoice use tested projection; SQL01 writes recurring three keys directly. **Done.**
-3. Wire SQL01 daily map through shared projection, omit `tipoExport`. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused SQL01/order tests 40/40; unit suite 228 pass/2 skip; diff check exit 0. **Done.**
-5. Log evidence, commit and push; verify clean. **In progress.**
+1. Confirm clean main, CodeGraph, PROMPT/PLAN order, inspect supplier daily map. **Done.**
+2. Baseline: other daily gateways use projection; supplier daily still adds three values inline. **Done.**
+3. Wire supplier daily to projection, omit `tipoExport`. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused supplier/job-contract 56/56; full suite 228 pass/2 skip; diff check exit 0. **Done.**
+5. Update records, commit/push, confirm clean tree. **In progress.**
 
 ## Constraints
-No scheduler/job/DB; preserve map keys and scheduling behavior.
+No scheduler start, job execution, SQL/SAP access; preserve exact keys and values.
 
 ## Acceptance
-- [ ] SQL01 uses tested projection with exact key set and values.
-- [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO current; pushed, tree clean.
+- [ ] Supplier daily map uses tested projection with exact key set/values.
+- [ ] Both builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG/TODO updated and push confirmed.
