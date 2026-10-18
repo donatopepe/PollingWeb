@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Strengthen X2.3 order job contract coverage: ensure the order send job's required `tipoExport` JobDataMap value is present and routing policy is tested for send/receipt modes.
+Verify whether the already-added order export selector tests cover send/receipt/null behavior; do not duplicate tests if present.
 
 ## Metric / threshold
-Test `OrdiniJobDataPolicy.TipoExport` returns the supplied export type for send, empty for receipt, and preserves null normalization; PollingClass net8/net48 build and unit suite pass. No DB/scheduler invocation.
+Inspect test definitions, build PollingClass net8/net48, focused order policy tests and full unit suite; document actual result. No production/job changes.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, plan and order job/gateway source. **Done.**
-2. Baseline: send Execute reads `tipoExport`; gateway supplies it through policy, but policy has no direct unit tests. **Done.**
-3. Add focused pure policy tests for send/receipt/null cases. **Done.**
-4. PollingClass net8/net48 builds exit 0 (12 warnings each); order policy tests 16/16 pass; unit suite 204 pass/2 skip; diff check exit 0. **Done.**
-5. Update PLAN/log; commit and push. **In progress.**
+1. Verify clean main, CodeGraph, prompt/plan and existing policy tests. **Done.**
+2. Baseline: `OrdiniSchedulerPolicyTests` already has five cases: send ODA/RDA, send null→empty, receipt ODA/null→empty. No test gap for that policy. **Done.**
+3. Avoid duplicate test; run both builds and test suites for current branch evidence. **Done.**
+4. Results: net8 build exit 0, 0 warnings; net48 exit 0, 12 warnings; focused 16/16 pass; unit suite 204 pass/2 skip; diff check exit 0. **Done.**
+5. Record discrepancy/evidence and commit/push documentation. **In progress.**
 
 ## Constraints
-No schedule/domain mutation, DB, credentials, or scheduler startup.
+No database/job invocation; keep task selector contract unchanged.
 
 ## Acceptance
-- [ ] Export-type mapping tests cover send/receipt and null normalization.
-- [ ] Both builds/tests/diff check pass.
-- [ ] Evidence recorded and task commit pushed; tree clean.
+- [ ] A real previously uncovered policy case is tested, or record the claim that cases are already covered with command evidence.
+- [ ] Both TFM builds and unit tests pass; diff check clean.
+- [ ] PLAN/LOOP_LOG/TODO record actual outcome, conventional commit pushed.
