@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Avoid an unsupported claim in X2.3 tests: replace source-text inspection of job classes with verifiable metadata-only contract checks, if practical without adding unrelated dependencies.
+Add an offline regression test for the order daily gateway's override policy, whose same-trigger replacement behavior differs from other gateways.
 
 ## Metric / threshold
-Test project remains deterministic and works from normal test output without locating repository source files; retain Quartz type/signature/attribute checks. Build/test pass; no runtime jobs.
+A pure policy encodes and tests that order daily override unschedules existing trigger, while no-override preserves duplicate protection; no scheduler or DB is started. Build/test and diff check pass.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, prompt, plan and current source-reading test. **Done.**
-2. Baseline: contract test walks parent dirs until finding `PollingWeb.sln` then reads C# source, coupling tests to checkout layout and asserting text rather than execution behavior. **Done.**
-3. Remove brittle source-text asserts and keep metadata contracts. **Done.**
-4. PollingClass net8 exit 0/0 warning, net48 exit 0/12 warning; focused WorkerJobContractTests 38/38 pass; unit suite 210 pass/2 skip; `git diff --check` exit 0. **Done.**
-5. Update evidence, commit and push. **In progress.**
+1. Verify clean main, CodeGraph, prompt/plan, order gateway implementation and policy tests. **Done.**
+2. Baseline: order daily gateway conditionally unschedules trigger on override; existing policy tests don't assert this branch. **Done.**
+3. Add a pure policy function for the override decision and table-driven tests; wire only the existing condition. **Done.**
+4. PollingClass net8/net48 exit 0, 12 warnings each; focused order tests 18/18; unit suite 212 pass/2 skip; diff check exit 0. **Done.**
+5. Update records; commit and push. **In progress.**
 
 ## Constraints
-No domain/job/DB behavior changes, no new dependencies, no source path assumptions.
+Preserve current behavior exactly; do not create scheduler/DB connections or schedule jobs.
 
 ## Acceptance
-- [ ] Tests no longer require locating solution/source files.
+- [ ] Policy and gateway agree for both override values.
 - [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO accurate and pushed commits.
+- [ ] Actual evidence recorded, task commits pushed, tree clean.
