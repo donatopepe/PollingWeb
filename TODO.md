@@ -1,16 +1,17 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Apply plan retry limit to X2.1 and unblock ordered work by recording missing runtime prerequisites instead of fabricating schedules.
+Implement the first safe X2.3 worker-side contract: verify the legacy Quartz jobs carry required parameters and do not depend on HttpContext, while preserving existing scheduler gateways.
 
 ## Metric / threshold
-X2.1 status reflects evidence after three attempts; blocker and mitigation recorded; next plan task identified. No unverified success claims.
+All five logical job families build on net8/net48 and unit tests verify explicit parameter mapping/contracts without database or production runs; no domain behavior changes.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph current, read PROMPT/PLAN X2.1 and prior evidence. **Done.**
-2. Count attempts: iterations 142 and 143 partial; this is third attempt. Existing worker build passes; runtime Quartz login failed and credentials unavailable; no schedule registry contract safely inferable. **Done.**
-3. Mark X2.1 blocked with concrete mitigation, per PROMPT three-attempt limit. **In progress.**
-4. Record next task in §8/log, run diff check, commit and push. **Pending.**
+1. Confirm clean main, CodeGraph current, inspect X2.3, job classes and test project. **Done.**
+2. Baseline: persisted Quartz job classes consume JobDataMap fields (`codist`, `idprocesso`, `onetime`, and order `tipoExport`); no HttpContext in job files. **Done.**
+3. Create contract tests via Quartz job details for required fields/types, not executing domain jobs. **In progress.**
+4. Build PollingClass net8/net48, run unit tests and diff check. **Pending.**
+5. Record evidence, commit and push. **Pending.**
 
 ## Constraints
 No secrets discovery, no DB login guessing, no fabricated domain schedules, preserve ordered plan.
