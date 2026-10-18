@@ -17,6 +17,12 @@ namespace PollingWeb.UnitTests
             Assert.False(OrdiniSchedulerPolicy.IsSendJob(false));
         }
 
+        [Fact]
+        public void Daily_order_jobs_explicitly_select_recurring_execution()
+        {
+            Assert.Equal("false", FornitoriSchedulePolicy.DailyRecurringOnetimeValue());
+        }
+
         [Theory]
         [InlineData("0 30 8 ? * MON-FRI")]
         [InlineData("0 0 0 ? * MON-FRI")]

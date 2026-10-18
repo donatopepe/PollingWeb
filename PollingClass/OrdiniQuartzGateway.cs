@@ -17,6 +17,7 @@ namespace PollingClass
             job.JobDataMap.Add("codist", institutionCode);
             job.JobDataMap.Add("idprocesso", processId);
             job.JobDataMap.Add("tipoExport", OrdiniJobDataPolicy.TipoExport(sendFile, tipoExport));
+            job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.DailyRecurringOnetimeValue());
 
             var weekdays = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
                 DayOfWeek.Thursday, DayOfWeek.Friday };
