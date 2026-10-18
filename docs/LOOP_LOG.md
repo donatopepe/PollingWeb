@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T22:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** daily and interval order gateways populated Quartz JobDataMap separately; policy tests checked decisions but not exact emitted keys and serialized strings.
+
+**Expected:** pure projection shared by both paths; exact legacy keys (`codist`, `idprocesso`, `tipoExport`, `onetime`) and values pinned in tests.
+
+**Change:** added `JobData` and `IntervalJobData`; both gateway paths now add projected entries. Values remain string-serialized, preserving zero interval as `true`, recurring as `false`, receipt export selector empty.
+
+**Evidence:** PollingClass net8/net48 build exit 0, 12 warnings/0 errors each; focused order tests 32/32; unit suite 228 pass, 2 skip; `git diff --check` exit 0. No Quartz/job/DB execution.
+
+**Next:** continue X2.3 integration contract work; SQL runtime remains unavailable.
+
 ## 2026-10-18T22:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** order interval gateway wrote `codist`, `idprocesso`, normalized `tipoExport`, and interval-derived `onetime` directly to Quartz JobDataMap; tests covered these decisions separately but not as an interval job-data projection.
