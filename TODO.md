@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Project explicit, tested order JobDataMap construction from the pure order argument policy, preserving Quartz key names/types for daily and interval jobs.
+Reuse the tested order JobDataMap projection for the budget gateway's daily job data (one nonduplicative gateway contract step).
 
 ## Metric / threshold
-Policy produces exactly `codist`, `idprocesso`, `tipoExport`, `onetime` values; daily and interval tests verify existing contract, used in both gateway paths. Both builds/test suites and diff check pass.
+Budget daily gateway constructs its legacy three keys via the tested pure policy, preserving its job type, key names, values and string encoding. Both TFMs/tests/diff check pass; no Quartz/DB runtime.
 
 ## Ordered steps
-1. Check clean main, CodeGraph, PROMPT/PLAN order and current gateway/policy tests. **Done.**
-2. Baseline: tests cover normalized arguments but not the emitted JobDataMap entries shared by daily and interval gateways. **Done.**
-3. Add pure JobDataMap projection and wire daily/interval gateway paths; add key/value tests. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused order tests 32/32; suite 228 pass/2 skip; diff check exit 0. **Done.**
-5. Update evidence, commit and push. **In progress.**
+1. Confirm clean main, CodeGraph, prompt/plan order, inspect map writes and existing projection. **Done.**
+2. Baseline: order uses shared map projection, budget daily writes same contract keys separately. **Done.**
+3. Wire budget daily gateway to shared projection; existing tests already pin exact projection keys/values, avoid duplicate coverage. **Done.**
+4. PollingClass net8/net48 exit 0 (5 warnings each); focused budget+order policy 40/40; suite 228 pass/2 skip; diff check exit 0. **Done.**
+5. Record evidence, commit and push. **In progress.**
 
 ## Constraints
-No scheduler/job/DB execution; preserve exact map keys and string formats.
+Preserve existing Quartz job identity and values; do not start scheduler/job or access DB.
 
 ## Acceptance
-- [ ] Projection emits all four legacy keys and tested values.
-- [ ] Both builds/tests/diff check pass.
-- [ ] Records updated; pushed conventional commit; clean tree.
+- [ ] Budget daily projection uses tested keys and values.
+- [ ] Builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG/TODO updated; pushed; clean tree confirmed.
