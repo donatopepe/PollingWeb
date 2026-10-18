@@ -235,6 +235,7 @@ namespace PollingWeb.IntegrationTests
                         function + "(N'a,b'), " +
                         function + "(N'a,,b'), " +
                         function + "(N'x-y'), " +
+                        function + "(N'a`b'), " +
                         function + "(N''''), " +
                         function + "(N'<b title=''a > b''>x</b>')",
                         connection))
@@ -266,8 +267,9 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal("a b", reader.GetString(22));
                         Assert.Equal("a  b", reader.GetString(23));
                         Assert.Equal("x y", reader.GetString(24));
-                        Assert.Equal(" ", reader.GetString(25));
-                        Assert.Equal("  b >x ", reader.GetString(26));
+                        Assert.Equal("a b", reader.GetString(25));
+                        Assert.Equal(" ", reader.GetString(26));
+                        Assert.Equal("  b >x ", reader.GetString(27));
                     }
                 }
             }
