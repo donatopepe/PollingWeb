@@ -1,23 +1,23 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Continue T3 with one minimal synthetic SQL integration assertion, without changing function/procedure definitions.
+Continue T3 with one focused synthetic SQL integration case; do not alter SQL/domain behavior.
 
 ## Metric / threshold
-One distinct behavior checked in both deployed `StripHTML` copies; IntegrationTests project build exit 0; focused SQL test 1/1 pass; `git diff --check` exit 0.
+Verify one uncovered parser edge against both deployed `StripHTML` functions; project build succeeds, focused SQL test passes, diff check succeeds.
 
 ## Ordered steps
-1. Confirm clean current main, read T3 specification/log, and inspect test/function. **Done.**
-2. Baseline gap: apostrophe replacement was exercised in a combined phrase but there was no exact test for a lone apostrophe. Expected: a single ASCII apostrophe becomes one space. **Done.**
-3. Add one synthetic expression/assertion to existing shared function query. **Done.**
-4. Build → exit 0, 12 existing warnings; focused test → 1/1 pass; `git diff --check` → exit 0. **Done.**
-5. Update PLAN §8 and LOOP_LOG with actual evidence; commit and push. **In progress.**
+1. Confirm clean main and inspect current T3 evidence, test and SQL implementation. **Done.**
+2. Gap: `>` inside a quoted HTML attribute is untested. The SQL implementation ends a tag at the first `>` regardless of quotes; expected residual output for `<b title='a > b'>x</b>` is grounded in that literal behavior. **Done.**
+3. Add one synthetic expression and exact assertion to shared test. **Done.**
+4. Build → exit 0 (12 existing warnings); focused SQL test → 1/1 pass; `git diff --check` → exit 0. **Done.**
+5. Record results in PLAN §8 and LOOP_LOG, commit/push. **In progress.**
 
 ## Constraints
-No SQL implementation changes or real data. DB credential via process environment only. No image pulls or claims of macOS/Windows/full-solution verification.
+Synthetic input only, no SQL changes, no credentials in files/output, no image pulls, no cross-OS/full-solution claim.
 
 ## Acceptance
-- [x] Both `dbo.StripHTML` and `eProcurement.dbo.StripHTML` return one space for one ASCII apostrophe.
-- [ ] IntegrationTests build and focused SQL test pass; diff check passes.
-- [x] Plan and loop log updated with observed results.
-- [ ] Atomic conventional T3 commit pushed; main worktree clean.
+- [x] Both function copies return `  b >x ` for `<b title='a > b'>x</b>` under current first-`>` parsing.
+- [ ] Build, focused test, and `git diff --check` pass.
+- [x] PLAN and LOOP_LOG record actual evidence.
+- [ ] Atomic T3 commit pushed; clean main.
