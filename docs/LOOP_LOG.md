@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T04:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** i test `StripHTML` coprivano tag semplici ma non attributi nell’apertura. L’implementazione cerca i delimitatori `<` e `>` e sostituisce il tag completo: il testo visibile `alpha` deve rimanere tra gli spazi delle sostituzioni dei tag.
+
+**Esito atteso:** entrambe le copie restituiscono ` alpha ` per `<b class='synthetic'>alpha</b>`.
+
+**Modifica:** aggiunto input con attributo sintetico alla query condivisa e asserzione per entrambi gli schemi.
+
+**Evidenza reale:** build `tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning/0 errori; test SQL mirato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. La credenziale SQL è stata fornita solo nell’ambiente del processo.
+
+**Prossimo task:** continuare T3 secondo la DoD.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T03:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** i casi `StripHTML` coprivano tag singoli e adiacenti, non l’elemento vuoto `<></>`.
