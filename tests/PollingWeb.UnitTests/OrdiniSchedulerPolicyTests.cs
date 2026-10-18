@@ -6,6 +6,17 @@ namespace PollingWeb.UnitTests
 {
     public class OrdiniSchedulerPolicyTests
     {
+        [Theory]
+        [InlineData(true, "ODA", "ODA")]
+        [InlineData(true, "RDA", "RDA")]
+        [InlineData(true, null, "")]
+        [InlineData(false, "ODA", "")]
+        [InlineData(false, null, "")]
+        public void Job_data_export_type_is_present_only_for_send_jobs(bool sendFile, string input, string expected)
+        {
+            Assert.Equal(expected, OrdiniJobDataPolicy.TipoExport(sendFile, input));
+        }
+
         [Fact]
         public void Gateway_exposes_two_job_types_without_changing_send_receipt_routing()
         {
