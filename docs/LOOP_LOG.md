@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T22:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** order interval gateway wrote `codist`, `idprocesso`, normalized `tipoExport`, and interval-derived `onetime` directly to Quartz JobDataMap; tests covered these decisions separately but not as an interval job-data projection.
+
+**Expected:** pure policy projects `sendFile`, interval one-time value and selector; gateway writes same keys and values; no scheduler started.
+
+**Change:** added `OrdiniJobDataPolicy.IntervalArguments`, used by interval gateway. `onetime` remains string `true` for zero, `false` for positive minutes; send/receipt selector behavior unchanged.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; focused `OrdiniSchedulerPolicyTests` 30/30; unit suite 226 pass, 2 skip; `git diff --check` exit 0. No Quartz job/DB run.
+
+**Next:** continue X2.3; runtime DB/SAP verification remains unavailable.
+
 ## 2026-10-18T22:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** order send/receipt job adapters consumed `onetime` and `tipoExport`; existing coverage tested export selector separately and job mapping, not the exact argument tuple passed to SAP-facing methods.
