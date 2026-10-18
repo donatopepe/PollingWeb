@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Cover the order interval gateway's complete JobDataMap contract (job type, required keys, `onetime`, `tipoExport`) without starting Quartz.
+Project explicit, tested order JobDataMap construction from the pure order argument policy, preserving Quartz key names/types for daily and interval jobs.
 
 ## Metric / threshold
-Build a pure job-data projection used by the interval gateway and cover send/receipt + zero/positive interval values, preserving existing behavior and key names. Both TFMs, focused/full tests, diff check pass; no job/DB execution.
+Policy produces exactly `codist`, `idprocesso`, `tipoExport`, `onetime` values; daily and interval tests verify existing contract, used in both gateway paths. Both builds/test suites and diff check pass.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, PROMPT/PLAN task order and inspect order gateway/tests. **Done.**
-2. Baseline: policy tests cover selector normalization and scheduling interval flags separately; no projection test covers full interval JobDataMap contract. **Done.**
-3. Add pure interval argument policy and wire into interval gateway. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused order tests 30/30; suite 226 pass/2 skip; diff check exit 0. **Done.**
-5. Record evidence and commit/push; confirm clean tree. **In progress.**
+1. Check clean main, CodeGraph, PROMPT/PLAN order and current gateway/policy tests. **Done.**
+2. Baseline: tests cover normalized arguments but not the emitted JobDataMap entries shared by daily and interval gateways. **Done.**
+3. Add pure JobDataMap projection and wire daily/interval gateway paths; add key/value tests. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused order tests 32/32; suite 228 pass/2 skip; diff check exit 0. **Done.**
+5. Update evidence, commit and push. **In progress.**
 
 ## Constraints
-Do not instantiate scheduler or run jobs. Preserve property names and semantics exactly.
+No scheduler/job/DB execution; preserve exact map keys and string formats.
 
 ## Acceptance
-- [ ] Policy returns contract values tested for send/receipt and interval flags.
-- [ ] net8/net48 builds and tests pass; diff check clean.
-- [ ] PLAN/LOOP_LOG/TODO updated; conventional commit pushed.
+- [ ] Projection emits all four legacy keys and tested values.
+- [ ] Both builds/tests/diff check pass.
+- [ ] Records updated; pushed conventional commit; clean tree.
