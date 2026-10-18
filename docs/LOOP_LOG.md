@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T02:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `StripHTML` integra già casi per testo semplice, markup e normalizzazione accenti; non fissa esplicitamente la conservazione di spazi consecutivi in testo privo di markup. La sorgente SQL applica sostituzioni a caratteri specifici e non comprime gli spazi.
+
+**Esito atteso:** entrambe le copie SQL restituiscono invariato `plain synthetic 123` (due spazi interni).
+
+**Modifica:** aggiunto l’input sintetico con spazi consecutivi alla query condivisa e l’asserzione su entrambi gli schemi.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0 (warning CS0162/CS0219/CS0169 preesistenti); con password solo nell’ambiente del processo, test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 secondo la DoD.
+
+**Blocchi:** nessuno; T3 resta incompleta.
+
 ## 2026-10-18T02:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** questa ripresa ha trovato il caso `caffè` già incluso in `SchemaContractTests.cs` e il suo esito già registrato in §8 di `PLAN.md`; tuttavia non c'era ancora evidenza successiva al commit nel log aggiornato locale. Il problema di copertura è già risolto nel commit `5506676`.
