@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Fix X2.3 JobSQL01 recurring schedule contract: daily SQL01 jobs must set the false one-time flag consumed by Execute.
+Fix X2.3 order daily Quartz jobs: both `JobOrdini_SAP_*` read `onetime`, while `ScheduleDaily` currently omits it.
 
 ## Metric / threshold
-Daily SQL01 policy explicitly yields false; policy unit test, both PollingClass TFM builds, focused/full unit tests and diff check pass. No scheduler/database execution.
+Daily order JobDataMap sets `onetime=false` for send and receipt jobs; policy-level unit test plus both PollingClass TFM builds and unit suite pass. No DB/scheduler invocation.
 
 ## Ordered steps
-1. Confirm main/CodeGraph/PROMPT/PLAN and inspect JobSQL01 + SQL01 gateway/tests. **Done.**
-2. Baseline: daily gateway omits `onetime`; JobSQL01.Execute converts the missing JobDataMap value to bool. **Done.**
-3. Add reusable daily recurring flag policy and test, apply to SQL01 gateway. **Done.**
-4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused SQL01 tests 8/8; unit suite 187 pass/2 skip; diff check exit 0. **Done.**
-5. Record evidence, commit and push. **In progress.**
+1. Verify main, CodeGraph, PROMPT/PLAN and inspect order jobs/gateway. **Done.**
+2. Baseline: both `JobOrdini_SAP_Esito.Execute` and `JobOrdini_SAP_Invio.Execute` convert JobDataMap `onetime`; daily gateway omits it. **Done.**
+3. Add shared daily recurring policy and test; apply to daily gateway only. **Done.**
+4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused order tests 11/11 pass; unit suite 188 pass/2 skip; diff check exit 0. **Done.**
+5. Update records, commit and push. **In progress.**
 
 ## Constraints
-No database credentials discovery, no production schedule writes, no changes to job/domain behavior besides required flag.
+No DB access/credentials discovery or production schedules; preserve ODA/RDA routing and job semantics.
 
 ## Acceptance
-- [ ] Daily SQL01 job passes `onetime=false`.
+- [ ] Daily order jobs have explicit `onetime=false`.
 - [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG evidence current; conventional commit pushed and tree clean.
+- [ ] PLAN/LOOP_LOG actual evidence recorded; commit pushed and main clean.
