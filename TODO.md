@@ -1,23 +1,21 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Complete safe X2.1 worker bootstrap by hosting the persistent Quartz scheduler and shutting it down cleanly. Job registration and source scanning remain X2.3 scope.
+Apply plan retry limit to X2.1 and unblock ordered work by recording missing runtime prerequisites instead of fabricating schedules.
 
 ## Metric / threshold
-Worker builds with zero errors and attempts scheduler startup through configured connection; shutdown awaits Quartz. Missing or unavailable SQL configuration yields a visible startup failure, not a falsely-ready worker.
+X2.1 status reflects evidence after three attempts; blocker and mitigation recorded; next plan task identified. No unverified success claims.
 
 ## Ordered steps
-1. Confirm clean main, inspect X2.1/X2.3, factory behavior and logs. **Done.**
-2. Baseline: worker skeleton idles without scheduler; factory requires Quartz SQL configuration. **Done.**
-3. Start and stop Quartz from Worker lifecycle, leaving job registration to X2.3. **In progress.**
-4. Build Worker and test configured startup; verify graceful shutdown. **Pending.**
-5. Record actual outcomes, commit and push. **Pending.**
+1. Confirm clean main, CodeGraph current, read PROMPT/PLAN X2.1 and prior evidence. **Done.**
+2. Count attempts: iterations 142 and 143 partial; this is third attempt. Existing worker build passes; runtime Quartz login failed and credentials unavailable; no schedule registry contract safely inferable. **Done.**
+3. Mark X2.1 blocked with concrete mitigation, per PROMPT three-attempt limit. **In progress.**
+4. Record next task in §8/log, run diff check, commit and push. **Pending.**
 
 ## Constraints
-Do not fabricate source scanning or schedule jobs before X2.3; credentials only in process environment; no image pulls or claims for unavailable platforms.
+No secrets discovery, no DB login guessing, no fabricated domain schedules, preserve ordered plan.
 
 ## Acceptance
-- [ ] Worker registers Quartz lifecycle and awaits clean scheduler shutdown.
-- [ ] Project build passes; startup behavior recorded with actual configured-DB evidence.
-- [ ] PLAN §8 and LOOP_LOG document real outcomes.
-- [ ] Atomic X2.1 conventional commit pushed and main clean.
+- [ ] X2.1 marked [!] with blocker and remediation path.
+- [ ] PLAN and LOOP_LOG truthful; diff check passes.
+- [ ] Atomic documentation commit pushed; main clean.
