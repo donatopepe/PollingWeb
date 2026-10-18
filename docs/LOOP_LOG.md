@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T23:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** SQL01 interval gateway wrote `codist`, `idprocesso`, and interval-derived `onetime` directly in each branch; order interval used the shared projection.
+
+**Expected:** shared pure projection emits the same three keys with zero→`true`, positive→`false`; interval validation and trigger timing untouched.
+
+**Change:** added SQL01-specific overload of `OrdiniJobDataPolicy.IntervalJobData`; SQL01 gateway now adds projected entries before unchanged trigger branching. Added projection tests for zero and positive intervals.
+
+**Evidence:** PollingClass net8/net48 final builds exit 0, zero warnings/errors; focused SQL01/order tests 42/42; unit suite 230 pass, 2 skip; `git diff --check` exit 0. No scheduler/job/DB runtime.
+
+**Next:** continue X2.3 on remaining interval maps and job execution contracts. Authorized DB runtime credentials unavailable.
+
 ## 2026-10-18T23:30Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** supplier daily gateway wrote `codist`, `idprocesso`, and recurring `onetime` directly; order/budget/invoice/SQL01 use shared policy where applicable.
