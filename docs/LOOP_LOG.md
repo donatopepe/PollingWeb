@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T05:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** non era caratterizzato il body whitespace-only fra tag. Per `<b>   </b>`, ogni tag sostituito contribuisce uno spazio e il body conserva i tre spazi: attesi cinque in totale.
+
+**Esito atteso:** entrambe le copie SQL restituiscono esattamente cinque spazi.
+
+**Modifica:** aggiunto il caso sintetico e l’asserzione al test condiviso delle due funzioni. Il primo expected di quattro spazi è fallito; corretta la verifica all’output reale di cinque.
+
+**Evidenza reale:** IntegrationTests build `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale SQL fornita soltanto nell’ambiente del processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T05:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** il test `StripHTML` verifica tag con contenuto e tag adiacenti, ma non la forma self-closing. L’algoritmo rimuove ciascun segmento tra `<` e `>` sostituendolo con uno spazio.
