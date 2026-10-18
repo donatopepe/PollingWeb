@@ -58,19 +58,19 @@ namespace PollingClass
             IJobDetail job = sendFile
                 ? JobBuilder.Create<JobOrdini_SAP_Invio>().WithIdentity(jobId, "IDG").Build()
                 : JobBuilder.Create<JobOrdini_SAP_Esito>().WithIdentity(jobId, "IDG").Build();
+            var arguments = OrdiniJobDataPolicy.IntervalArguments(sendFile, intervalMinutes, tipoExport);
             job.JobDataMap.Add("codist", institutionCode);
             job.JobDataMap.Add("idprocesso", processId);
-            job.JobDataMap.Add("tipoExport", OrdiniJobDataPolicy.TipoExport(sendFile, tipoExport));
+            job.JobDataMap.Add("tipoExport", arguments.TipoExport);
+            job.JobDataMap.Add("onetime", arguments.OneTime.ToString().ToLowerInvariant());
             ITrigger trigger;
             if (intervalMinutes == 0)
             {
-                job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.IntervalOnetimeValue(intervalMinutes));
                 trigger = TriggerBuilder.Create().WithIdentity(triggerId, "IDGWEB")
                     .StartNow().WithPriority(1).Build();
             }
             else
             {
-                job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.IntervalOnetimeValue(intervalMinutes));
                 trigger = TriggerBuilder.Create().WithIdentity(triggerId, "IDGWEB")
                     .StartAt(DateTimeOffset.Now.AddMinutes(intervalMinutes)).WithPriority(1).Build();
             }

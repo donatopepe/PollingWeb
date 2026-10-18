@@ -25,6 +25,11 @@ namespace PollingClass
             return sendFile ? (value ?? string.Empty) : string.Empty;
         }
 
+        public static OrdiniJobArguments IntervalArguments(bool sendFile, int intervalMinutes, string tipoExport)
+        {
+            return Arguments(sendFile, Convert.ToBoolean(FornitoriSchedulePolicy.IntervalOnetimeValue(intervalMinutes)), tipoExport);
+        }
+
         public static OrdiniJobArguments Arguments(bool sendFile, bool oneTime, string tipoExport)
         {
             return new OrdiniJobArguments
