@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T20:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `OrdiniQuartzGateway.ScheduleDaily` unschedules existing trigger only when `overrideExisting` is true, then still rejects an existing trigger if present. Existing order policy tests covered job routing/cron but not override branch.
+
+**Esito atteso:** pure decision policy returns true only for override=true; gateway uses it in the current condition, with no Quartz scheduler instantiated by tests.
+
+**Modifica:** aggiunto `OrdiniSchedulerPolicy.ShouldUnscheduleExistingTrigger` e usato nel gateway al posto del boolean diretto; test table-driven per true/false.
+
+**Evidenza reale:** PollingClass build net8/net48 `--no-restore --nologo -v quiet` → exit 0 ciascuno, 12 warning/0 errori. `OrdiniSchedulerPolicyTests` → 18/18 pass; unit suite → 212 pass, 2 skip; `git diff --check` exit 0. Nessun scheduler/DB avviato.
+
+**Prossimo:** proseguire X2.3 con verifiche reali dei contratti scheduler/job che non alterino il comportamento SAP.
+
+**Blocchi:** job runtime SQL non eseguito; credenziale autorizzata assente.
+
 ## 2026-10-18T20:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `WorkerJobContractTests` individuava `PollingWeb.sln` risalendo i parent di `AppContext.BaseDirectory`, poi leggeva sorgenti `.cs`. Ciò dipende dal layout del checkout e non è adatto a test eseguiti da output isolato/pacchetti; inoltre testa testo anziché comportamento. Metadata Quartz (IJob, firma, attributo) sono già asseriti.
