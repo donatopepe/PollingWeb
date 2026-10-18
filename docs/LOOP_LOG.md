@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T10:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** leading/trailing whitespace attorno a markup non era asserito come output esatto. La funzione sostituisce il tag con spazi e non trimma.
+
+**Esito atteso:** `<b>x</b> ` produce ` x  ` in entrambe le copie SQL.
+
+**Modifica:** aggiunto input sintetico e asserzione esatta all’esecuzione condivisa delle funzioni.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 12 warning/0 errori; test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. La password è rimasta nell’ambiente del processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T09:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** input empty e testo plain non-whitespace erano testati; mancava input plain contenente solo spazi. La funzione non applica trim, quindi gli spazi dovrebbero restare invariati.
