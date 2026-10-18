@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T18:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** le iterazioni precedenti aggiunsero `onetime=false` ai cinque gateway daily. Il test esistente controllava il valore helper in singoli policy tests, ma non verificava che il valore sia convertibile allo stesso modo in cui ogni `IJob.Execute` lo consuma.
+
+**Esito atteso:** per sei tipi `IJob` il valore condiviso è la stringa `false`, `Convert.ToBoolean` lo legge come false; nessun job invocato.
+
+**Modifica:** aggiunto un test tabellare in `WorkerJobContractTests` riusando la lista dei sei job type.
+
+**Evidenza reale:** PollingClass builds `-f net8.0` e `-f net48` (`--no-restore --nologo -v quiet`) → exit 0 ciascuna, 12 warning/0 errori. `WorkerJobContractTests` → 28/28 pass; unit suite → 195 pass, 2 skip; `git diff --check` → exit 0. Nessuna interazione SQL/scheduler.
+
+**Prossimo:** continuare X2.3: verification mapping job/gateway, senza affermare esecuzione runtime.
+
+**Blocchi:** SQL runtime non verificato; credenziale DB non usata. macOS/Windows non verificati localmente.
+
 ## 2026-10-18T17:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `JobFornitori.Execute` converte `JobDataMap.GetString("onetime")`; il percorso supplier daily `FornitoriQuartzGateway.ScheduleDaily` salvava istituto/processo ma ometteva il flag. Il job giornaliero avrebbe ricevuto valore assente.
