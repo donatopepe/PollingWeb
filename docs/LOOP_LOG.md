@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T19:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `JobOrdini_SAP_Invio.Execute` legge `tipoExport`; `OrdiniQuartzGateway` invia il valore prodotto da `OrdiniJobDataPolicy.TipoExport`. La policy non aveva test unitari diretti per send, receipt e null.
+
+**Esito atteso:** invio mantiene il tipo SAP, null diventa stringa vuota, job receipt riceve stringa vuota indipendentemente dall'input.
+
+**Modifica:** aggiunti cinque casi `InlineData` per il metodo policy puro; nessun gateway o job runtime cambiato.
+
+**Evidenza reale:** PollingClass net8/net48 build `--no-restore --nologo -v quiet` → exit 0 ciascuno, 12 warning/0 errori. `OrdiniSchedulerPolicyTests` → 16/16 pass; unit suite → 204 pass, 2 skip; `git diff --check` exit 0. Nessuna connessione DB/job.
+
+**Prossimo:** continuare X2.3 con mapping rimanente; integrazione runtime resta da provare con DB autorizzato.
+
+**Blocchi:** credential SQL autorizzata assente; macOS/Windows non verificati localmente.
+
 ## 2026-10-18T18:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** i cinque `*QuartzGateway.ScheduleInterval` duplicavano la selezione `onetime=true` per zero e `false` per positivo. Policy pura equivalente era già introdotta ma i gateway non la usavano, lasciando regola divergere; negativi erano respinti individualmente prima del mapping.
