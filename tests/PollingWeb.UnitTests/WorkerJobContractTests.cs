@@ -135,6 +135,11 @@ namespace PollingWeb.UnitTests
             Assert.Contains(typeof(PersistJobDataAfterExecutionAttribute), jobType.GetCustomAttributes(false).Select(attribute => attribute.GetType()));
             var executeBody = System.IO.File.ReadAllText(GetJobSourcePath(jobType));
             Assert.Contains("PollingExceptionHandler.Esegui(ex)", executeBody);
+            Assert.Contains("GetString(\"codist\")", executeBody);
+            Assert.Contains("GetString(\"idprocesso\")", executeBody);
+            Assert.Contains("GetString(\"onetime\")", executeBody);
+            if (jobType == typeof(JobOrdini_SAP_Invio))
+                Assert.Contains("GetString(\"tipoExport\")", executeBody);
         }
     }
 }
