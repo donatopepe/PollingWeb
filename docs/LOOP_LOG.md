@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T07:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** U+2019 era testato solo in una stringa insieme ad altri segni; mancava il caso isolato per verificarne l’esatta sostituzione.
+
+**Esito atteso:** entrambe le copie SQL restituiscono un singolo spazio per input sintetico composto dal solo apostrofo tipografico U+2019.
+
+**Modifica:** aggiunto il singolo carattere al result set condiviso e asserzione esatta. La prima build ha rilevato un `+` mancante nella concatenazione C#; corretto prima di eseguire il test.
+
+**Evidenza reale:** IntegrationTests build `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; SQL test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale non salvata né stampata.
+
+**Prossimo task:** proseguire T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T06:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** il backtick era incluso in un input combinato con apostrofi e altri segni; mancava una verifica plain isolata. La funzione SQL sostituisce ogni backtick con uno spazio.
