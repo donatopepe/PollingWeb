@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Remove duplicate unschedule policy coverage and use the already-tested pure decision in one more gateway where behavior matches.
+Unify the existing daily trigger override/duplicate decision across the invoice and SQL01 gateways using the policy already tested for orders.
 
 ## Metric / threshold
-Budget daily override path calls `ShouldUnscheduleExistingTrigger`; policy test covers both values; existing duplicate guard remains intact. Both PollingClass TFMs and unit tests pass without scheduler/DB.
+Invoice and SQL01 gateways use `ShouldUnscheduleExistingTrigger` and `CanScheduleDailyTrigger` with preserved call order; focused tests, both PollingClass builds, full unit suite pass. No scheduler/DB.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, prompt/plan and inspect gateway override branches/tests. **Done.**
-2. Baseline: order policy already tested, but ImportBudget gateway still has direct override conditional and same unschedule behavior. **Done.**
-3. Wire the shared pure decision into ImportBudget daily path; reuse existing policy tests (true/false) rather than duplicate them. **Done.**
-4. Both PollingClass builds exit 0 (12 warnings each); focused Budget tests 8/8; unit suite 216 pass/2 skip; diff check exit 0. **Done.**
-5. Update PLAN/LOOP_LOG and commit/push. **In progress.**
+1. Verify clean main, CodeGraph, prompt/plan, order policy and remaining gateway conditions. **Done.**
+2. Baseline: order and budget use shared override policy; invoice and SQL01 still duplicate boolean logic/duplicate checks. **Done.**
+3. Wire policy into invoice and SQL01 daily branches without behavior change. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused invoice/SQL01 tests 17/17; unit suite 216 pass/2 skip; diff check exit 0. **Done.**
+5. Record evidence, commit and push. **In progress.**
 
 ## Constraints
-No scheduler or SQL, preserve operation order, no database credentials.
+Preserve exact sequencing and duplicate semantics; don't instantiate scheduler or access DB.
 
 ## Acceptance
-- [ ] Budget daily override path uses shared policy, no side effects in tests.
-- [ ] Both builds/tests/diff check pass.
-- [ ] Actual evidence logged and commit pushed.
+- [ ] Invoice and SQL01 gateways reuse the tested pure decisions.
+- [ ] Builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG evidence truthful; main updated cleanly.
