@@ -97,6 +97,21 @@ namespace PollingWeb.UnitTests
 
         [Theory]
         [MemberData(nameof(JobTypes))]
+        public void Persisted_job_data_map_keeps_updated_string_boolean(Type jobType)
+        {
+            Assert.Contains(typeof(PersistJobDataAfterExecutionAttribute),
+                jobType.GetCustomAttributes(false).Select(attribute => attribute.GetType()));
+            var jobData = new JobDataMap { ["onetime"] = "false" };
+
+            // Quartz persists the job map only when the job carries this attribute;
+            // this offline contract test verifies the mutable map value semantics without a scheduler.
+            jobData["onetime"] = "true";
+            Assert.Equal("true", jobData.GetString("onetime"));
+            Assert.True(Convert.ToBoolean(jobData.GetString("onetime")));
+        }
+
+        [Theory]
+        [MemberData(nameof(JobTypes))]
         public void Legacy_job_types_are_constructible_and_expose_Quartz_execute_contract(Type jobType)
         {
             Assert.NotNull(Activator.CreateInstance(jobType));
