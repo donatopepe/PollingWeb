@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Strengthen X2.3 job contracts by asserting that recurring job flag inputs are present in every Quartz job's declared persisted data map.
+Add a non-side-effecting test of the recurring-vs-one-time Quartz job-data policy used across X2.3 gateways.
 
 ## Metric / threshold
-All six job classes are Quartz `IJob` types; shared recurring map includes `onetime=false`; tests verify map value and conversion. Build PollingClass net8/net48 and unit suite; no database or job execution.
+Tests prove the shared recurring value converts to false and explicit one-time value to true, consistent with each job's Execute logic; focused/full tests and both PollingClass builds pass. No Quartz scheduler or DB started.
 
 ## Ordered steps
-1. Confirm clean main/CodeGraph, prompt, plan and job classes/gateway contracts. **Done.**
-2. Baseline: Quartz jobs consume keys at Execute; recurring flag policy exists but tests do not exercise a JobDataMap structure. **Done.**
-3. Add a Quartz `JobDataMap` contract test for the shared recurring flag. **Done.**
-4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused job contracts 28/28 pass; unit suite 195 pass/2 skip; diff check exit 0. **Done.**
-5. Update PLAN/LOOP_LOG, commit and push. **In progress.**
+1. Verify main, CodeGraph, PROMPT/PLAN and current gateway/job contract. **Done.**
+2. Baseline: daily gateways use shared false policy; interval gateways explicitly set true for zero and false for positive delay. Existing tests only assert daily false. **Done.**
+3. Add an interval policy and test for the contrasting true/false values. **Done.**
+4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused WorkerJobContractTests 31/31 pass; unit suite 198 pass/2 skip; diff check exit 0. **Done.**
+5. Update evidence, commit and push. **In progress.**
 
 ## Constraints
-No real DB, scheduler startup, secrets, or domain job invocation.
+No database/scheduler invocation, no credentials, no change to interval semantics.
 
 ## Acceptance
-- [ ] Contract test checks `JobDataMap` recurring key.
-- [ ] Builds/tests/diff check pass.
-- [ ] Record actual evidence and push task commits.
+- [ ] Tests assert true for zero-interval one-time and false for positive interval.
+- [ ] Builds and all applicable tests pass; diff check clean.
+- [ ] PLAN/LOOP_LOG reflect actual results; changes pushed.
