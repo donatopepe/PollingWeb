@@ -1,16 +1,18 @@
 # LOOP LOG — PollingWeb remediation
 
-## 2026-10-18T10:35Z — X2.1 PollingWorker — IN PROGRESS
+## 2026-10-18T11:05Z — X2.1 PollingWorker — IN PROGRESS
 
-**Baseline:** §4 mette X2.1 dopo T3; `PollingWeb.sln` non contiene un worker. Evidenza attesa: progetto Worker SDK net8 referenziato dalla solution, compila e avvia senza IIS su Linux; job/source scanning demandati a X2.3 senza inventare semantica.
+**Obiettivo:** rendere il confine operativo esplicito. Ipotesi: X2.1 può ospitare lo scheduler persistente già fornito da `QuartzSchedulerFactory`; job e polling dei file restano separati per X2.3, senza inventare job registry.
 
-**Modifica:** aggiunti progetto console Worker Service e `BackgroundService` host skeleton con logging; registrato nella solution e package Hosting gestito centralmente. La fase di avvio attende cancellazione host; non esegue ancora scansioni né job, quindi X2.1 resta parziale.
+**Baseline:** Worker precedente era idle e non avviava Quartz. Factory `Create()` richiede connessione Quartz configurata.
 
-**Evidenza reale:** `dotnet build PollingWorker/PollingWorker.csproj --nologo -v quiet` exit 0 dopo restore (build successiva `--no-restore` exit 0, 0 warning/0 errori). `timeout --signal=INT 6s dotnet run --project PollingWorker/PollingWorker.csproj --no-build --no-restore` ha emesso “Application started” e “shutting down”; il processo restituisce 124 per timeout. `dotnet build PollingWeb.sln --no-restore --nologo -v quiet` exit 1, MSB4249 Website legacy. `git diff --check` exit 0. Nessuna build Windows/macOS eseguita.
+**Modifica:** `Worker.StartAsync` avvia scheduler, `StopAsync` lo spegne con attesa; nessuna registrazione di job o scansione aggiunta. Questo risolve il blocco architetturale limitatamente al bootstrap, X2.1 resta IN PROGRESS.
 
-**Prossimo task:** X2.1, integrare avvio scanning e job secondo contratti esistenti senza anticipare X2.3.
+**Evidenza reale:** `dotnet build PollingWorker/PollingWorker.csproj --no-restore --nologo -v quiet` exit 0, 0 warning/0 errori. Run con variabili di connessione temporanee verso SQL locale ha fallito al login DB (SQL error 18456): non è stato possibile verificare avvio Quartz o shutdown graceful. Le variabili non sono riportate. `docker compose ps` mostra SQL container running; non si è letto né esposto valore credenziale container. `git diff --check` exit 0. La precedente build solution osservata fallisce MSB4249 sul Website legacy. Non verificate altre piattaforme.
 
-**Blocchi:** integrazione job/scanning dipende dal porting X2.3.
+**Prossimo:** X2.1, ripetere test di avvio con credenziale autorizzata fornita via ambiente; poi definire insieme a X2.3 schedulazione job e source scan.
+
+**Blocchi:** SQL accetta connessione ma credenziale di test non valida; recuperare credenziale corretta dalla configurazione operativa locale senza stamparla o registrarla. Evitare tentativi di discovery/segreti.
 
 ## 2026-10-18T10:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
