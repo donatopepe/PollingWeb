@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T03:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `StripHTML` non aveva un caso sintetico composto esclusivamente da punteggiatura. SQL documenta la sostituzione del trattino con spazio; l’input `--` deve quindi produrre due spazi, senza essere interpretato come commento SQL perché è dato Unicode tra apici.
+
+**Esito atteso:** `dbo.StripHTML` e `eProcurement.dbo.StripHTML` restituiscono esattamente due spazi per `N'--'`.
+
+**Modifica:** aggiunto l’input e l’asserzione al test parametrizzato sulle due funzioni.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning/0 errori; password SQL fornita solo nell’ambiente del processo; test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 secondo DoD.
+
+**Blocchi:** nessuno; T3 resta incompleta.
+
 ## 2026-10-18T02:48Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** i casi `StripHTML` coprivano testo sintetico, markup, accenti, punteggiatura e spazi consecutivi; mancava una verifica che un testo privo di markup conservi CRLF anziché convertirli o rimuoverli.
