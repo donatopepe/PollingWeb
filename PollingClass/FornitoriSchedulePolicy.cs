@@ -45,7 +45,7 @@ namespace PollingClass
             }
         }
 
-        public static string DailyInvoiceOnetimeValue()
+        public static string DailyRecurringOnetimeValue()
         {
             return "false";
         }

@@ -35,7 +35,7 @@ namespace PollingWeb.UnitTests
         [Fact]
         public void Daily_invoice_jobs_explicitly_select_recurring_execution()
         {
-            Assert.Equal("false", FornitoriSchedulePolicy.DailyInvoiceOnetimeValue());
+            Assert.Equal("false", FornitoriSchedulePolicy.DailyRecurringOnetimeValue());
         }
 
         [Fact]
