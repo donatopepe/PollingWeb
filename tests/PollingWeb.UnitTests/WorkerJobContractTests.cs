@@ -62,6 +62,14 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData(false, false)]
+        [InlineData(true, true)]
+        public void Supplier_and_invoice_dispatch_policy_preserves_onetime_selection(bool onetime, bool expected)
+        {
+            Assert.Equal(expected, FornitoriJobDispatchPolicy.UseOneTime(onetime));
+        }
+
+        [Theory]
         [MemberData(nameof(JobTypes))]
         public void Daily_recurring_job_data_value_is_consumed_as_false_by_each_job(Type jobType)
         {

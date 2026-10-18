@@ -14,7 +14,7 @@ namespace PollingClass
             {
                 bool onetime = Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime"));
                 var fornitore = new LeggiFornitore();
-                if (onetime)
+                if (FornitoriJobDispatchPolicy.UseOneTime(onetime))
                     fornitore.LetturaFor_ONETIME(context.JobDetail.JobDataMap.GetString("codist"),
                         context.JobDetail.JobDataMap.GetString("idprocesso"));
                 else

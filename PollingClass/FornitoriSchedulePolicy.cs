@@ -4,6 +4,11 @@ using System.Globalization;
 namespace PollingClass
 {
     /// <summary>Pure scheduling policy shared by the legacy host and the future worker.</summary>
+    public static class FornitoriJobDispatchPolicy
+    {
+        public static bool UseOneTime(bool onetime) { return onetime; }
+    }
+
     public static class FornitoriSchedulePolicy
     {
         /// <summary>Formats a validated clock time into a Quartz weekday expression.</summary>
