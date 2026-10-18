@@ -1,17 +1,17 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Codify the legacy TaskService task-type routing in a pure X2.3 policy with exhaustive synthetic unit coverage, preserving the WebForms switch behavior.
+Preserve the distinct legacy order export selector in X2.3 worker job mapping: TaskService type 2 is ODA, type 6 is RDA.
 
 ## Metric / threshold
-Types 1–7 map to the existing job classes/families exactly as `TaskService.aspx.cs`; unknown types reject explicitly. PollingClass builds both TFMs; focused tests pass; no database/domain jobs execute.
+Pure policy returns the exact established selector for both order task types and rejects unrelated types; focused unit tests/builds pass with no job execution or database dependency.
 
 ## Ordered steps
-1. Confirm main status, prompt, plan, policy/job types and WebForms routing. **Done.**
-2. Baseline: `TaskService.aspx.cs:RischedulaTask` routes types 1–7 to supplier, ODA, receipt, budget, SQL01, RDA, invoices respectively. **Done.**
-3. Add pure mapping policy and table-driven assertions, keeping scheduler side effects out. **Done.**
-4. Build PollingClass net8/net48; run focused and full unit suite; diff check. **In progress.**
-5. Record evidence, commit and push. **Pending.**
+1. Confirm main, CodeGraph, prompt/plan, prior iteration and WebForms type routing. **Done.**
+2. Baseline: types 2 and 6 share `JobOrdini_SAP_Invio`, but `TaskService.aspx.cs` passes different `tipoExport` values (`ODA`/`RDA`); prior policy only mapped job type. **Done.**
+3. Add a pure export selector and table-driven assertions. **Done.**
+4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused contracts 22/22 pass; unit suite 184 pass/2 skip; diff check exit 0. **Done.**
+5. Update evidence, commit and push. **In progress.**
 
 ## Constraints
 No secrets discovery, no DB login guessing, no fabricated domain schedules, preserve ordered plan.
