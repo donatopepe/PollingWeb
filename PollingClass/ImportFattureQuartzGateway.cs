@@ -18,9 +18,11 @@ namespace PollingClass
             var trigger = TriggerBuilder.Create()
                 .WithIdentity("Trigger_" + processId + "_" + institutionCode, "IDG")
                 .WithCronSchedule(FornitoriSchedulePolicy.WeekdayCronFromLegacy(cronExpression)).Build();
-            if (scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult() && overrideExisting)
+            var triggerExists = scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult();
+            if (triggerExists && OrdiniSchedulerPolicy.ShouldUnscheduleExistingTrigger(overrideExisting))
                 scheduler.UnscheduleJob(trigger.Key).GetAwaiter().GetResult();
-            if (scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult()) return false;
+            if (!OrdiniSchedulerPolicy.CanScheduleDailyTrigger(
+                scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult(), overrideExisting)) return false;
             scheduler.ScheduleJob(job, trigger).GetAwaiter().GetResult();
             return true;
         }
