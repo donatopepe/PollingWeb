@@ -245,6 +245,7 @@ namespace PollingWeb.IntegrationTests
                         function + "(N'À'), " +
                         function + "(N'città'), " +
                         function + "(N'à,'), " +
+                        function + "(N'a`-b'), " +
                         function + "(N''''), " +
                         function + "(N'<b title=''a > b''>x</b>')",
                         connection))
@@ -286,8 +287,9 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal("a", reader.GetString(32));
                         Assert.Equal("citta", reader.GetString(33));
                         Assert.Equal("a ", reader.GetString(34));
-                        Assert.Equal(" ", reader.GetString(35));
-                        Assert.Equal("  b >x ", reader.GetString(36));
+                        Assert.Equal("a  b", reader.GetString(35));
+                        Assert.Equal(" ", reader.GetString(36));
+                        Assert.Equal("  b >x ", reader.GetString(37));
                     }
                 }
             }

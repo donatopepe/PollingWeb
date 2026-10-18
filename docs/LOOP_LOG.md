@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T09:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** backtick e trattino erano verificati separatamente, non insieme nello stesso testo plain.
+
+**Esito atteso:** la funzione applica due `REPLACE` indipendenti: `a`-b` deve produrre `a  b` in entrambe le copie.
+
+**Modifica:** aggiunto l’input sintetico combinato e l’asserzione per entrambi i risultati SQL.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. La build iniziale ha richiesto la correzione di un `+` mancante; il run finale è verde. Credenziale passata solo via environment.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T09:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** la virgola era provata in plain text e `à` in altri contesti, ma non la combinazione dei due caratteri nello stesso input senza markup.
