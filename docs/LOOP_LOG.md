@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T20:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `WorkerJobContractTests` individuava `PollingWeb.sln` risalendo i parent di `AppContext.BaseDirectory`, poi leggeva sorgenti `.cs`. Ciò dipende dal layout del checkout e non è adatto a test eseguiti da output isolato/pacchetti; inoltre testa testo anziché comportamento. Metadata Quartz (IJob, firma, attributo) sono già asseriti.
+
+**Esito atteso:** rimuovere i source file path assertions; contract tests restano eseguibili e validi dal test assembly senza cercare la solution root.
+
+**Modifica:** eliminati helper source-root e asserzioni su sorgenti/handler/chiavi. Restano controlli reflection su IJob, Execute signature e PersistJobDataAfterExecution, oltre ai test puri delle policy.
+
+**Evidenza reale:** PollingClass build net8 exit 0, 0 warning; net48 exit 0, 12 warning. WorkerJobContractTests → 38/38 pass; suite unit → 210 pass, 2 skip; `git diff --check` exit 0. Test eseguiti dal checkout regolare; test da package/output relocato non eseguito.
+
+**Prossimo:** X2.3; aggiungere solo contratti unitari non fragili e restano necessari integration job/database.
+
+**Blocchi:** nessun DB/job runtime testato; macOS/Windows non verificati.
+
 ## 2026-10-18T20:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** i job Quartz leggono dal `JobDataMap` le chiavi `codist`, `idprocesso`, `onetime`; il job invio ordini legge anche `tipoExport`. I test di sorgente coprivano handler errori e attributi, non queste letture obbligatorie.
