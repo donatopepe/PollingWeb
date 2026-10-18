@@ -20,6 +20,29 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData(1, "Supplier", typeof(JobFornitori))]
+        [InlineData(2, "OrderSend", typeof(JobOrdini_SAP_Invio))]
+        [InlineData(3, "OrderReceipt", typeof(JobOrdini_SAP_Esito))]
+        [InlineData(4, "Budget", typeof(JobBudget))]
+        [InlineData(5, "SqlExport", typeof(JobSQL01))]
+        [InlineData(6, "RequestSend", typeof(JobOrdini_SAP_Invio))]
+        [InlineData(7, "Invoice", typeof(JobImportFatture))]
+        public void Configured_task_type_maps_to_legacy_job_family(int taskType, string family, Type expectedJobType)
+        {
+            Assert.Equal(family, FornitoriSchedulePolicy.ProcessFamily(taskType));
+            Assert.Equal(expectedJobType, FornitoriSchedulePolicy.JobType(taskType));
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(8)]
+        public void Unknown_task_type_is_rejected(int taskType)
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => FornitoriSchedulePolicy.JobType(taskType));
+            Assert.Throws<ArgumentOutOfRangeException>(() => FornitoriSchedulePolicy.ProcessFamily(taskType));
+        }
+
+        [Theory]
         [MemberData(nameof(JobTypes))]
         public void Legacy_job_types_are_constructible_and_expose_Quartz_execute_contract(Type jobType)
         {

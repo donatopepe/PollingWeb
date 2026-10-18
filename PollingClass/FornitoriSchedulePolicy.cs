@@ -30,6 +30,36 @@ namespace PollingClass
             return intervalMinutes >= 0;
         }
 
+        public static string ProcessFamily(int taskType)
+        {
+            switch (taskType)
+            {
+                case 1: return "Supplier";
+                case 2: return "OrderSend";
+                case 3: return "OrderReceipt";
+                case 4: return "Budget";
+                case 5: return "SqlExport";
+                case 6: return "RequestSend";
+                case 7: return "Invoice";
+                default: throw new ArgumentOutOfRangeException(nameof(taskType), "Unsupported configured task type.");
+            }
+        }
+
+        public static Type JobType(int taskType)
+        {
+            switch (taskType)
+            {
+                case 1: return typeof(JobFornitori);
+                case 2:
+                case 6: return typeof(JobOrdini_SAP_Invio);
+                case 3: return typeof(JobOrdini_SAP_Esito);
+                case 4: return typeof(JobBudget);
+                case 5: return typeof(JobSQL01);
+                case 7: return typeof(JobImportFatture);
+                default: throw new ArgumentOutOfRangeException(nameof(taskType), "Unsupported configured task type.");
+            }
+        }
+
         public static string DailyIdentity(string processId, string institutionCode)
         {
             return "JOB_" + processId + "_" + institutionCode;
