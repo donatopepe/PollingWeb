@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Add an offline regression test for the order daily gateway's override policy, whose same-trigger replacement behavior differs from other gateways.
+Strengthen X2.3 trigger-policy test coverage for duplicate daily order triggers without touching database or Quartz runtime.
 
 ## Metric / threshold
-A pure policy encodes and tests that order daily override unschedules existing trigger, while no-override preserves duplicate protection; no scheduler or DB is started. Build/test and diff check pass.
+Pure policy exposes both override decision and duplicate-trigger acceptance outcome: existing+override permits replacement; existing+no override rejects; absent trigger permits scheduling. Unit tests/builds pass; no scheduler started.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, prompt/plan, order gateway implementation and policy tests. **Done.**
-2. Baseline: order daily gateway conditionally unschedules trigger on override; existing policy tests don't assert this branch. **Done.**
-3. Add a pure policy function for the override decision and table-driven tests; wire only the existing condition. **Done.**
-4. PollingClass net8/net48 exit 0, 12 warnings each; focused order tests 18/18; unit suite 212 pass/2 skip; diff check exit 0. **Done.**
-5. Update records; commit and push. **In progress.**
+1. Verify clean main, CodeGraph, prompt/plan and existing order gateway policy. **Done.**
+2. Baseline: `ShouldUnscheduleExistingTrigger` only models removal decision; duplicate guard's expected result is untested. **Done.**
+3. Add pure policy for duplicate-trigger acceptance and table-driven tests; wire gateway guard. **Done.**
+4. Both builds exit 0 (12 warnings each); focused order tests 22/22 pass; unit suite 216 pass/2 skip; diff check exit 0. **Done.**
+5. Update records, commit and push. **In progress.**
 
 ## Constraints
-Preserve current behavior exactly; do not create scheduler/DB connections or schedule jobs.
+Preserve behavior exactly, no scheduler/database or trigger creation.
 
 ## Acceptance
-- [ ] Policy and gateway agree for both override values.
-- [ ] Builds/tests/diff check pass.
-- [ ] Actual evidence recorded, task commits pushed, tree clean.
+- [ ] Policy models duplicate guard for override/presence combinations.
+- [ ] Both builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG actual evidence; commits pushed, tree clean.
