@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T17:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `JobOrdini_SAP_Esito.Execute` e `JobOrdini_SAP_Invio.Execute` leggono entrambi `onetime` e lo convertono in bool. `OrdiniQuartzGateway.ScheduleDaily` impostava `codist`, `idprocesso` e `tipoExport`, ma ometteva `onetime`, quindi i job pianificati daily avrebbero fallito la conversione.
+
+**Esito atteso:** mapping giornaliero passa `onetime=false` per entrambe le classi, lasciando invariato intervallo one-time/ricorrente.
+
+**Modifica:** aggiunto il flag da `DailyRecurringOnetimeValue()` nel gateway daily e test policy unitario.
+
+**Evidenza reale:** PollingClass build net8.0/net48 `--no-restore --nologo -v quiet` → exit 0 per entrambi, 12 warning/0 errori. `OrdiniSchedulerPolicyTests` → 11/11 pass; suite unit → 188 pass, 2 skip; `git diff --check` exit 0. Nessun job/DB eseguito.
+
+**Prossimo:** continuare audit X2.3 sugli altri job/gateway.
+
+**Blocchi:** runtime SQL non verificato; nessuna credenziale autorizzata usata. macOS/Windows non verificati.
+
 ## 2026-10-18T18:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `SQL01QuartzGateway.ScheduleDaily` creava `JobSQL01` senza `onetime`; `JobSQL01.Execute` chiama `Convert.ToBoolean(JobDataMap.GetString("onetime"))`, quindi il job giornaliero falliva con valore mancante prima di `ExportSQL01.Leggi_File`.
