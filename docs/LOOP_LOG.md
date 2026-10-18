@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T08:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** la funzione SQL normalizza le cinque vocali con accento grave ma non l’accento acuto `á`; quest’ultimo non era testato isolatamente.
+
+**Esito atteso:** entrambe le copie mantengono l’input sintetico `á` invariato.
+
+**Modifica:** aggiunti input singolo e asserzione esatta nel result set condiviso delle funzioni.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. La prima build aveva evidenziato un operatore `+` mancante; corretto prima del run positivo. Credenziale solo nell’ambiente del processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T08:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** la funzione non sostituisce `~`, ma il suo mantenimento in testo plain non era coperto dal test SQL.

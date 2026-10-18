@@ -241,6 +241,7 @@ namespace PollingWeb.IntegrationTests
                         function + "(N'100%'), " +
                         function + "(N'A^B'), " +
                         function + "(N'A~B'), " +
+                        function + "(N'á'), " +
                         function + "(N''''), " +
                         function + "(N'<b title=''a > b''>x</b>')",
                         connection))
@@ -278,8 +279,9 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal("100%", reader.GetString(28));
                         Assert.Equal("A^B", reader.GetString(29));
                         Assert.Equal("A~B", reader.GetString(30));
-                        Assert.Equal(" ", reader.GetString(31));
-                        Assert.Equal("  b >x ", reader.GetString(32));
+                        Assert.Equal("á", reader.GetString(31));
+                        Assert.Equal(" ", reader.GetString(32));
+                        Assert.Equal("  b >x ", reader.GetString(33));
                     }
                 }
             }
