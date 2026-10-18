@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Reuse the existing shared JobDataMap policy for the SQL01 interval gateway, preserving its three keys and interval-derived `onetime` value.
+Reuse the tested interval JobDataMap projection for ImportBudget interval schedules, preserving the three legacy keys and interval flag.
 
 ## Metric / threshold
-SQL01 interval map created via tested pure projection for zero and positive intervals; no additional key or value change. Both TFM builds, focused/full unit tests, diff check pass; no scheduler/DB execution.
+Budget interval uses `IntervalJobData` (no `tipoExport`), zero→`true`, positive→`false`; validation, trigger identity/timing unchanged. Both TFM builds, focused/full tests, diff check pass; no scheduler/DB runtime.
 
 ## Ordered steps
-1. Check clean main, CodeGraph, PROMPT/PLAN, current gateway and tests. **Done.**
-2. Baseline: order interval uses projection; SQL01 interval still writes the same three keys directly in branches. **Done.**
-3. Wire SQL01 interval map through `IntervalJobData`, omit `tipoExport`; added zero/positive projection cases. **Done.**
-4. PollingClass net8/net48 exit 0, 0 warnings each; focused SQL01/order tests 42/42; suite 230 pass/2 skip; diff check exit 0. **Done.**
-5. Record evidence, commit/push and verify clean. **In progress.**
+1. Verify clean main, CodeGraph, PROMPT/PLAN and inspect budget interval path. **Done.**
+2. Baseline: SQL01 interval uses projection; budget interval writes the same three fields directly in each branch. **Done.**
+3. Wire budget interval through projection, omitting order-only selector. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused budget/order tests 42/42; suite 230 pass/2 skip; diff check exit 0. **Done.**
+5. Update evidence, commit/push, verify clean. **In progress.**
 
 ## Constraints
-No Quartz scheduler/job or DB; preserve validation, trigger identity, timing and exact map keys.
+No scheduler/job/DB execution; preserve identity, validation and trigger timing.
 
 ## Acceptance
-- [ ] SQL01 interval uses pure projection with exact legacy keys and onetime semantics.
+- [ ] Budget interval uses shared policy and exact key/value contract.
 - [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO updated; commits pushed; clean tree.
+- [ ] PLAN/LOOP_LOG/TODO updated; push and clean tree verified.
