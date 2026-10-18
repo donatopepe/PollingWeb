@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T17:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** i tipi TaskService 2 e 6 usano entrambi `JobOrdini_SAP_Invio`, ma il chiamante legacy `TaskService.aspx.cs:RischedulaTask` passa rispettivamente `ODA` e `RDA`. La policy introdotta nell'iterazione precedente selezionava il job type, ma non preservava questo parametro distinto.
+
+**Esito atteso:** selettore puro restituisce `ODA` per tipo 2 e `RDA` per tipo 6; rifiuta tipi non ordine; build entrambi i TFM e unit tests passano.
+
+**Modifica:** aggiunto `FornitoriSchedulePolicy.OrderExportType` e test tabellari sui due valori e cinque famiglie non ammesse. Nessuna schedule eseguita o dominio modificato.
+
+**Evidenza reale:** build `PollingClass` net8.0/net48 con `--no-restore --nologo -v quiet` → entrambi exit 0, 12 warning/0 errori. Test mirato WorkerJobContractTests → 22/22 pass; suite unit completa → 184 pass, 2 skip. `git diff --check` → exit 0.
+
+**Prossimo:** continuare X2.3 con contratto dati Schedule→Job e consumer, senza dipendere da runtime DB non autenticabile.
+
+**Blocchi:** test runtime/job SQL non eseguito; credenziale autorizzata non presente. macOS/Windows non verificati.
+
 ## 2026-10-18T17:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** il routing legacy esplicito in `PollingWeb/TaskService.aspx.cs:RischedulaTask` associa Tipo 1→fornitori, 2→invio ODA, 3→esito ordini, 4→budget, 5→SQL01, 6→invio RDA, 7→fatture. La policy poteva essere resa riusabile/testabile senza database né attivare trigger.
