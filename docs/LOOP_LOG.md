@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T19:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** i sei job Quartz catturano eccezioni e invocano `PollingExceptionHandler.Esegui(ex)`; i contract test controllavano tipo Quartz, map e attributo ma non legavano il sorgente ai failure handler.
+
+**Esito atteso:** per ogni job type la sorgente corrispondente continua a contenere la chiamata all'handler condiviso; build net8/net48 e test passano senza eseguire i job.
+
+**Modifica:** aggiunto al contract test parametrico il controllo del file sorgente per `PollingExceptionHandler.Esegui(ex)`; path risolto dalla solution root. Nessun cambiamento ai job o alla gestione errori.
+
+**Evidenza reale:** focused `Legacy_job_types_are_constructible_and_expose_Quartz_execute_contract` → 6/6 pass. PollingClass build net8.0 exit 0/0 warning; net48 exit 0/12 warning. Unit suite → 210 pass, 2 skip. `git diff --check` exit 0.
+
+**Prossimo:** proseguire X2.3; test unit fonte non sostituisce integrazione job con DB.
+
+**Blocchi:** nessun runtime SQL eseguito; credenziale non usata.
+
 ## 2026-10-18T19:30Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** sei job hanno `[PersistJobDataAfterExecution]`; test correnti verificano attributo e map initial values, ma non esercitano mutazione/readback della `JobDataMap` Quartz. Runtime persistence SQL è vietata/non disponibile, quindi si limita a contratto unit offline.
