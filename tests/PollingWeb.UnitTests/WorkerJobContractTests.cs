@@ -75,6 +75,20 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData(0, "true", true)]
+        [InlineData(1, "false", false)]
+        [InlineData(30, "false", false)]
+        public void Interval_job_data_preserves_legacy_one_time_semantics(int interval, string expectedValue, bool expectedBoolean)
+        {
+            var intervalData = new JobDataMap
+            {
+                ["onetime"] = FornitoriSchedulePolicy.IntervalOnetimeValue(interval)
+            };
+            Assert.Equal(expectedValue, intervalData.GetString("onetime"));
+            Assert.Equal(expectedBoolean, Convert.ToBoolean(intervalData.GetString("onetime")));
+        }
+
+        [Theory]
         [MemberData(nameof(JobTypes))]
         public void Legacy_job_types_are_constructible_and_expose_Quartz_execute_contract(Type jobType)
         {

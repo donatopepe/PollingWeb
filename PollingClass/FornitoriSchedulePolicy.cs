@@ -50,6 +50,13 @@ namespace PollingClass
             return "false";
         }
 
+        public static string IntervalOnetimeValue(int intervalMinutes)
+        {
+            if (!IsValidInterval(intervalMinutes))
+                throw new ArgumentOutOfRangeException(nameof(intervalMinutes));
+            return intervalMinutes == 0 ? "true" : "false";
+        }
+
         public static string OrderExportType(int taskType)
         {
             switch (taskType)
