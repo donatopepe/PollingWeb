@@ -223,7 +223,8 @@ namespace PollingWeb.IntegrationTests
                         function + "(N'plain\r\nsynthetic'), " +
                         function + "(N'--'), " +
                         function + "(N'<b>alpha</b><i>beta</i>'), " +
-                        function + "(N'left\tright')",
+                        function + "(N'left\tright'), " +
+                        function + "(N'<></>')",
                         connection))
                     using (var reader = command.ExecuteReader())
                     {
@@ -242,6 +243,7 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal("  ", reader.GetString(11));
                         Assert.Equal(" alpha  beta ", reader.GetString(12));
                         Assert.Equal("left\tright", reader.GetString(13));
+                        Assert.Equal("  ", reader.GetString(14));
                     }
                 }
             }

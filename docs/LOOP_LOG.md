@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T03:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** i casi `StripHTML` coprivano tag singoli e adiacenti, non l’elemento vuoto `<></>`.
+
+**Esito atteso:** verificare entrambe le copie SQL; in base all’algoritmo `STUFF` ciascun tag sostituito aggiunge uno spazio, perciò l’elemento vuoto dovrebbe risultare in due spazi.
+
+**Modifica:** aggiunto input sintetico `<></>` al test condiviso. L’asserzione iniziale di uno spazio ha fallito; l’output osservato è due spazi, coerente con le due sostituzioni, e l’asserzione è stata corretta.
+
+**Evidenza reale:** IntegrationTests build `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; SQL test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale DB fornita solo via environment di processo.
+
+**Prossimo task:** continuare T3, ancora incompleta.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T03:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** la copertura `StripHTML` include CRLF in testo plain ma non il carattere tab; la funzione SQL sostituisce specifici segni di punteggiatura e non dichiara una normalizzazione whitespace generale.

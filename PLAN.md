@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-18 | 114 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti/0 errori; `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass per entrambe le copie, tab orizzontale conservato in testo senza markup; `git diff --check` exit 0. |
+| 2026-10-18 | 115 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 0 warning/0 errori; test `StripHTML_functions_cover_empty_null_and_plain_text_inputs` 1/1 pass per entrambe le copie, elemento vuoto `<></>` risulta in due spazi secondo le due sostituzioni SQL; `git diff --check` exit 0. Primo expected di un solo spazio fallito, corretto dopo aver osservato il valore reale. |
 | 2026-10-18 | 104 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass con markup malformato; `git diff --check` exit 0. |
 | 2026-10-18 | 103 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` test SQL 1/1 pass con fine anno; `git diff --check` exit 0. |
 | 2026-10-18 | 102 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `Flusso_RDA_ist_clears_output_for_multiple_requests` test SQL 1/1 pass; `git diff --check` exit 0. |
