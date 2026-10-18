@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Verify whether the already-added order export selector tests cover send/receipt/null behavior; do not duplicate tests if present.
+Test Quartz `JobDataMap` persistence semantics for the mutable one-time flag on persisted jobs, a relevant X2.3 contract risk.
 
 ## Metric / threshold
-Inspect test definitions, build PollingClass net8/net48, focused order policy tests and full unit suite; document actual result. No production/job changes.
+A Quartz `JobDataMap` with `PersistJobDataAfterExecution` proves storing a changed string boolean returns the changed value after a simulated job-data update; focused/full tests, PollingClass net8/net48 builds pass. No scheduler/database.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, prompt/plan and existing policy tests. **Done.**
-2. Baseline: `OrdiniSchedulerPolicyTests` already has five cases: send ODA/RDA, send null→empty, receipt ODA/null→empty. No test gap for that policy. **Done.**
-3. Avoid duplicate test; run both builds and test suites for current branch evidence. **Done.**
-4. Results: net8 build exit 0, 0 warnings; net48 exit 0, 12 warnings; focused 16/16 pass; unit suite 204 pass/2 skip; diff check exit 0. **Done.**
-5. Record discrepancy/evidence and commit/push documentation. **In progress.**
+1. Verify clean main, CodeGraph, prompt/plan, job attributes and current tests. **Done.**
+2. Baseline: job classes carry `PersistJobDataAfterExecution`; current contract tests don't check whether mutating map values can persist without scheduler. **Done.**
+3. Add an offline `JobDataMap` persistence-data contract test, documenting no real scheduler run. **Done.**
+4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused persistence-map tests 6/6 pass; unit suite 210 pass/2 skip; diff check exit 0. **Done.**
+5. Update records; commit and push. **In progress.**
 
 ## Constraints
-No database/job invocation; keep task selector contract unchanged.
+Do not start scheduler/DB, trigger jobs, inspect credentials, or claim runtime persistence validated.
 
 ## Acceptance
-- [ ] A real previously uncovered policy case is tested, or record the claim that cases are already covered with command evidence.
-- [ ] Both TFM builds and unit tests pass; diff check clean.
-- [ ] PLAN/LOOP_LOG/TODO record actual outcome, conventional commit pushed.
+- [ ] Offline map mutation/readback test exists; no scheduler runtime claim.
+- [ ] Builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG accurate; conventional commit pushed and tree clean.
