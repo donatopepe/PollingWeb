@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T08:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** la funzione non sostituisce `~`, ma il suo mantenimento in testo plain non era coperto dal test SQL.
+
+**Esito atteso:** entrambe le copie restituiscono `A~B` invariato.
+
+**Modifica:** aggiunti input sintetico `A~B` e asserzione puntuale al result set condiviso. Il primo build ha rilevato l’operatore `+` mancante nella concatenazione; corretto prima del test.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Nessuna credenziale salvata o stampata.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T08:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `StripHTML` non aveva un caso plain per il caret (`^`); il carattere non è nella lista di sostituzioni della funzione.
