@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T23:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** invoice daily gateway populated `codist`, `idprocesso`, and recurring `onetime` directly; budget/order already reuse pure job-data policy.
+
+**Expected:** invoice gateway uses shared projection while omitting order-only `tipoExport`; identities, trigger, routing and Quartz operations unchanged.
+
+**Change:** invoice daily now adds `OrdiniJobDataPolicy.JobData(... includeTipoExport: false)`, preserving its three-key map and `onetime=false`.
+
+**Evidence:** PollingClass net8/net48 build exit 0, 12 warnings/0 errors each; focused invoice/policy 41/41; suite 228 pass, 2 skip; `git diff --check` exit 0. No scheduler/DB execution.
+
+**Next:** continue X2.3; validate and unify remaining gateway job-data contracts conservatively.
+
 ## 2026-10-18T22:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `ImportBudgetQuartzGateway.ScheduleDaily` added `codist`, `idprocesso`, and recurring `onetime` separately; order gateway already used tested shared job-data projection including `tipoExport`.
