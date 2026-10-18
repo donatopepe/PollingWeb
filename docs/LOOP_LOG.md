@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T06:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** la sostituzione dell’apostrofo ASCII era verificata solo assieme ad altra punteggiatura; mancava il caso sintetico dell’apostrofo isolato.
+
+**Esito atteso:** l’input Unicode SQL con un solo apostrofo restituisce un singolo spazio in entrambe le copie `StripHTML`.
+
+**Modifica:** aggiunto l’input escaped `N''''` e l’asserzione esatta al test condiviso delle due funzioni.
+
+**Evidenza reale:** build `tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning preesistenti/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale fornita soltanto nell’environment del processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T05:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** la virgola era testata nel markup, ma non isolatamente in testo plain. La funzione applica la sostituzione `,` → spazio dopo la rimozione dei tag.
