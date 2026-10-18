@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-18 | 139 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 0 warning/0 errori; test SQL filtrato 1/1 pass su entrambe le copie, backtick e trattino plain (`a`-b`→`a  b`) sostituiti indipendentemente; `git diff --check` exit 0. Primo build fallito per concatenazione C# mancante, corretto. |
+| 2026-10-18 | 140 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 0 warning/0 errori; test SQL filtrato 1/1 pass, tre spazi plain preservati in entrambe le copie; `git diff --check` exit 0. Primo build fallito per concatenazione C# mancante, corretto. |
 | 2026-10-18 | 104 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass con markup malformato; `git diff --check` exit 0. |
 | 2026-10-18 | 103 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` test SQL 1/1 pass con fine anno; `git diff --check` exit 0. |
 | 2026-10-18 | 102 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `Flusso_RDA_ist_clears_output_for_multiple_requests` test SQL 1/1 pass; `git diff --check` exit 0. |
