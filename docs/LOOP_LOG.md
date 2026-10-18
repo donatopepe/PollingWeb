@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T18:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `ImportBudgetQuartzGateway.ScheduleDaily` creava `JobBudget` con `codist` e `idprocesso` ma non `onetime`; `JobBudget.Execute` converte quel valore in bool, quindi il trigger daily forniva null al convertitore. Il caso fatture simile era stato corretto nell'iterazione precedente.
+
+**Esito atteso:** job budget daily passa esplicitamente `onetime=false`, coerente con cron ricorrente; contract test e build entrambi i target passano.
+
+**Modifica:** helper puro rinominato in `DailyRecurringOnetimeValue()` e riutilizzato da entrambi i gateway daily budget/fatture; aggiunto test unit per budget. Il percorso interval esistente invariato.
+
+**Evidenza reale:** PollingClass build net8.0/net48 `--no-restore --nologo -v quiet` → entrambi exit 0, 0 warning/0 errori. Test mirato `ImportBudgetScheduleAdapterTests` → 8/8 pass; unit suite completa → 186 pass, 2 skip. `git diff --check` exit 0. Nessun DB/job eseguito. Il primo focused run ha rilevato un riferimento test a nome helper precedente, aggiornato; run finale verde.
+
+**Prossimo:** proseguire X2.3, audit contratti JobDataMap nei job/gateway restanti.
+
+**Blocchi:** nessuno per unit/build; runtime SQL non verificato. macOS/Windows non verificati.
+
 ## 2026-10-18T17:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `ImportFattureQuartzGateway.ScheduleDaily` creava `JobImportFatture` con `codist` e `idprocesso`, ma ometteva `onetime`; `JobImportFatture.Execute` converte sempre `JobDataMap.GetString("onetime")` in boolean. Il percorso giornaliero quindi passa null a `Convert.ToBoolean` e il catch del job registra l'errore senza elaborare la fattura.
