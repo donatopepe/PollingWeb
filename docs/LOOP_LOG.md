@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T05:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** i test `StripHTML` non coprivano il carattere `>` come testo interno prima della chiusura del tag. L’algoritmo prende da `<` fino al primo `>`; in `<b>left > right</b>` il primo tag è `<b>`, mentre il `>` nel contenuto non apre un altro tag.
+
+**Esito atteso:** entrambe le copie restituiscono ` left > right `.
+
+**Modifica:** aggiunto il caso sintetico con `>` nel testo. L’expected iniziale di parsing diverso è fallito; l’output reale è stato verificato e asserito invariato tra i delimitatori corretti.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale solo in environment del processo.
+
+**Prossimo task:** continuare T3, ancora incompleta.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T05:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** non era caratterizzato il body whitespace-only fra tag. Per `<b>   </b>`, ogni tag sostituito contribuisce uno spazio e il body conserva i tre spazi: attesi cinque in totale.
