@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T07:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** la query test conteneva già il caso isolato `N''''`, ma mancava l’asserzione associata al risultato ordinal 26; il test non verificava quindi direttamente quel caso.
+
+**Esito atteso:** `StripHTML` restituisce un singolo spazio dopo la sostituzione dell’apostrofo ASCII, per ciascuno schema.
+
+**Modifica:** aggiunta l’asserzione `reader.GetString(26)` per entrambi gli schemi nel test condiviso; nessun SQL modificato.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 12 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale solo nell’ambiente di processo.
+
+**Prossimo task:** proseguire T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T07:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `StripHTML` copriva le entity HTML ma non il carattere ampersand plain. La funzione non dichiara una normalizzazione di `&`, quindi il carattere dovrebbe restare invariato fuori dai tag.

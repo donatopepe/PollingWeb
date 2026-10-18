@@ -270,6 +270,7 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal("a  b", reader.GetString(23));
                         Assert.Equal("x y", reader.GetString(24));
                         Assert.Equal("a b", reader.GetString(25));
+                        Assert.Equal(" ", reader.GetString(26));
                         Assert.Equal("A&B", reader.GetString(27));
                         Assert.Equal(" ", reader.GetString(28));
                         Assert.Equal("  b >x ", reader.GetString(29));
