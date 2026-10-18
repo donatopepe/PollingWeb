@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T02:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** existing `StripHTML` integration covers NULL, empty, plain text, and a well-formed markup string; malformed/unclosed tag input is not characterized.
+
+**Esito atteso:** the SQL function's loop leaves an unmatched `<` sequence intact rather than stripping the remainder of the text; both deployed schema copies must match.
+
+**Modifica:** extended the shared two-database function test with input `left <b>middle` and asserted the observed retained-tag output (`left  middle`) from each schema function.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T02:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `Datini`/`Datfin` SQL integration checks leap-day, NULL, and end-of-day rounding inputs but not a calendar year-end input.

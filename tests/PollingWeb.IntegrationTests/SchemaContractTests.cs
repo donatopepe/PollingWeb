@@ -213,7 +213,8 @@ namespace PollingWeb.IntegrationTests
                     using (var command = new SqlCommand(
                         "SELECT " + function + "(CAST(NULL AS nvarchar(max))), " +
                         function + "(N''), " + function + "(N'plain synthetic text'), " +
-                        function + "(N'<p>synthetic, text-42</p>')",
+                        function + "(N'<p>synthetic, text-42</p>'), " +
+                        function + "(N'left <b>middle')",
                         connection))
                     using (var reader = command.ExecuteReader())
                     {
@@ -222,6 +223,7 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal("", reader.GetString(1));
                         Assert.Equal("plain synthetic text", reader.GetString(2));
                         Assert.Equal(" synthetic  text 42 ", reader.GetString(3));
+                        Assert.Equal("left  middle", reader.GetString(4));
                     }
                 }
             }
