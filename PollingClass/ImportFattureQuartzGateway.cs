@@ -12,9 +12,9 @@ namespace PollingClass
             scheduler.Start().GetAwaiter().GetResult();
             var job = JobBuilder.Create<JobImportFatture>()
                 .WithIdentity("JOB_" + processId + "_" + institutionCode, "IDG").Build();
-            job.JobDataMap.Add("codist", institutionCode);
-            job.JobDataMap.Add("idprocesso", processId);
-            job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.DailyRecurringOnetimeValue());
+            var jobData = OrdiniJobDataPolicy.JobData(institutionCode, processId,
+                false, false, string.Empty, includeTipoExport: false);
+            foreach (var entry in jobData) job.JobDataMap.Add(entry.Key, entry.Value);
             var trigger = TriggerBuilder.Create()
                 .WithIdentity("Trigger_" + processId + "_" + institutionCode, "IDG")
                 .WithCronSchedule(FornitoriSchedulePolicy.WeekdayCronFromLegacy(cronExpression)).Build();
