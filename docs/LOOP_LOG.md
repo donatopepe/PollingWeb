@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T10:35Z — X2.1 PollingWorker — IN PROGRESS
+
+**Baseline:** §4 mette X2.1 dopo T3; `PollingWeb.sln` non contiene un worker. Evidenza attesa: progetto Worker SDK net8 referenziato dalla solution, compila e avvia senza IIS su Linux; job/source scanning demandati a X2.3 senza inventare semantica.
+
+**Modifica:** aggiunti progetto console Worker Service e `BackgroundService` host skeleton con logging; registrato nella solution e package Hosting gestito centralmente. La fase di avvio attende cancellazione host; non esegue ancora scansioni né job, quindi X2.1 resta parziale.
+
+**Evidenza reale:** `dotnet build PollingWorker/PollingWorker.csproj --nologo -v quiet` exit 0 dopo restore (build successiva `--no-restore` exit 0, 0 warning/0 errori). `timeout --signal=INT 6s dotnet run --project PollingWorker/PollingWorker.csproj --no-build --no-restore` ha emesso “Application started” e “shutting down”; il processo restituisce 124 per timeout. `dotnet build PollingWeb.sln --no-restore --nologo -v quiet` exit 1, MSB4249 Website legacy. `git diff --check` exit 0. Nessuna build Windows/macOS eseguita.
+
+**Prossimo task:** X2.1, integrare avvio scanning e job secondo contratti esistenti senza anticipare X2.3.
+
+**Blocchi:** integrazione job/scanning dipende dal porting X2.3.
+
 ## 2026-10-18T10:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** leading/trailing whitespace attorno a markup non era asserito come output esatto. La funzione sostituisce il tag con spazi e non trimma.
