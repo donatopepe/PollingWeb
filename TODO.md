@@ -8,8 +8,8 @@ Continue T3 with one minimal synthetic SQL integration assertion, leaving SQL/do
 
 ## Ordered steps
 1. Verify clean `main`, current index, T3 plan and test/log baseline. **Done.**
-2. Select gap: empty element `<></>`; SQL replaces the empty tag text with a space, then replaces its closing tag with another space. Expected exact result: two spaces. **Done.**
-3. Add synthetic input/assertion to shared test. **In progress.**
+2. Select gap: element whose tag contains an attribute (`<b class='synthetic'>alpha</b>`); existing tests cover only simple tags. Expected visible text is ` alpha ` because the entire opening/closing tag strings are replaced by spaces. **Done.**
+3. Add synthetic input/assertion to shared test. **Done.**
 4. Build → exit 0; focused test first exposed one extra replacement space, corrected expected output, rerun → 1/1 pass; `git diff --check` → exit 0. **Done.**
 5. Record actual result in PLAN and LOOP_LOG; atomic T3 commit and push. **In progress.**
 
@@ -17,7 +17,7 @@ Continue T3 with one minimal synthetic SQL integration assertion, leaving SQL/do
 No SQL changes or real records; credentials only in process environment. Do not download images, claim other OS/full-solution verification, or leak secret-bearing patterns.
 
 ## Acceptance
-- [x] Both deployed `StripHTML` copies return exactly two spaces for empty HTML element `<></>`.
+- [x] Both deployed `StripHTML` copies return ` alpha ` for a tag with a synthetic attribute.
 - [x] Build, focused SQL test, and whitespace check pass.
 - [x] PLAN §8 and LOOP_LOG show observed outcomes.
 - [ ] T3 commit pushed on main; tree clean.
