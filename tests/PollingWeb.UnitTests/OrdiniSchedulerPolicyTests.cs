@@ -7,6 +7,20 @@ namespace PollingWeb.UnitTests
     public class OrdiniSchedulerPolicyTests
     {
         [Theory]
+        [InlineData(true, true, "ODA", true, "ODA")]
+        [InlineData(true, false, "RDA", false, "RDA")]
+        [InlineData(false, true, "ODA", true, "")]
+        [InlineData(false, false, null, false, "")]
+        public void Job_arguments_preserve_send_receipt_one_time_and_export_contract(bool sendFile, bool oneTime,
+            string selector, bool expectedOneTime, string expectedExport)
+        {
+            var arguments = OrdiniJobDataPolicy.Arguments(sendFile, oneTime, selector);
+            Assert.Equal(sendFile, arguments.SendFile);
+            Assert.Equal(expectedOneTime, arguments.OneTime);
+            Assert.Equal(expectedExport, arguments.TipoExport);
+        }
+
+        [Theory]
         [InlineData(true, "ODA", "ODA")]
         [InlineData(true, "RDA", "RDA")]
         [InlineData(true, null, "")]

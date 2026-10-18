@@ -11,11 +11,28 @@ namespace PollingClass
             bool sendFile, string tipoExport);
     }
 
+    public sealed class OrdiniJobArguments
+    {
+        public bool SendFile { get; set; }
+        public bool OneTime { get; set; }
+        public string TipoExport { get; set; }
+    }
+
     public static class OrdiniJobDataPolicy
     {
         public static string TipoExport(bool sendFile, string value)
         {
             return sendFile ? (value ?? string.Empty) : string.Empty;
+        }
+
+        public static OrdiniJobArguments Arguments(bool sendFile, bool oneTime, string tipoExport)
+        {
+            return new OrdiniJobArguments
+            {
+                SendFile = sendFile,
+                OneTime = oneTime,
+                TipoExport = TipoExport(sendFile, tipoExport)
+            };
         }
     }
 

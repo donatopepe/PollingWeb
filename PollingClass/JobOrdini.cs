@@ -12,12 +12,14 @@ namespace PollingClass
         {
             try
             {
-                bool onetime = Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime"));
+                var arguments = OrdiniJobDataPolicy.Arguments(false,
+                    Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime")),
+                    context.JobDetail.JobDataMap.GetString("tipoExport"));
                 Ordini_Sap ordini = new Ordini_Sap();
                 ordini.Leggi_Esito_Sap(
                         context.JobDetail.JobDataMap.GetString("codist"),
                         context.JobDetail.JobDataMap.GetString("idprocesso"),
-                        onetime);
+                        arguments.OneTime);
 
             }
             catch (Exception ex)
@@ -35,13 +37,15 @@ namespace PollingClass
         {
             try
             {
-                bool onetime = Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime"));
+                var arguments = OrdiniJobDataPolicy.Arguments(true,
+                    Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime")),
+                    context.JobDetail.JobDataMap.GetString("tipoExport"));
                 Ordini_Sap ordini = new Ordini_Sap();
                 ordini.Invia_file_Sap(
                         context.JobDetail.JobDataMap.GetString("codist"),
                         context.JobDetail.JobDataMap.GetString("idprocesso"),
-                        onetime,
-                        context.JobDetail.JobDataMap.GetString("tipoExport"));
+                        arguments.OneTime,
+                        arguments.TipoExport);
 
                 //if (onetime)
                 //{
