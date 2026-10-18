@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T03:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** la copertura `StripHTML` include CRLF in testo plain ma non il carattere tab; la funzione SQL sostituisce specifici segni di punteggiatura e non dichiara una normalizzazione whitespace generale.
+
+**Esito atteso:** `left\tright` resta invariato in entrambe le copie di `StripHTML`.
+
+**Modifica:** aggiunto un input sintetico con tab e asserzione esatta al test condiviso che invoca entrambe le funzioni.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning preesistenti/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. La password di test è stata fornita solo all’ambiente del processo.
+
+**Prossimo task:** continuare T3, ancora incompleta.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T03:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** la copertura `StripHTML` controllava un singolo elemento `<p>`; non caratterizzava elementi HTML adiacenti senza testo intermedio.
