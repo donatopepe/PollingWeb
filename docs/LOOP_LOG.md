@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T21:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** JobFornitori and JobImportFatture read `onetime` and dispatch to ONETIME or recurring legacy methods. Existing tests checked JobDataMap boolean strings but not the shared branch decision.
+
+**Expected:** pure branch selector represents the unchanged boolean behavior, tested true/false and used by both jobs.
+
+**Change:** added `FornitoriJobDispatchPolicy.UseOneTime`; wired into both jobs without altering calls, arguments, catches or execution paths.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; `WorkerJobContractTests` 40/40 pass; full unit suite 218 pass, 2 skip; `git diff --check` exit 0. No jobs, scheduler or DB executed.
+
+**Next:** continue X2.3 job integration contracts. SQL runtime remains blocked absent authorized credentials.
+
 ## 2026-10-18T21:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** invoice gateway and SQL01 gateway had direct override tests and duplicate guards; daily order/budget gateways use shared pure policies. Preserve each existing existence check, unschedule if present+override, then re-check before scheduling.
