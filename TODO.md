@@ -1,16 +1,16 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Implement the first safe X2.3 worker-side contract: verify the legacy Quartz jobs carry required parameters and do not depend on HttpContext, while preserving existing scheduler gateways.
+Codify the legacy TaskService task-type routing in a pure X2.3 policy with exhaustive synthetic unit coverage, preserving the WebForms switch behavior.
 
 ## Metric / threshold
-All five logical job families build on net8/net48 and unit tests verify explicit parameter mapping/contracts without database or production runs; no domain behavior changes.
+Types 1–7 map to the existing job classes/families exactly as `TaskService.aspx.cs`; unknown types reject explicitly. PollingClass builds both TFMs; focused tests pass; no database/domain jobs execute.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph current, inspect X2.3, job classes and test project. **Done.**
-2. Baseline: persisted Quartz job classes consume JobDataMap fields (`codist`, `idprocesso`, `onetime`, and order `tipoExport`); no HttpContext in job files. **Done.**
-3. Create contract tests via Quartz job details for required fields/types, not executing domain jobs. **In progress.**
-4. Build PollingClass net8/net48, run unit tests and diff check. **Pending.**
+1. Confirm main status, prompt, plan, policy/job types and WebForms routing. **Done.**
+2. Baseline: `TaskService.aspx.cs:RischedulaTask` routes types 1–7 to supplier, ODA, receipt, budget, SQL01, RDA, invoices respectively. **Done.**
+3. Add pure mapping policy and table-driven assertions, keeping scheduler side effects out. **Done.**
+4. Build PollingClass net8/net48; run focused and full unit suite; diff check. **In progress.**
 5. Record evidence, commit and push. **Pending.**
 
 ## Constraints
