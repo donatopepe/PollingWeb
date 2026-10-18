@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Extend the offline X2.3 job contract tests to assert the recurring flag string is parseable as false, matching Quartz `Execute` behavior.
+Strengthen X2.3 job contracts by asserting that recurring job flag inputs are present in every Quartz job's declared persisted data map.
 
 ## Metric / threshold
-For all six IJob classes, contract test verifies JobDataMap recurring value is the exact boolean string `false` and `Convert.ToBoolean` parses it false; focused/full unit suite passes. No DB/scheduler execution.
+All six job classes are Quartz `IJob` types; shared recurring map includes `onetime=false`; tests verify map value and conversion. Build PollingClass net8/net48 and unit suite; no database or job execution.
 
 ## Ordered steps
-1. Verify main, CodeGraph, prompt/plan and inspect all job Execute methods and daily gateway data. **Done.**
-2. Baseline: all daily gateways now use shared `DailyRecurringOnetimeValue`, but current tests assert the helper literal only rather than the exact conversion consumed by job handlers. **Done.**
-3. Add one shared test contract that validates value parse semantics for each job family. **Done.**
-4. PollingClass net8/net48 builds exit 0 (12 warnings each); WorkerJobContractTests 28/28 pass; unit suite 195 pass/2 skip; diff check exit 0. **Done.**
-5. Update records, commit and push. **In progress.**
+1. Confirm clean main/CodeGraph, prompt, plan and job classes/gateway contracts. **Done.**
+2. Baseline: Quartz jobs consume keys at Execute; recurring flag policy exists but tests do not exercise a JobDataMap structure. **Done.**
+3. Add a Quartz `JobDataMap` contract test for the shared recurring flag. **Done.**
+4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused job contracts 28/28 pass; unit suite 195 pass/2 skip; diff check exit 0. **Done.**
+5. Update PLAN/LOOP_LOG, commit and push. **In progress.**
 
 ## Constraints
-No live jobs/database, no credentials; preserve behavior and no guessed data contracts.
+No real DB, scheduler startup, secrets, or domain job invocation.
 
 ## Acceptance
-- [ ] Test covers six Quartz job families and conversion false.
+- [ ] Contract test checks `JobDataMap` recurring key.
 - [ ] Builds/tests/diff check pass.
-- [ ] PLAN and LOOP_LOG record evidence; commits pushed and tree clean.
+- [ ] Record actual evidence and push task commits.
