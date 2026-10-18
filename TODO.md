@@ -1,22 +1,23 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Fix X2.3 order daily Quartz jobs: both `JobOrdini_SAP_*` read `onetime`, while `ScheduleDaily` currently omits it.
+Close another X2.3 JobDataMap contract gap: supplier daily Quartz jobs call `JobFornitori.Execute`, which requires `onetime`.
 
 ## Metric / threshold
-Daily order JobDataMap sets `onetime=false` for send and receipt jobs; policy-level unit test plus both PollingClass TFM builds and unit suite pass. No DB/scheduler invocation.
+`FornitoriQuartzGateway.ScheduleDaily` writes the recurring false flag; a focused unit test asserts policy value; both PollingClass target builds and unit suite pass. No DB/scheduler invocation.
 
 ## Ordered steps
-1. Verify main, CodeGraph, PROMPT/PLAN and inspect order jobs/gateway. **Done.**
-2. Baseline: both `JobOrdini_SAP_Esito.Execute` and `JobOrdini_SAP_Invio.Execute` convert JobDataMap `onetime`; daily gateway omits it. **Done.**
-3. Add shared daily recurring policy and test; apply to daily gateway only. **Done.**
-4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused order tests 11/11 pass; unit suite 188 pass/2 skip; diff check exit 0. **Done.**
-5. Update records, commit and push. **In progress.**
+1. Confirm clean main, CodeGraph, task order, job and supplier gateway implementation. **Done.**
+2. Baseline: `JobFornitori.Execute` converts `JobDataMap[onetime]`, but `ScheduleDaily` did not populate it. **Done.**
+3. Add explicit recurring flag via shared policy and test. **Done.**
+4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused supplier tests 16/16 pass; unit suite 189 pass/2 skip; diff check exit 0. **Done.**
+5. Update PLAN/LOOP_LOG, commit and push. **In progress.**
 
 ## Constraints
-No DB access/credentials discovery or production schedules; preserve ODA/RDA routing and job semantics.
+No real DB operations, no credential discovery, do not change schedules/domain behavior.
 
 ## Acceptance
-- [ ] Daily order jobs have explicit `onetime=false`.
-- [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG actual evidence recorded; commit pushed and main clean.
+- [ ] Supplier daily jobs receive `onetime=false`.
+- [ ] Builds and tests pass; diff check clean.
+- [ ] PLAN and LOOP_LOG document observed outputs.
+- [ ] Conventional task commit pushed; working tree clean.
