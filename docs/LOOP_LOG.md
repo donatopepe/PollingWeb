@@ -1,5 +1,20 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T02:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `Datini`/`Datfin` SQL integration checks leap-day, NULL, and end-of-day rounding inputs but not a calendar year-end input.
+
+**Esito atteso:** for a synthetic `2000-12-31` date, `Datini` returns the last representable `datetime` instant on that date and `Datfin` returns midnight of the same date.
+
+**Modifica:** extended the direct-function query and exact `DateTime` assertions to cover the year-end boundary for both functions.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 errori (warning preesistenti); focused SQL test `Datini_and_Datfin_return_expected_synthetic_boundaries` → 1/1 pass, exit 0; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno per questa verifica; T3 resta incompleta.
+
+
 ## 2026-10-18T02:03Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `Flusso_RDA_ist` has per-institute single-request fixtures, but no explicit multi-request test for output parameter reset and aggregate export rows.

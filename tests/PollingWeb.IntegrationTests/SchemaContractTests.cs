@@ -184,7 +184,8 @@ namespace PollingWeb.IntegrationTests
                 using (var command = new SqlCommand(
                     "SELECT dbo.Datini(CONVERT(datetime,'2096-02-29T12:34:56',126)), dbo.Datfin(CONVERT(datetime,'2096-02-29T12:34:56',126)), " +
                     "dbo.Datini(CAST(NULL AS datetime)), dbo.Datfin(CAST(NULL AS datetime)), " +
-                    "dbo.Datini(CONVERT(datetime,'2000-01-01T23:59:59.997',126)), dbo.Datfin(CONVERT(datetime,'2000-01-01T23:59:59.997',126))",
+                    "dbo.Datini(CONVERT(datetime,'2000-01-01T23:59:59.997',126)), dbo.Datfin(CONVERT(datetime,'2000-01-01T23:59:59.997',126)), " +
+                    "dbo.Datini(CONVERT(datetime,'2000-12-31T00:00:00',126)), dbo.Datfin(CONVERT(datetime,'2000-12-31T00:00:00',126))",
                     connection))
                 using (var reader = command.ExecuteReader())
                 {
@@ -195,6 +196,8 @@ namespace PollingWeb.IntegrationTests
                     Assert.True(reader.IsDBNull(3));
                     Assert.Equal(new DateTime(2000, 1, 1, 23, 59, 59, 997), reader.GetDateTime(4));
                     Assert.Equal(new DateTime(2000, 1, 1, 0, 0, 0), reader.GetDateTime(5));
+                    Assert.Equal(new DateTime(2000, 12, 31, 23, 59, 59, 997), reader.GetDateTime(6));
+                    Assert.Equal(new DateTime(2000, 12, 31, 0, 0, 0), reader.GetDateTime(7));
                 }
             }
         }
