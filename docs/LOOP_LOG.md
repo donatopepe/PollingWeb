@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T18:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** i test precedenti coprivano il valore stringa del flag helper e i sei job types; non costruivano però un oggetto Quartz `JobDataMap`, né verificavano il recupero della chiave con l'API usata da Execute.
+
+**Esito atteso:** `JobDataMap.GetString("onetime")` restituisce `false` e il valore si converte in boolean false per tutti i sei job.
+
+**Modifica:** il test tabellare esistente crea ora `JobDataMap` sintetica, inserisce il flag recurring policy e asserisce `GetString` + `Convert.ToBoolean`; nessun job invocato.
+
+**Evidenza reale:** PollingClass build net8.0/net48 `--no-restore --nologo -v quiet` → exit 0 per entrambi, 12 warning/0 errori ciascuno. `WorkerJobContractTests` 28/28 pass; unit suite 195 pass/2 skip. `git diff --check` exit 0. Nessun accesso database o scheduler.
+
+**Prossimo:** continuare X2.3 con i contract e integration test dei job che non richiedono assunzioni sui dati reali.
+
+**Blocchi:** nessun runtime SQL disponibile; credenziale autorizzata non usata. macOS/Windows non verificati.
+
 ## 2026-10-18T18:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** le iterazioni precedenti aggiunsero `onetime=false` ai cinque gateway daily. Il test esistente controllava il valore helper in singoli policy tests, ma non verificava che il valore sia convertibile allo stesso modo in cui ogni `IJob.Execute` lo consuma.
