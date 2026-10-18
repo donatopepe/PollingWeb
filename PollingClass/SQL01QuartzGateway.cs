@@ -36,17 +36,15 @@ namespace PollingClass
             scheduler.Start().GetAwaiter().GetResult();
             var identity = processId + "_" + institutionCode + "JOB_onetime_" + DateTime.UtcNow.Ticks;
             var job = JobBuilder.Create<JobSQL01>().WithIdentity(identity, "IDG").Build();
-            job.JobDataMap.Add("codist", institutionCode);
-            job.JobDataMap.Add("idprocesso", processId);
+            var jobData = OrdiniJobDataPolicy.IntervalJobData(institutionCode, processId, intervalMinutes);
+            foreach (var entry in jobData) job.JobDataMap.Add(entry.Key, entry.Value);
             ITrigger trigger;
             if (intervalMinutes == 0)
             {
-                job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.IntervalOnetimeValue(intervalMinutes));
                 trigger = TriggerBuilder.Create().WithIdentity(identity, "IDG").StartNow().Build();
             }
             else
             {
-                job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.IntervalOnetimeValue(intervalMinutes));
                 trigger = TriggerBuilder.Create().WithIdentity(identity, "IDG")
                     .StartAt(DateTimeOffset.Now.AddMinutes(intervalMinutes)).Build();
             }

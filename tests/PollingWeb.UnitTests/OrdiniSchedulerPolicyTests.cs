@@ -7,6 +7,18 @@ namespace PollingWeb.UnitTests
 {
     public class OrdiniSchedulerPolicyTests
     {
+        [Theory]
+        [InlineData(0, "true")]
+        [InlineData(15, "false")]
+        public void SQL01_interval_projection_preserves_three_key_map(int interval, string onetime)
+        {
+            var data = OrdiniJobDataPolicy.IntervalJobData("inst", "proc", interval);
+            Assert.Equal(new[] { "codist", "idprocesso", "onetime" }, data.Keys.OrderBy(key => key));
+            Assert.Equal("inst", data["codist"]);
+            Assert.Equal("proc", data["idprocesso"]);
+            Assert.Equal(onetime, data["onetime"]);
+        }
+
         [Fact]
         public void Daily_job_data_projection_preserves_legacy_keys_and_values()
         {

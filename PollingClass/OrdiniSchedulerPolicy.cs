@@ -41,6 +41,14 @@ namespace PollingClass
             var arguments = IntervalArguments(sendFile, intervalMinutes, tipoExport);
             return JobData(institutionCode, processId, sendFile, arguments.OneTime, arguments.TipoExport);
         }
+
+        public static System.Collections.Generic.IDictionary<string, string> IntervalJobData(
+            string institutionCode, string processId, int intervalMinutes)
+        {
+            return JobData(institutionCode, processId, false,
+                Convert.ToBoolean(FornitoriSchedulePolicy.IntervalOnetimeValue(intervalMinutes)),
+                string.Empty, includeTipoExport: false);
+        }
         public static string TipoExport(bool sendFile, string value)
         {
             return sendFile ? (value ?? string.Empty) : string.Empty;
