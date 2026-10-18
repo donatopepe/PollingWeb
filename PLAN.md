@@ -363,7 +363,7 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
   con SQL Server → 16/16 passati, incluso trigger persistente recuperato dopo restart; schema SQL
   applicato dal deploy. Windows/macOS non verificati localmente. Dettagli/configurazione in
   [`docs/adr/0007`](docs/adr/0007-quartz-3-persistent-store.md).
-- [ ] **X2.3 — Porting dei job**
+- [~] **X2.3 — Porting dei job**
   DoD: `JobFornitori`, `JobBudget`, `JobFatture`, `JobOrdiniSap`, `JobRDA` eseguiti dal worker con
   gli stessi parametri di `TaskService`; nessun `HttpContext`; log strutturato per job.
   Evidenza: test che esegue ogni job su DB container con dati sintetici → esito atteso.
@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-18 | 144 | X2.1 — Progetto `PollingWorker` — BLOCCATO | `[!]` | Terzo tentativo: build `dotnet build PollingWorker/PollingWorker.csproj --no-restore --nologo -v quiet` exit 0, 0 errori (12 warning); bootstrap DB rimane non verificabile: precedente run ha restituito SQL login 18456; nessuna credenziale valida autorizzata nell'ambiente. Nessuna modifica runtime in questa iterazione. Blocco e mitigazione descritti nella DoD X2.1 e LOOP_LOG. `git diff --check` exit 0. |
+| 2026-10-18 | 145 | X2.3 — Porting dei job — parziale | `[~]` | Aggiunti 6 unit contract test per i job Quartz: costruttibilità, implementazione `IJob`, firma Execute(IJobExecutionContext), assenza assembly ref System.Web e attributo PersistJobDataAfterExecution. PollingClass build net8.0/net48 exit 0, 0 warning/0 errori; UnitTests 168 passati/2 ignorati; focused 6/6 pass; `git diff --check` exit 0. Nessuna esecuzione domain/DB; X2.3 incompleto. |
 | 2026-10-18 | 104 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass con markup malformato; `git diff --check` exit 0. |
 | 2026-10-18 | 103 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` test SQL 1/1 pass con fine anno; `git diff --check` exit 0. |
 | 2026-10-18 | 102 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `Flusso_RDA_ist_clears_output_for_multiple_requests` test SQL 1/1 pass; `git diff --check` exit 0. |

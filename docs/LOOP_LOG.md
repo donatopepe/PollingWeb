@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T17:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** i sei job Quartz sono classi `IJob` che consumano `JobDataMap`; le gateway esistenti creano job/trigger su chiamate legacy. Nessun dispatcher worker alimenta oggi parametri da TaskService; avvio runtime DB escluso per login SQL 18456 senza credenziale autorizzata.
+
+**Esito atteso:** contract tests offline verificano che le classi job siano costruibili, implementino firma Quartz e non abbiano dipendenza da `System.Web`; build libreria su entrambi i TFM e unit suite verde. Test non simula esecuzione DB/domain.
+
+**Modifica:** aggiunti sei contract test sui tipi `JobFornitori`, `JobBudget`, `JobImportFatture`, `JobSQL01`, `JobOrdini_SAP_Esito`, `JobOrdini_SAP_Invio`: costruibilità, `IJob`, firma `Execute(IJobExecutionContext)`, assenza reference assembly `System.Web`, persistenza job data.
+
+**Evidenza reale:** `dotnet build PollingClass/PollingClass.csproj -f net8.0 --no-restore --nologo -v quiet` exit 0, 0 warning/0 errori; stesso comando `-f net48` exit 0, 0 warning/0 errori. `dotnet test tests/PollingWeb.UnitTests/PollingWeb.UnitTests.csproj --no-restore --nologo -v quiet --filter FullyQualifiedName~WorkerJobContractTests` → 6/6 pass; suite unit intera → 168 pass, 2 skip, exit 0. `git diff --check` exit 0. Nessun job eseguito contro DB; nessuna credenziale usata.
+
+**Prossimo task:** proseguire X2.3: introdurre mapping testabile da config/TaskService verso job senza cambiare trigger semantici, poi integrare nel Worker dopo un contratto dimostrabile.
+
+**Blocchi:** credenziale database autorizzata non presente; job execution integration non dimostrabile. Non eseguiti macOS/Windows.
+
 ## 2026-10-18T15:30Z — X2.1 PollingWorker — BLOCKED (attempt 3/3)
 
 **Baseline:** al terzo tentativo il worker si costruisce, ma non c'è credenziale SQL autorizzata nell'ambiente per validare Quartz startup. Inoltre i gateway esistenti pianificano job quando invocati dalle pagine, mentre il worker non ha un dispatcher che legge configurazioni/righe TaskService; inventare tale mapping cambierebbe comportamento operativo.
