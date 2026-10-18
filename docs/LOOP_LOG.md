@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T07:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `StripHTML` copriva le entity HTML ma non il carattere ampersand plain. La funzione non dichiara una normalizzazione di `&`, quindi il carattere dovrebbe restare invariato fuori dai tag.
+
+**Esito atteso:** entrambe le copie SQL restituiscono `A&B` invariato.
+
+**Modifica:** aggiunto input plain sintetico con ampersand e assertion condivisa. Il primo build ha rilevato un `+` mancante nella concatenazione C#; corretto prima del test.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale soltanto nell’ambiente del processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T07:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** U+2019 era testato solo in una stringa insieme ad altri segni; mancava il caso isolato per verificarne l’esatta sostituzione.
