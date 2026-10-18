@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T19:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** sei job hanno `[PersistJobDataAfterExecution]`; test correnti verificano attributo e map initial values, ma non esercitano mutazione/readback della `JobDataMap` Quartz. Runtime persistence SQL è vietata/non disponibile, quindi si limita a contratto unit offline.
+
+**Esito atteso:** per ogni job type, la map mutabile aggiornata conserva il valore boolean-string coerente (`true`); questo non pretende di provare lo store persistente del scheduler.
+
+**Modifica:** aggiunto test parametrico che verifica attributo, modifica map e readback `GetString`/conversione bool. Commento esplicita che non si avvia scheduler.
+
+**Evidenza reale:** PollingClass build net8/net48 → exit 0 ciascuna, 12 warning/0 errori. Test mirato `Persisted_job_data_map` → 6/6 pass; suite unit → 210 pass, 2 skip; `git diff --check` exit 0. Nessun SQL/scheduler invocato.
+
+**Prossimo:** X2.3, continuare test puri con limiti runtime esplicitati.
+
+**Blocchi:** persistenza Quartz effettiva rimane non verificata senza DB autorizzato; questo test non la sostituisce.
+
 ## 2026-10-18T19:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** l'iterazione precedente proponeva controllo su `OrdiniJobDataPolicy.TipoExport`. Ispezione di `OrdiniSchedulerPolicyTests` ha mostrato che cinque casi già coprono send con ODA/RDA, send null normalizzato e receipt che ignora input. Nessun nuovo test necessario; si evita duplicazione.
