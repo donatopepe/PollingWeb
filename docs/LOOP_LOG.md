@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T05:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** il test `StripHTML` verifica tag con contenuto e tag adiacenti, ma non la forma self-closing. L’algoritmo rimuove ciascun segmento tra `<` e `>` sostituendolo con uno spazio.
+
+**Esito atteso:** `left<br/>right` diventa `left right` in entrambe le funzioni SQL.
+
+**Modifica:** aggiunta la variante `<br/>` al result set sintetico condiviso e asserzione del testo residuo per entrambe le copie.
+
+**Evidenza reale:** build `tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning/0 errori; test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Password SQL trasmessa solo via environment di processo.
+
+**Prossimo task:** continuare T3, ancora incompleta.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T04:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** i casi `StripHTML` non controllavano le HTML character entity. Il codice rimuove i tag tra `<` e `>` ma non decodifica sequenze entity prive di tag.
