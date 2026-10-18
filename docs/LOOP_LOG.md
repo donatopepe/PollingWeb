@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T00:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** budget interval gateway wrote `codist`, `idprocesso`, and interval-derived `onetime` directly in both branches; SQL01 interval already uses shared projection.
+
+**Expected:** reuse `IntervalJobData` and preserve key set/flag while keeping validation, identity and trigger timing intact.
+
+**Change:** budget interval now adds entries from `OrdiniJobDataPolicy.IntervalJobData`; trigger branch unchanged.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; focused budget/order tests 42/42; unit suite 230 pass, 2 skip; `git diff --check` exit 0. No Quartz/job/DB runtime.
+
+**Next:** continue X2.3; invoice and supplier interval maps remain to inspect.
+
 ## 2026-10-18T23:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** SQL01 interval gateway wrote `codist`, `idprocesso`, and interval-derived `onetime` directly in each branch; order interval used the shared projection.
