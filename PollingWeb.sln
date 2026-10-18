@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.32002.261
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PollingWorker", "PollingWorker\PollingWorker.csproj", "{A89500B4-78CE-482C-8431-84ED04A15A80}"
+EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "PollingWeb", "PollingWeb", "{95111610-659A-44CC-AC72-662BAB996BEA}"
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.8"
@@ -90,6 +92,10 @@ Global
 		{55FFF402-B7C3-45EA-BEDD-D4B19B97A990}.Debug|x86.Build.0 = Debug|Any CPU
 		{55FFF402-B7C3-45EA-BEDD-D4B19B97A990}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55FFF402-B7C3-45EA-BEDD-D4B19B97A990}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A89500B4-78CE-482C-8431-84ED04A15A80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A89500B4-78CE-482C-8431-84ED04A15A80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A89500B4-78CE-482C-8431-84ED04A15A80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A89500B4-78CE-482C-8431-84ED04A15A80}.Release|Any CPU.Build.0 = Release|Any CPU
 		{55FFF402-B7C3-45EA-BEDD-D4B19B97A990}.Release|x64.ActiveCfg = Release|Any CPU
 		{55FFF402-B7C3-45EA-BEDD-D4B19B97A990}.Release|x64.Build.0 = Release|Any CPU
 		{55FFF402-B7C3-45EA-BEDD-D4B19B97A990}.Release|x86.ActiveCfg = Release|Any CPU
