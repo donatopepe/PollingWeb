@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Use the tested shared job-data projection in the invoice daily gateway, retaining its legacy map keys and recurring flag.
+Reuse tested pure job-data projection in SQL01 daily gateway while preserving its legacy three-key map.
 
 ## Metric / threshold
-Invoice daily adds `codist`, `idprocesso`, `onetime=false`, with no order-only `tipoExport`; job type/trigger behavior unchanged. Builds/tests/diff check pass, no scheduler/DB run.
+SQL01 daily creates `codist`, `idprocesso`, `onetime=false`, excludes order-only `tipoExport`; job type, identity, cron and override semantics unchanged. Builds/tests/diff check pass; no runtime scheduler/DB.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, prompt/plan order, inspect invoice daily map. **Done.**
-2. Baseline: budget and order use projection; invoice daily still writes three values directly. **Done.**
-3. Reuse projection with selector omitted. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused invoice+policy 41/41; suite 228 pass/2 skip; diff check exit 0. **Done.**
-5. Update evidence, commit and push. **In progress.**
+1. Confirm clean main, CodeGraph, PROMPT/PLAN order, inspect SQL01 daily map. **Done.**
+2. Baseline: order, budget and invoice use tested projection; SQL01 writes recurring three keys directly. **Done.**
+3. Wire SQL01 daily map through shared projection, omit `tipoExport`. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused SQL01/order tests 40/40; unit suite 228 pass/2 skip; diff check exit 0. **Done.**
+5. Log evidence, commit and push; verify clean. **In progress.**
 
 ## Constraints
-No Quartz start/job execution/DB access; preserve invoice legacy key set.
+No scheduler/job/DB; preserve map keys and scheduling behavior.
 
 ## Acceptance
-- [ ] Invoice daily map generated through policy, exact three legacy keys.
+- [ ] SQL01 uses tested projection with exact key set and values.
 - [ ] Builds/tests/diff check pass.
-- [ ] Records updated; push verified clean.
+- [ ] PLAN/LOOP_LOG/TODO current; pushed, tree clean.
