@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T05:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** la virgola era testata nel markup, ma non isolatamente in testo plain. La funzione applica la sostituzione `,` → spazio dopo la rimozione dei tag.
+
+**Esito atteso:** entrambe le funzioni restituiscono `a b` per input sintetico `a,b`.
+
+**Modifica:** aggiunta query e asserzione plain-text nel test condiviso delle due copie.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 12 warning preesistenti/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale presente solo nell’ambiente del processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T05:35Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** i test `StripHTML` non coprivano il carattere `>` come testo interno prima della chiusura del tag. L’algoritmo prende da `<` fino al primo `>`; in `<b>left > right</b>` il primo tag è `<b>`, mentre il `>` nel contenuto non apre un altro tag.
