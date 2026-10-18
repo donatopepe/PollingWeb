@@ -226,7 +226,8 @@ namespace PollingWeb.IntegrationTests
                         function + "(N'left\tright'), " +
                         function + "(N'<></>'), " +
                         function + "(N'<b class=''synthetic''>alpha</b>'), " +
-                        function + "(N'<b>outer <i>inner</i> end</b>')",
+                        function + "(N'<b>outer <i>inner</i> end</b>'), " +
+                        function + "(N'<B>alpha</B>')",
                         connection))
                     using (var reader = command.ExecuteReader())
                     {
@@ -248,6 +249,7 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal("  ", reader.GetString(14));
                         Assert.Equal(" alpha ", reader.GetString(15));
                         Assert.Equal(" outer  inner  end ", reader.GetString(16));
+                        Assert.Equal(" alpha ", reader.GetString(17));
                     }
                 }
             }

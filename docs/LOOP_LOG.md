@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T04:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** i casi di rimozione markup usavano tag minuscoli; mancava una verifica del riconoscimento dei tag HTML maiuscoli. La funzione individua `<` e `>` con `CHARINDEX`, dipendente dalla collation del database.
+
+**Esito atteso:** entrambe le copie riconoscono `<B>alpha</B>` e restituiscono ` alpha `.
+
+**Modifica:** aggiunta la variante uppercase al test sintetico condiviso delle due funzioni.
+
+**Evidenza reale:** build `tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale fornita solo all’ambiente del processo.
+
+**Prossimo task:** continuare T3, ancora incompleta.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T04:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `StripHTML` test copriva un elemento e elementi fratelli adiacenti, ma non tag annidati con testo prima, dentro e dopo l’elemento interno.
