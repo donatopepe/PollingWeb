@@ -1,5 +1,21 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T15:30Z — X2.1 PollingWorker — BLOCKED (attempt 3/3)
+
+**Baseline:** al terzo tentativo il worker si costruisce, ma non c'è credenziale SQL autorizzata nell'ambiente per validare Quartz startup. Inoltre i gateway esistenti pianificano job quando invocati dalle pagine, mentre il worker non ha un dispatcher che legge configurazioni/righe TaskService; inventare tale mapping cambierebbe comportamento operativo.
+
+**Evidenza attesa:** bootstrap persistente verificato su DB con connessione autorizzata e identificato il mapping schedule esistente senza mutare semantics.
+
+**Risultato reale:** `PATH=/opt/dotnet:$PATH dotnet build PollingWorker/PollingWorker.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning/0 errori. Il precedente test runtime con connessione esplicitamente configurata aveva fallito login SQL 18456; il valore non viene conservato né riprovato. `git diff --check` → exit 0. Nessuna modifica runtime oggi.
+
+**Decisione:** marca X2.1 `[!]` dopo 3 tentativi, applicando il limite del workflow.
+
+**Mitigazione per riapertura:** operatore fornisce credenziale DB valida in process environment; definire e documentare mapping configurazione TaskService → scheduler gateway con test SQL sintetici e nessuna schedule production write. X2.3 resta task distinto per porting e test dei job.
+
+**Prossimo secondo §4:** X2.3 — Porting dei job.
+
+**Blocchi:** credenziale autorizzata e contratto mapping non disponibili; niente password discovery o cambiamenti operativi implicitamente autorizzati.
+
 ## 2026-10-18T11:05Z — X2.1 PollingWorker — IN PROGRESS
 
 **Obiettivo:** rendere il confine operativo esplicito. Ipotesi: X2.1 può ospitare lo scheduler persistente già fornito da `QuartzSchedulerFactory`; job e polling dei file restano separati per X2.3, senza inventare job registry.

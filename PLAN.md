@@ -347,11 +347,11 @@ Legenda stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto e verificato · `[
 
 ### Fase 2 — Worker e scheduler cross-platform (X2)
 
-- [~] **X2.1 — Progetto `PollingWorker` (.NET 8 Worker Service)**
+- [!] **X2.1 — Progetto `PollingWorker` (.NET 8 Worker Service) — BLOCCATO dopo 3 iterazioni**
   DoD: `IHostedService` avvia la scansione dei file source e i job; eseguibile come processo
   `dotnet PollingWorker.dll`; nessuna dipendenza da IIS; registra il progetto in `PollingWeb.sln`
   (requisito trasferito da `X1.1`, ADR 0004 §2.1).
-  Evidenza: `dotnet run --project PollingWorker` avvia senza errori su Linux e Windows.
+  **Blocco (2026-10-18):** dopo 3 iterazioni non è possibile verificare bootstrap Quartz sul DB (SQL login 18456; credenziale autorizzata non disponibile nell'ambiente) né definire senza ipotesi il discovery/registration dei trigger TaskService. Il worker net8 compila e avvia host solo nel precedente skeleton, ma task DoD non soddisfatta. Mitigazione: fornire credenziale DB valida via ambiente e definire mapping delle righe TaskService → gateway/job con test integration sintetici; poi riaprire X2.1. Job execution resta X2.3.
 - [x] **X2.2 — Quartz 3.x con job store ADO su SQL Server**
   DoD: Quartz aggiornato a 3.13.1; `JobStoreTX` con provider `MicrosoftDataSqlClient`, JSON
   serializer e schema QRTZ verificato; configurazione via `POLLING_QUARTZ_CONNECTION` o
@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-18 | 143 | X2.1 — Progetto `PollingWorker` (.NET 8 Worker Service) — parziale | `[~]` | Worker avvia `QuartzSchedulerFactory` nel lifecycle host e arresta lo scheduler a shutdown; build Worker `--no-restore --nologo -v quiet` exit 0, 0 warning/0 errori. Run configurato verso SQL locale ha fallito avvio: login DB non valido; credenziali non registrate. Il precedente run host skeleton aveva confermato log Application started; solution build resta MSB4249 per Website legacy. `git diff --check` exit 0. |
+| 2026-10-18 | 144 | X2.1 — Progetto `PollingWorker` — BLOCCATO | `[!]` | Terzo tentativo: build `dotnet build PollingWorker/PollingWorker.csproj --no-restore --nologo -v quiet` exit 0, 0 errori (12 warning); bootstrap DB rimane non verificabile: precedente run ha restituito SQL login 18456; nessuna credenziale valida autorizzata nell'ambiente. Nessuna modifica runtime in questa iterazione. Blocco e mitigazione descritti nella DoD X2.1 e LOOP_LOG. `git diff --check` exit 0. |
 | 2026-10-18 | 104 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass con markup malformato; `git diff --check` exit 0. |
 | 2026-10-18 | 103 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` test SQL 1/1 pass con fine anno; `git diff --check` exit 0. |
 | 2026-10-18 | 102 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `Flusso_RDA_ist_clears_output_for_multiple_requests` test SQL 1/1 pass; `git diff --check` exit 0. |
