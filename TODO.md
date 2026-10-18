@@ -1,23 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Fix one X2.3 persisted-job contract defect: daily budget Quartz jobs must carry the recurring flag consumed by `JobBudget.Execute`.
+Fix X2.3 JobSQL01 recurring schedule contract: daily SQL01 jobs must set the false one-time flag consumed by Execute.
 
 ## Metric / threshold
-Daily budget gateway sets `onetime=false`; a focused unit test verifies the shared recurring-job value; PollingClass builds net8/net48 and unit tests pass. No database/job execution.
+Daily SQL01 policy explicitly yields false; policy unit test, both PollingClass TFM builds, focused/full unit tests and diff check pass. No scheduler/database execution.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, prompt/plan, inspect budget job/gateway/tests. **Done.**
-2. Baseline: `JobBudget.Execute` converts `JobDataMap[onetime]`, but `ImportBudgetQuartzGateway.ScheduleDaily` omits that key. **Done.**
-3. Add explicit recurring flag using the common policy and test. **Done.**
-4. PollingClass net8/net48 builds exit 0, 0 warning/0 errors; focused budget tests 8/8 pass; unit suite 186 pass/2 skip; diff check exit 0. **Done.**
-5. Update PLAN/LOOP_LOG, commit and push. **In progress.**
+1. Confirm main/CodeGraph/PROMPT/PLAN and inspect JobSQL01 + SQL01 gateway/tests. **Done.**
+2. Baseline: daily gateway omits `onetime`; JobSQL01.Execute converts the missing JobDataMap value to bool. **Done.**
+3. Add reusable daily recurring flag policy and test, apply to SQL01 gateway. **Done.**
+4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused SQL01 tests 8/8; unit suite 187 pass/2 skip; diff check exit 0. **Done.**
+5. Record evidence, commit and push. **In progress.**
 
 ## Constraints
-No production schedules, SQL login guessing or changes to SAP behavior; credentials only if already authorized in process environment.
+No database credentials discovery, no production schedule writes, no changes to job/domain behavior besides required flag.
 
 ## Acceptance
-- [ ] Daily budget jobs explicitly pass `onetime=false`.
-- [ ] Both TFM builds and focused/full tests pass; diff check clean.
-- [ ] Evidence recorded; X2.3 remains partial as appropriate.
-- [ ] Commit pushed, main clean.
+- [ ] Daily SQL01 job passes `onetime=false`.
+- [ ] Builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG evidence current; conventional commit pushed and tree clean.
