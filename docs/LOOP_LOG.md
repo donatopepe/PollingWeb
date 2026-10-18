@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T09:20Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** la virgola era provata in plain text e `à` in altri contesti, ma non la combinazione dei due caratteri nello stesso input senza markup.
+
+**Esito atteso:** la funzione sostituisce `à` con `a` e `,` con spazio; `à,` deve diventare `a ` in entrambe le copie.
+
+**Modifica:** aggiunto l’input sintetico combinato e l’asserzione comune. Il primo build ha trovato un `+` mancante nella concatenazione C#, corretto prima del run finale.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale solo nell’ambiente del processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T09:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** il test `StripHTML` copriva la normalizzazione di `à` in una frase, non in una parola sintetica plain priva di altra punteggiatura o markup.
