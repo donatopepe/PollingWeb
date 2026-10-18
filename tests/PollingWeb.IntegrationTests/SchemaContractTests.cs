@@ -221,7 +221,8 @@ namespace PollingWeb.IntegrationTests
                         function + "(N'plain synthetic 123'), " +
                         function + "(N'quote''dash-tilde`apostrophe’'), " +
                         function + "(N'plain\r\nsynthetic'), " +
-                        function + "(N'--')",
+                        function + "(N'--'), " +
+                        function + "(N'<b>alpha</b><i>beta</i>')",
                         connection))
                     using (var reader = command.ExecuteReader())
                     {
@@ -238,6 +239,7 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal("quote dash tilde apostrophe ", reader.GetString(9));
                         Assert.Equal("plain\r\nsynthetic", reader.GetString(10));
                         Assert.Equal("  ", reader.GetString(11));
+                        Assert.Equal(" alpha  beta ", reader.GetString(12));
                     }
                 }
             }

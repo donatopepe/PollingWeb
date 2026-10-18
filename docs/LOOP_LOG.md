@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T03:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** la copertura `StripHTML` controllava un singolo elemento `<p>`; non caratterizzava elementi HTML adiacenti senza testo intermedio.
+
+**Esito atteso:** per `<b>alpha</b><i>beta</i>`, ogni tag sostituito con uno spazio deve produrre ` alpha  beta ` in entrambe le funzioni SQL.
+
+**Modifica:** aggiunto il caso sintetico di due elementi adiacenti al test condiviso delle copie `dbo.StripHTML` ed `eProcurement.dbo.StripHTML`.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 12 warning preesistenti/0 errori; password DB fornita solo nell’ambiente del processo; test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0.
+
+**Prossimo task:** continuare T3; restano procedure/funzioni della DoD da completare e verificare.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T03:04Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `StripHTML` non aveva un caso sintetico composto esclusivamente da punteggiatura. SQL documenta la sostituzione del trattino con spazio; l’input `--` deve quindi produrre due spazi, senza essere interpretato come commento SQL perché è dato Unicode tra apici.
