@@ -35,6 +35,14 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData(false, false)]
+        [InlineData(true, true)]
+        public void Override_policy_controls_existing_daily_trigger_replacement(bool overrideExisting, bool shouldUnschedule)
+        {
+            Assert.Equal(shouldUnschedule, OrdiniSchedulerPolicy.ShouldUnscheduleExistingTrigger(overrideExisting));
+        }
+
+        [Theory]
         [InlineData("0 30 8 ? * MON-FRI")]
         [InlineData("0 0 0 ? * MON-FRI")]
         [InlineData("0 59 23 ? * MON-FRI")]

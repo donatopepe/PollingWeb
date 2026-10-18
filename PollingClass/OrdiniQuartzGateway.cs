@@ -26,7 +26,8 @@ namespace PollingClass
                 .WithIdentity("Trigger_" + processId + "_" + institutionCode, "IDG")
                 .WithSchedule(CronScheduleBuilder.AtHourAndMinuteOnGivenDaysOfWeek(
                     ParseHour(normalizedCron), ParseMinute(normalizedCron), weekdays)).Build();
-            if (overrideExisting && scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult()) scheduler.UnscheduleJob(trigger.Key).GetAwaiter().GetResult();
+            if (OrdiniSchedulerPolicy.ShouldUnscheduleExistingTrigger(overrideExisting)
+                && scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult()) scheduler.UnscheduleJob(trigger.Key).GetAwaiter().GetResult();
             if (scheduler.CheckExists(trigger.Key).GetAwaiter().GetResult()) return false;
             scheduler.ScheduleJob(job, trigger).GetAwaiter().GetResult();
             return true;
