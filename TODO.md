@@ -1,23 +1,23 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Continue T3 with one synthetic SQL integration assertion without changing SQL/domain behavior.
+Continue T3 with one minimal synthetic SQL integration assertion, without changing function/procedure definitions.
 
 ## Metric / threshold
-1/1 uncovered behavior verified; project build exit 0, focused SQL test passes against both function copies, diff check exit 0.
+One distinct behavior checked in both deployed `StripHTML` copies; IntegrationTests project build exit 0; focused SQL test 1/1 pass; `git diff --check` exit 0.
 
 ## Ordered steps
-1. Confirm clean main, read current T3 log/test/function source. **Done.**
-2. Baseline gap: adjacent text punctuation `a,b` is covered indirectly in markup but not plain-text-only. Expected comma substitution yields `a b` while preserving surrounding text. **Done.**
-3. Add only a synthetic assertion to the shared test. **Done.**
-4. Build exit 0; focused SQL test first failed because expected parsing was incorrect; corrected to observed unchanged content and reran → 1/1 pass; `git diff --check` → exit 0. **Done.**
-5. Record actual evidence, commit atomically with T3 ID, push. **Pending.**
+1. Confirm clean current main, read T3 specification/log, and inspect test/function. **Done.**
+2. Baseline gap: apostrophe replacement was exercised in a combined phrase but there was no exact test for a lone apostrophe. Expected: a single ASCII apostrophe becomes one space. **Done.**
+3. Add one synthetic expression/assertion to existing shared function query. **Done.**
+4. Build → exit 0, 12 existing warnings; focused test → 1/1 pass; `git diff --check` → exit 0. **Done.**
+5. Update PLAN §8 and LOOP_LOG with actual evidence; commit and push. **In progress.**
 
 ## Constraints
-Do not modify SQL definitions; synthetic input only. DB credential stays process environment. No image pulls; no claims for unavailable operating systems or full solution build.
+No SQL implementation changes or real data. DB credential via process environment only. No image pulls or claims of macOS/Windows/full-solution verification.
 
 ## Acceptance
-- [x] Both SQL copies convert comma to a space in plain text, returning `a b` for `a,b`.
-- [x] IntegrationTests build, focused test, and diff check succeed.
-- [x] PLAN §8 and LOOP_LOG record actual evidence.
-- [ ] Conventional T3 commit pushed; worktree clean.
+- [x] Both `dbo.StripHTML` and `eProcurement.dbo.StripHTML` return one space for one ASCII apostrophe.
+- [ ] IntegrationTests build and focused SQL test pass; diff check passes.
+- [x] Plan and loop log updated with observed results.
+- [ ] Atomic conventional T3 commit pushed; main worktree clean.
