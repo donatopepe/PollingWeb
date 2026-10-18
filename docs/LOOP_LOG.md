@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T02:34Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** i casi `StripHTML` verificavano la virgola e il trattino, ma non la trasformazione di apostrofo ASCII, backtick e apostrofo tipografico. La funzione sostituisce ognuno di questi caratteri con uno spazio; non elimina né compatta gli spazi risultanti.
+
+**Esito atteso:** entrambe le copie SQL restituiscono `quote dash tilde apostrophe ` per input sintetico contenente i quattro caratteri.
+
+**Modifica:** aggiunta l’asserzione combinata alla query/test condivisa. Il primo valore atteso, con uno spazio dopo backtick, è fallito; allineata l’asserzione all’output reale e rilanciata la verifica.
+
+**Evidenza reale:** IntegrationTests build `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. La credenziale SQL è stata passata solo via environment e non stampata.
+
+**Prossimo task:** continuare T3: restano procedure/funzioni previste dalla DoD da completare e verificare.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T02:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `StripHTML` integra già casi per testo semplice, markup e normalizzazione accenti; non fissa esplicitamente la conservazione di spazi consecutivi in testo privo di markup. La sorgente SQL applica sostituzioni a caratteri specifici e non comprime gli spazi.
