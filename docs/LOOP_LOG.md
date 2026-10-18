@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T22:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `ImportBudgetQuartzGateway.ScheduleDaily` added `codist`, `idprocesso`, and recurring `onetime` separately; order gateway already used tested shared job-data projection including `tipoExport`.
+
+**Expected:** budget daily gateway reuses projection with legacy values; job type, identity and trigger path untouched.
+
+**Change:** shared projection now supports omitting `tipoExport`; budget daily gateway requests the legacy three-key map (`codist`, `idprocesso`, `onetime`) with recurring flag false. This preserves its original key set. No runtime semantics were exercised.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; focused budget+order tests 40/40; suite 228 pass, 2 skip; `git diff --check` exit 0. No scheduler/DB run.
+
+**Next:** continue X2.3; verify map-contract assumptions against legacy behavior and remaining gateways.
+
 ## 2026-10-18T22:30Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** daily and interval order gateways populated Quartz JobDataMap separately; policy tests checked decisions but not exact emitted keys and serialized strings.
