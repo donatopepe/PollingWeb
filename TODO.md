@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Tie each of the six Quartz job source definitions to the shared exception handler call so future edits cannot silently remove required job failure handling.
+Close a demonstrable X2.3 source-contract gap: assert all six Quartz job classes consume the required `codist`, `idprocesso`, and `onetime` fields from JobDataMap.
 
 ## Metric / threshold
-Contract test inspects each job source and asserts `PollingExceptionHandler.Esegui(ex)` is present; focused/full tests and both PollingClass builds pass. No jobs or database execute.
+Each job source contains reads for these three keys; order-send also reads `tipoExport`. Test source contract across all six job types; builds and unit suite pass.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, prompt/plan and inspect job exception paths. **Done.**
-2. Baseline: source grep confirms all six job classes catch `Exception` and call shared handler; tests only checked type/signature, not source contract. **Done.**
-3. Extend six-row contract test to assert handler call in each job source. **Done.**
-4. Build net8/net48; focused source contract, full unit suite, diff check. **Done.**
-5. Update plan/log and commit/push. **In progress.**
+1. Confirm clean main, CodeGraph, prompt/plan and inspect each Execute body. **Done.**
+2. Baseline: tests assert job signature, persistence attribute and error handler, but don't guard JobDataMap key reads in source. **Done.**
+3. Add source contract assertions for required keys and order-send selector. **Done.**
+4. Focused six-job source contract 6/6 pass; PollingClass net8 build exit 0/0 warnings; net48 exit 0/12 warnings; unit suite 210 pass/2 skip; diff check exit 0. **Done.**
+5. Update plan/log, commit and push. **In progress.**
 
 ## Constraints
-No job execution, database, credentials, or production data; do not modify domain error semantics.
+No domain jobs, DB, scheduler or real data executed.
 
 ## Acceptance
-- [ ] Correct coverage gap is tested without duplicate test cases.
-- [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG actual outputs recorded and commits pushed.
+- [ ] Source tests enforce required keys per job.
+- [ ] Builds and tests pass; diff check clean.
+- [ ] PLAN/LOOP_LOG truthful and commits pushed.
