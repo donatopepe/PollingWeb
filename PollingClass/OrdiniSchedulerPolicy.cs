@@ -21,16 +21,18 @@ namespace PollingClass
     public static class OrdiniJobDataPolicy
     {
         public static System.Collections.Generic.IDictionary<string, string> JobData(
-            string institutionCode, string processId, bool sendFile, bool oneTime, string tipoExport)
+            string institutionCode, string processId, bool sendFile, bool oneTime, string tipoExport,
+            bool includeTipoExport = true)
         {
             var arguments = Arguments(sendFile, oneTime, tipoExport);
-            return new System.Collections.Generic.Dictionary<string, string>
+            var data = new System.Collections.Generic.Dictionary<string, string>
             {
                 ["codist"] = institutionCode,
                 ["idprocesso"] = processId,
-                ["tipoExport"] = arguments.TipoExport,
                 ["onetime"] = arguments.OneTime.ToString().ToLowerInvariant()
             };
+            if (includeTipoExport) data["tipoExport"] = arguments.TipoExport;
+            return data;
         }
 
         public static System.Collections.Generic.IDictionary<string, string> IntervalJobData(
