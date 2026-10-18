@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T21:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** invoice gateway and SQL01 gateway had direct override tests and duplicate guards; daily order/budget gateways use shared pure policies. Preserve each existing existence check, unschedule if present+override, then re-check before scheduling.
+
+**Expected:** reuse shared policy for unschedule and acceptance decision, without changing Quartz operation sequence.
+
+**Changes:** both gateways now call `ShouldUnscheduleExistingTrigger` and `CanScheduleDailyTrigger`; the second decision receives fresh `CheckExists` result after possible unschedule, preserving behavior.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; focused invoice/SQL01 tests 17/17 pass; unit suite 216 pass, 2 skip; `git diff --check` exit 0. No Quartz scheduler or DB started.
+
+**Next:** continue X2.3 against remaining job/gateway contracts. SQL runtime remains unverified due unavailable authorized credential.
+
 ## 2026-10-18T21:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `ImportBudgetQuartzGateway.ScheduleDaily` usava `if (overrideExisting)` direttamente prima di unschedule; la decisione pura `OrdiniSchedulerPolicy.ShouldUnscheduleExistingTrigger` era già coperta in test per entrambi i booleani e usata dal gateway ordini.
