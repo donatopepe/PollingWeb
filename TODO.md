@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Close a demonstrable X2.3 source-contract gap: assert all six Quartz job classes consume the required `codist`, `idprocesso`, and `onetime` fields from JobDataMap.
+Avoid an unsupported claim in X2.3 tests: replace source-text inspection of job classes with verifiable metadata-only contract checks, if practical without adding unrelated dependencies.
 
 ## Metric / threshold
-Each job source contains reads for these three keys; order-send also reads `tipoExport`. Test source contract across all six job types; builds and unit suite pass.
+Test project remains deterministic and works from normal test output without locating repository source files; retain Quartz type/signature/attribute checks. Build/test pass; no runtime jobs.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, prompt/plan and inspect each Execute body. **Done.**
-2. Baseline: tests assert job signature, persistence attribute and error handler, but don't guard JobDataMap key reads in source. **Done.**
-3. Add source contract assertions for required keys and order-send selector. **Done.**
-4. Focused six-job source contract 6/6 pass; PollingClass net8 build exit 0/0 warnings; net48 exit 0/12 warnings; unit suite 210 pass/2 skip; diff check exit 0. **Done.**
-5. Update plan/log, commit and push. **In progress.**
+1. Verify clean main, CodeGraph, prompt, plan and current source-reading test. **Done.**
+2. Baseline: contract test walks parent dirs until finding `PollingWeb.sln` then reads C# source, coupling tests to checkout layout and asserting text rather than execution behavior. **Done.**
+3. Remove brittle source-text asserts and keep metadata contracts. **Done.**
+4. PollingClass net8 exit 0/0 warning, net48 exit 0/12 warning; focused WorkerJobContractTests 38/38 pass; unit suite 210 pass/2 skip; `git diff --check` exit 0. **Done.**
+5. Update evidence, commit and push. **In progress.**
 
 ## Constraints
-No domain jobs, DB, scheduler or real data executed.
+No domain/job/DB behavior changes, no new dependencies, no source path assumptions.
 
 ## Acceptance
-- [ ] Source tests enforce required keys per job.
-- [ ] Builds and tests pass; diff check clean.
-- [ ] PLAN/LOOP_LOG truthful and commits pushed.
+- [ ] Tests no longer require locating solution/source files.
+- [ ] Builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG/TODO accurate and pushed commits.
