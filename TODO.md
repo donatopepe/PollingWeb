@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Test Quartz `JobDataMap` persistence semantics for the mutable one-time flag on persisted jobs, a relevant X2.3 contract risk.
+Tie each of the six Quartz job source definitions to the shared exception handler call so future edits cannot silently remove required job failure handling.
 
 ## Metric / threshold
-A Quartz `JobDataMap` with `PersistJobDataAfterExecution` proves storing a changed string boolean returns the changed value after a simulated job-data update; focused/full tests, PollingClass net8/net48 builds pass. No scheduler/database.
+Contract test inspects each job source and asserts `PollingExceptionHandler.Esegui(ex)` is present; focused/full tests and both PollingClass builds pass. No jobs or database execute.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, prompt/plan, job attributes and current tests. **Done.**
-2. Baseline: job classes carry `PersistJobDataAfterExecution`; current contract tests don't check whether mutating map values can persist without scheduler. **Done.**
-3. Add an offline `JobDataMap` persistence-data contract test, documenting no real scheduler run. **Done.**
-4. PollingClass net8/net48 builds exit 0 (12 warnings each); focused persistence-map tests 6/6 pass; unit suite 210 pass/2 skip; diff check exit 0. **Done.**
-5. Update records; commit and push. **In progress.**
+1. Verify clean main, CodeGraph, prompt/plan and inspect job exception paths. **Done.**
+2. Baseline: source grep confirms all six job classes catch `Exception` and call shared handler; tests only checked type/signature, not source contract. **Done.**
+3. Extend six-row contract test to assert handler call in each job source. **Done.**
+4. Build net8/net48; focused source contract, full unit suite, diff check. **Done.**
+5. Update plan/log and commit/push. **In progress.**
 
 ## Constraints
-Do not start scheduler/DB, trigger jobs, inspect credentials, or claim runtime persistence validated.
+No job execution, database, credentials, or production data; do not modify domain error semantics.
 
 ## Acceptance
-- [ ] Offline map mutation/readback test exists; no scheduler runtime claim.
+- [ ] Correct coverage gap is tested without duplicate test cases.
 - [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG accurate; conventional commit pushed and tree clean.
+- [ ] PLAN/LOOP_LOG actual outputs recorded and commits pushed.
