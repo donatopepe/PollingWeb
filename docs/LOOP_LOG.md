@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T21:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `ImportBudgetQuartzGateway.ScheduleDaily` usava `if (overrideExisting)` direttamente prima di unschedule; la decisione pura `OrdiniSchedulerPolicy.ShouldUnscheduleExistingTrigger` era già coperta in test per entrambi i booleani e usata dal gateway ordini.
+
+**Esito atteso:** budget gateway riusa la stessa policy senza alterare l'ordine unschedule/check/schedule.
+
+**Modifica:** sostituita solo la condizione diretta col metodo policy condiviso; chiamata Quartz e sequenza non cambiate. Nessun test duplicato.
+
+**Evidenza reale:** PollingClass builds net8/net48 `--no-restore --nologo -v quiet` → exit 0 ciascuna, 12 warning/0 errori. `ImportBudgetScheduleAdapterTests` → 8/8 pass; unit suite → 216 pass, 2 skip; `git diff --check` exit 0. Nessun scheduler/DB invocato.
+
+**Prossimo:** continuare X2.3 su gateway restanti che ripetono la stessa policy, mantenendo comportamento.
+
+**Blocchi:** runtime SQL non verificato; credenziali non usate.
+
 ## 2026-10-18T20:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** ordine daily unschedules se override=true e poi verifica trigger esistente, consentendo schedule quando rimosso; se override=false e trigger esiste, restituisce false. La policy precedente testava solo la decisione unschedule.
