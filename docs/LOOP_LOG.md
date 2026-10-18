@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T20:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** ordine daily unschedules se override=true e poi verifica trigger esistente, consentendo schedule quando rimosso; se override=false e trigger esiste, restituisce false. La policy precedente testava solo la decisione unschedule.
+
+**Esito atteso:** decisione pura `CanScheduleDailyTrigger`: no trigger→true, trigger+no override→false, trigger+override→true.
+
+**Modifica:** aggiunta policy pura e quattro casi table-driven; gateway usa la policy per l'ultimo controllo esistenza. Sequenza Unschedule e schedule invariata.
+
+**Evidenza reale:** PollingClass net8/net48 build `--no-restore --nologo -v quiet` → exit 0 per entrambi, 12 warning/0 errori. `OrdiniSchedulerPolicyTests` → 22/22 pass; unit suite → 216 pass, 2 skip; `git diff --check` exit 0. Nessun Quartz scheduler/DB avviato.
+
+**Prossimo:** X2.3, continuare con un gap reale nei contratti job, senza simulare runtime come evidenza persistente.
+
+**Blocchi:** DB runtime non verificato; nessuna credenziale autorizzata disponibile.
+
 ## 2026-10-18T20:30Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `OrdiniQuartzGateway.ScheduleDaily` unschedules existing trigger only when `overrideExisting` is true, then still rejects an existing trigger if present. Existing order policy tests covered job routing/cron but not override branch.
