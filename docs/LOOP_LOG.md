@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T03:10Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** `StripHTML` test caratterizzava già la conversione italiana delle minuscole (`à`), non tutte le cinque vocali previste dal SQL. La funzione non converte le maiuscole con accento acuto: un primo tentativo con tale aspettativa è fallito (1 failed); corretto il caso mantenendo solo il comportamento effettivamente dichiarato dalla funzione.
+
+**Esito atteso:** entrambe le copie SQL trasformano `àèìòù` in `aeiou`.
+
+**Modifica:** esteso il test condiviso di entrambe le copie `StripHTML` con le cinque vocali accentate minuscole e asserzione esatta.
+
+**Evidenza reale:** `PATH=/opt/dotnet:$PATH dotnet build tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; `POLLING_DB_PASSWORD` fornita solo nell'ambiente del processo: test mirato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Il test esplorativo della maiuscola acuta non è stato conservato.
+
+**Prossimo task:** continuare T3 con ulteriori coperture mancanti secondo DoD.
+
+**Blocchi:** nessuno; T3 resta incompleta.
+
 ## 2026-10-18T02:49Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** both deployed `StripHTML` copies are tested for punctuation and markup, but the SQL function explicitly normalizes Italian accented vowels and these mappings are not characterized by the integration test.

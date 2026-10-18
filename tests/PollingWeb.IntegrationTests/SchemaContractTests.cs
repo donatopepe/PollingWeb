@@ -215,7 +215,8 @@ namespace PollingWeb.IntegrationTests
                         function + "(N''), " + function + "(N'plain synthetic text'), " +
                         function + "(N'<p>synthetic, text-42</p>'), " +
                         function + "(N'left <b>middle'), " +
-                        function + "(N'città, già')",
+                        function + "(N'città, già'), " +
+                        function + "(N'àèìòù')",
                         connection))
                     using (var reader = command.ExecuteReader())
                     {
@@ -226,6 +227,7 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal(" synthetic  text 42 ", reader.GetString(3));
                         Assert.Equal("left  middle", reader.GetString(4));
                         Assert.Equal("citta  gia", reader.GetString(5));
+                        Assert.Equal("aeiou", reader.GetString(6));
                     }
                 }
             }
