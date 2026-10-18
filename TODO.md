@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Add offline job execution contract coverage for JobFornitori and JobImportFatture ONETIME-vs-recurring dispatch without executing legacy work or SQL.
+Add offline contract coverage for order-job execution arguments (one-time flag and export selector) as passed by Quartz job adapters.
 
 ## Metric / threshold
-Each job's dispatch policy is testable for onetime true/false and the existing adapter path preserves methods/arguments; builds, focused/full tests and diff check pass. No DB/scheduler execution.
+A pure adapter mapping is tested for receipt/send, onetime value and export selector; `JobOrdini` uses it with legacy method signatures unchanged. PollingClass both TFMs and unit suite pass; no DB/SAP jobs run.
 
 ## Ordered steps
-1. Check clean main, CodeGraph, PROMPT/PLAN order, job implementations and current contract tests. **Done.**
-2. Baseline: two jobs choose distinct legacy methods based on `onetime`; tests only validate JobDataMap boolean semantics and do not pin dispatch choice. **Done.**
-3. Extract pure dispatch selector and test both job families/boolean branches; wire jobs. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused contract tests 40/40; suite 218 pass/2 skip; diff check exit 0. **Done.**
-5. Log actual result, commit, push and confirm clean tree. **In progress.**
+1. Confirm clean main, CodeGraph, PROMPT/PLAN, and inspect `JobOrdini`/existing contract tests. **Done.**
+2. Baseline: adapters call legacy methods using onetime and tipoExport; current tests pin mapping families but not argument tuple. **Done.**
+3. Add tested pure argument policy and wire both order jobs. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused order policy tests 26/26; unit suite 222 pass/2 skip; diff check exit 0. **Done.**
+5. Record evidence, commit, push, verify clean. **In progress.**
 
 ## Constraints
-No execution of jobs, database access, or changed domain/SAP behavior.
+No live job execution, SAP/file/database side effects; preserve signatures and values.
 
 ## Acceptance
-- [ ] Pure tested selector covers both job paths and flags.
+- [ ] Mapping preserves send/receipt arguments and nullable selector semantics.
 - [ ] Build/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO updated; conventional commit pushed.
+- [ ] PLAN/LOOP_LOG/TODO updated and pushed.
