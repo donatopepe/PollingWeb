@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T06:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** i casi markup coprivano attributi sintetici senza `>` al loro interno; il parser SQL non tiene conto delle virgolette e termina al primo `>`.
+
+**Esito atteso:** per `<b title='a > b'>x</b>`, entrambe le copie chiudono il primo match al `>` dentro l’attributo; il residuo atteso è `  b >x ` secondo la sequenza di sostituzioni dell’implementazione.
+
+**Modifica:** aggiunto input sintetico con `>` nell’attributo e asserzione comune su entrambi gli schemi.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 12 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale usata solo nell’ambiente del processo.
+
+**Prossimo task:** proseguire T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T06:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** la sostituzione dell’apostrofo ASCII era verificata solo assieme ad altra punteggiatura; mancava il caso sintetico dell’apostrofo isolato.

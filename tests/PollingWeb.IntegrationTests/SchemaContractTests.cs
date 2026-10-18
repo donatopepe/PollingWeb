@@ -233,7 +233,8 @@ namespace PollingWeb.IntegrationTests
                         function + "(N'<b>   </b>'), " +
                         function + "(N'<b>left > right</b>'), " +
                         function + "(N'a,b'), " +
-                        function + "(N'''')",
+                        function + "(N''''), " +
+                        function + "(N'<b title=''a > b''>x</b>')",
                         connection))
                     using (var reader = command.ExecuteReader())
                     {
@@ -262,6 +263,7 @@ namespace PollingWeb.IntegrationTests
                         Assert.Equal(" left > right ", reader.GetString(21));
                         Assert.Equal("a b", reader.GetString(22));
                         Assert.Equal(" ", reader.GetString(23));
+                        Assert.Equal("  b >x ", reader.GetString(24));
                     }
                 }
             }
