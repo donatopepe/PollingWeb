@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T09:05Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** il test `StripHTML` copriva la normalizzazione di `à` in una frase, non in una parola sintetica plain priva di altra punteggiatura o markup.
+
+**Esito atteso:** `città` → `citta` tramite la regola SQL per `à`, in entrambe le copie.
+
+**Modifica:** aggiunta la parola isolata al test condiviso delle due funzioni. La prima build ha evidenziato un `+` mancante nella concatenazione C#; corretto prima del test.
+
+**Evidenza reale:** build IntegrationTests `--no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test SQL filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale solo nell’ambiente di processo.
+
+**Prossimo task:** continuare T3.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T08:50Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** `StripHTML` verificava le vocali gravi minuscole, non l’input isolato `À`; `REPLACE` SQL è soggetto alla collation case-insensitive dell’istanza.
