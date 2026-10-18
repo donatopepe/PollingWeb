@@ -33,6 +33,12 @@ namespace PollingWeb.UnitTests
         }
 
         [Fact]
+        public void Daily_invoice_jobs_explicitly_select_recurring_execution()
+        {
+            Assert.Equal("false", FornitoriSchedulePolicy.DailyInvoiceOnetimeValue());
+        }
+
+        [Fact]
         public void Daily_job_and_trigger_identities_match_legacy_contract()
         {
             Assert.Equal("JOB_INV_7", FornitoriSchedulePolicy.DailyIdentity("INV", "7"));

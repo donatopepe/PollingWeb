@@ -45,6 +45,11 @@ namespace PollingClass
             }
         }
 
+        public static string DailyInvoiceOnetimeValue()
+        {
+            return "false";
+        }
+
         public static string OrderExportType(int taskType)
         {
             switch (taskType)

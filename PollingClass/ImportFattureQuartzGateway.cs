@@ -14,6 +14,7 @@ namespace PollingClass
                 .WithIdentity("JOB_" + processId + "_" + institutionCode, "IDG").Build();
             job.JobDataMap.Add("codist", institutionCode);
             job.JobDataMap.Add("idprocesso", processId);
+            job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.DailyInvoiceOnetimeValue());
             var trigger = TriggerBuilder.Create()
                 .WithIdentity("Trigger_" + processId + "_" + institutionCode, "IDG")
                 .WithCronSchedule(FornitoriSchedulePolicy.WeekdayCronFromLegacy(cronExpression)).Build();
