@@ -1,23 +1,23 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Continue T3 with one focused synthetic SQL integration case; do not alter SQL/domain behavior.
+Continue T3 with one narrowly-scoped synthetic SQL integration assertion, without changing domain behavior.
 
 ## Metric / threshold
-Verify one uncovered parser edge against both deployed `StripHTML` functions; project build succeeds, focused SQL test passes, diff check succeeds.
+One uncovered SQL-function behavior verified on both deployed copies; touched project build exit 0, filtered SQL test 1/1 pass, `git diff --check` exit 0.
 
 ## Ordered steps
-1. Confirm clean main and inspect current T3 evidence, test and SQL implementation. **Done.**
-2. Gap: hyphen replacement is covered in a combined punctuation phrase but not in plain text isolated from apostrophes/backticks. Expected `x y` for `x-y`. **Done.**
-3. Add one synthetic expression and exact assertion to shared test. **Done.**
-4. Initial build caught missing concatenation operator; fixed, build exit 0; focused SQL test 1/1 pass; `git diff --check` exit 0. **Done.**
-5. Record results in PLAN §8 and LOOP_LOG, commit/push. **In progress.**
+1. Verify clean main and inspect T3 plan, recent log, test and SQL function. **Done.**
+2. Baseline gap: backtick replacement appears only in a combined punctuation case; no plain text assertion isolates it. Expected `a b` for `a` + backtick + `b`. **Done.**
+3. Add one synthetic query term and exact assertion to existing shared test. **Done.**
+4. Initial build found a missing C# concatenation operator; fixed. Build exit 0; focused SQL test 1/1 pass; diff check exit 0. **Done.**
+5. Record actual evidence in plan and log; commit/push atomically. **In progress.**
 
 ## Constraints
-Synthetic input only, no SQL changes, no credentials in files/output, no image pulls, no cross-OS/full-solution claim.
+No SQL changes or real data. Secret only in process environment, never output/files. No image downloads, no full-solution or non-Linux claims.
 
 ## Acceptance
-- [x] Both `StripHTML` copies return `x y` for plain text `x-y`.
-- [ ] Build, focused test, and `git diff --check` pass.
-- [x] PLAN and LOOP_LOG record actual evidence.
-- [ ] Atomic T3 commit pushed; clean main.
+- [x] Both function copies replace a lone backtick between letters with one space.
+- [ ] Build, focused SQL test, and whitespace check pass.
+- [x] PLAN §8 and LOOP_LOG record real results.
+- [ ] Conventional T3 commit pushed, clean main.
