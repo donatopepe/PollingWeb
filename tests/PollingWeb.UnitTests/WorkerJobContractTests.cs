@@ -34,6 +34,25 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData(2, "ODA")]
+        [InlineData(6, "RDA")]
+        public void Order_task_type_preserves_legacy_export_selector(int taskType, string expectedExport)
+        {
+            Assert.Equal(expectedExport, FornitoriSchedulePolicy.OrderExportType(taskType));
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [InlineData(5)]
+        [InlineData(7)]
+        public void Non_order_task_type_cannot_select_order_export(int taskType)
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => FornitoriSchedulePolicy.OrderExportType(taskType));
+        }
+
+        [Theory]
         [InlineData(0)]
         [InlineData(8)]
         public void Unknown_task_type_is_rejected(int taskType)

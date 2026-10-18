@@ -45,6 +45,16 @@ namespace PollingClass
             }
         }
 
+        public static string OrderExportType(int taskType)
+        {
+            switch (taskType)
+            {
+                case 2: return "ODA";
+                case 6: return "RDA";
+                default: throw new ArgumentOutOfRangeException(nameof(taskType), "Task type is not an order send.");
+            }
+        }
+
         public static Type JobType(int taskType)
         {
             switch (taskType)
