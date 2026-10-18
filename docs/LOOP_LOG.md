@@ -1,5 +1,19 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T06:37Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
+
+**Baseline:** il trattino è coperto in combinazione con altra punteggiatura; manca una verifica isolata su testo privo di markup. La funzione sostituisce `-` con uno spazio.
+
+**Esito atteso:** entrambe le copie restituiscono `x y` per input plain sintetico `x-y`.
+
+**Modifica:** aggiunto il caso e l’asserzione all’esecuzione condivisa delle due funzioni. La prima build ha rilevato un `+` mancante nella concatenazione C#, corretto prima del test SQL.
+
+**Evidenza reale:** build `tests/PollingWeb.IntegrationTests/PollingWeb.IntegrationTests.csproj --no-restore --nologo -v quiet` → exit 0, 0 warning/0 errori; test filtrato `StripHTML_functions_cover_empty_null_and_plain_text_inputs` → 1/1 pass, 0 ignorati; `git diff --check` → exit 0. Credenziale di test non salvata nel repository.
+
+**Prossimo task:** continuare T3, ancora incompleta.
+
+**Blocchi:** nessuno.
+
 ## 2026-10-18T06:19Z — T3 Integration test stored procedure e funzioni — IN PROGRESS
 
 **Baseline:** i casi markup coprivano attributi sintetici senza `>` al loro interno; il parser SQL non tiene conto delle virgolette e termina al primo `>`.
