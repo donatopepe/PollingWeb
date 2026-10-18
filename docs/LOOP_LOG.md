@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-18T22:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** order send/receipt job adapters consumed `onetime` and `tipoExport`; existing coverage tested export selector separately and job mapping, not the exact argument tuple passed to SAP-facing methods.
+
+**Expected:** pure tuple policy preserves send vs receipt, one-time flag and selector normalization; job method signatures and side effects unchanged.
+
+**Change:** `OrdiniJobDataPolicy.Arguments` added and used by both order jobs. Four cases pin send/receipt × oneTime and selector behavior; no job executed.
+
+**Evidence:** PollingClass net8/net48 build exit 0, 12 warnings/0 errors each; focused order policy tests 26/26; unit suite 222 pass, 2 skip; `git diff --check` exit 0.
+
+**Next:** continue X2.3. No DB/SAP runtime verification (authorized DB credential unavailable).
+
 ## 2026-10-18T21:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** JobFornitori and JobImportFatture read `onetime` and dispatch to ONETIME or recurring legacy methods. Existing tests checked JobDataMap boolean strings but not the shared branch decision.
