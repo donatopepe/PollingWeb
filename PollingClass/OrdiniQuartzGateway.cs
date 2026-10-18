@@ -62,13 +62,13 @@ namespace PollingClass
             ITrigger trigger;
             if (intervalMinutes == 0)
             {
-                job.JobDataMap.Add("onetime", "true");
+                job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.IntervalOnetimeValue(intervalMinutes));
                 trigger = TriggerBuilder.Create().WithIdentity(triggerId, "IDGWEB")
                     .StartNow().WithPriority(1).Build();
             }
             else
             {
-                job.JobDataMap.Add("onetime", "false");
+                job.JobDataMap.Add("onetime", FornitoriSchedulePolicy.IntervalOnetimeValue(intervalMinutes));
                 trigger = TriggerBuilder.Create().WithIdentity(triggerId, "IDGWEB")
                     .StartAt(DateTimeOffset.Now.AddMinutes(intervalMinutes)).WithPriority(1).Build();
             }

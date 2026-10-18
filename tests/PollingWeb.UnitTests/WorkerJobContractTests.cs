@@ -78,8 +78,15 @@ namespace PollingWeb.UnitTests
         [InlineData(0, "true", true)]
         [InlineData(1, "false", false)]
         [InlineData(30, "false", false)]
+        [InlineData(-1, null, false)]
         public void Interval_job_data_preserves_legacy_one_time_semantics(int interval, string expectedValue, bool expectedBoolean)
         {
+            if (interval < 0)
+            {
+                Assert.Throws<ArgumentOutOfRangeException>(() => FornitoriSchedulePolicy.IntervalOnetimeValue(interval));
+                return;
+            }
+
             var intervalData = new JobDataMap
             {
                 ["onetime"] = FornitoriSchedulePolicy.IntervalOnetimeValue(interval)
