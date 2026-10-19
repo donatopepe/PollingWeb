@@ -44,6 +44,17 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData(true, "ODA")]
+        [InlineData(false, "RDA")]
+        public void Receipt_job_arguments_discard_export_selector(bool oneTime, string selector)
+        {
+            var arguments = OrdiniJobDataPolicy.Arguments(false, oneTime, selector);
+            Assert.False(arguments.SendFile);
+            Assert.Equal(oneTime, arguments.OneTime);
+            Assert.Equal(string.Empty, arguments.TipoExport);
+        }
+
+        [Theory]
         [InlineData(true, 0, "ODA", true, "ODA")]
         [InlineData(true, 5, "ODA", false, "ODA")]
         [InlineData(false, 0, "RDA", true, "")]
