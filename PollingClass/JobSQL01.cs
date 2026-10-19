@@ -12,7 +12,8 @@ namespace PollingClass
         {
             try
             {
-                bool onetime = Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime"));
+                bool onetime = FornitoriJobDispatchPolicy.ParseOneTime(
+                    context.JobDetail.JobDataMap.GetString("onetime"));
                 ExportSQL01 export = new ExportSQL01();
                 export.Leggi_File(
                         context.JobDetail.JobDataMap.GetString("codist"),
