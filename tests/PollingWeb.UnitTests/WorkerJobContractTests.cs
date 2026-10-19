@@ -96,6 +96,13 @@ namespace PollingWeb.UnitTests
             Assert.Equal(expected, FornitoriJobDispatchPolicy.ParseOneTime(value));
         }
 
+        [Fact]
+        public void Budget_dispatch_policy_preserves_convert_to_boolean_edge_behavior()
+        {
+            Assert.False(FornitoriJobDispatchPolicy.ParseOneTime(null));
+            Assert.Throws<FormatException>(() => FornitoriJobDispatchPolicy.ParseOneTime("invalid"));
+        }
+
         [Theory]
         [InlineData(false, false)]
         [InlineData(true, true)]
