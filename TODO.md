@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Make task-type mapping immutable so callers cannot mutate a validated shared routing result after policy creation.
+Ensure the new immutable task mapping returns a fresh result and cannot retain mutable state across separate policy lookups.
 
 ## Metric / threshold
-`ConfiguredTaskMapping` immutable (get-only properties, constructor-controlled), all existing type 1–7 mapping and helper behavior intact; unit tests/builds/diff check pass.
+All type 1–7 lookups yield non-null mappings with stable existing values; repeated calls are distinct immutable instances; existing invalid-type behavior unchanged. Builds/tests/diff check pass.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, PROMPT/PLAN and inspect mapping type and consumers. **Done.**
-2. Baseline: `MapTaskType` returns mutable public properties, allowing caller mutation after lookup. **Done.**
-3. Make mapping immutable with private setters and internal constructor; existing assertions cover all mappings. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); WorkerJobContractTests 40/40; suite 237 pass/2 skip; diff check exit 0. **Done.**
-5. Update evidence; commit/push and confirm clean. **In progress.**
+1. Confirm clean main, CodeGraph, task order and mapping implementation/tests. **Done.**
+2. Baseline: mapping immutable by accessors but identity/repeated lookup isolation is not explicitly tested. **Done.**
+3. Add targeted immutability/fresh-instance test for supported task types 1–7. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); WorkerJobContractTests 47/47; suite 244 pass/2 skip; diff check exit 0. **Done.**
+5. Update records, commit/push, confirm clean. **In progress.**
 
 ## Constraints
-No change to task mapping values, exceptions or routing; no DB/job execution.
+No map-value or routing changes; no DB/job execution.
 
 ## Acceptance
-- [ ] Mapping instances immutable after creation.
-- [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO updated and pushed cleanly.
+- [ ] Repeated lookups return independent immutable mapping results for all 7 types.
+- [ ] Both builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG/TODO reflect actual evidence; pushed cleanly.
