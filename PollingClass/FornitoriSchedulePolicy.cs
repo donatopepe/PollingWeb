@@ -7,6 +7,7 @@ namespace PollingClass
     public static class FornitoriJobDispatchPolicy
     {
         public static bool UseOneTime(bool onetime) { return onetime; }
+        public static bool ParseOneTime(string value) { return Convert.ToBoolean(value); }
     }
 
     public sealed class ConfiguredTaskMapping

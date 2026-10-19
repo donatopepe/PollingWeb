@@ -89,6 +89,14 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData("false", false)]
+        [InlineData("true", true)]
+        public void Budget_dispatch_policy_parses_quartz_one_time_values(string value, bool expected)
+        {
+            Assert.Equal(expected, FornitoriJobDispatchPolicy.ParseOneTime(value));
+        }
+
+        [Theory]
         [InlineData(false, false)]
         [InlineData(true, true)]
         public void Supplier_and_invoice_dispatch_policy_preserves_onetime_selection(bool onetime, bool expected)
