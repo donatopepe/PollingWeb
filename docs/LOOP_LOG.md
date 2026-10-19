@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T02:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** SQL01 interval path uses shared pure projection; dedicated tests validated interval acceptance but not the exact map emitted for zero/positive values.
+
+**Expected:** verify exactly three legacy keys, identifier values, zero→`onetime=true`, positive→`false`, and omission of `tipoExport`.
+
+**Change:** added table-driven pure-policy contract cases to `SQL01SchedulerPolicyTests`; no production code touched.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; SQL01 focused tests 11/11; suite 237 pass, 2 skip; `git diff --check` exit 0. No Quartz/DB runtime.
+
+**Next:** continue X2.3 with other nonduplicative job mapping contracts; DB job execution remains unavailable absent authorized credentials.
+
 ## 2026-10-19T01:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** supplier daily uses shared projection with `tipoExport` omitted; tests asserted recurring flag and scheduling policy but not exact three-key map.
