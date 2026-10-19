@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T01:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** SQL01 daily uses shared map projection with `tipoExport` excluded; existing SQL01 tests covered gateway boundary, recurring value and cron but not exact projected keys.
+
+**Expected:** focused test asserts exact SQL01 three-key map and its values/selector omission; no production behavior change.
+
+**Change:** added daily map projection contract test in `SQL01SchedulerPolicyTests`.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; focused SQL01/order tests 44/44; full suite 234 pass, 2 skip; `git diff --check` exit 0. No Quartz/DB runtime.
+
+**Next:** continue X2.3 with remaining job contracts. SQL runtime blocked absent authorized credentials.
+
 ## 2026-10-19T01:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** invoice daily gateway uses shared projection with selector omitted; tests pin recurring flag and identities but did not assert exact map keys/values.
