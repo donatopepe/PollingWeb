@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T04:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** supplier job parsed JobDataMap `onetime` inline; budget, SQL01 and invoice call shared `FornitoriJobDispatchPolicy.ParseOneTime`.
+
+**Expected:** supplier delegates parsing while retaining ONETIME vs recurring method selection and parameters.
+
+**Change:** `JobFornitori` now uses shared parser; no job invoked.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; focused WorkerJobContract+supplier tests 66/66; unit suite 248 pass, 2 skip; `git diff --check` exit 0.
+
+**Next:** continue X2.3 with order job contracts. No SQL runtime; authorized credential unavailable.
+
 ## 2026-10-19T03:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** invoice job parsed `onetime` inline via `Convert.ToBoolean`; budget and SQL01 already call shared `ParseOneTime`.
