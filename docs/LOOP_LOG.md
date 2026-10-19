@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T01:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** invoice daily gateway uses shared projection with selector omitted; tests pin recurring flag and identities but did not assert exact map keys/values.
+
+**Expected:** offline contract test asserts the three-key invoice map (`codist`, `idprocesso`, `onetime`), values, and lack of `tipoExport`.
+
+**Change:** added projection contract test in `ImportFattureScheduleAdapterTests`; no production code or runtime effects.
+
+**Evidence:** PollingClass net8/net48 exit 0, 12 warnings/0 errors each; focused invoice/order policy 45/45; full suite 233 pass, 2 skip; `git diff --check` exit 0. No scheduler/DB started.
+
+**Next:** continue X2.3 with remaining gateway contract gaps; SQL execution remains unavailable.
+
 ## 2026-10-19T01:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** budget daily projection omits `tipoExport` by policy parameter, but prior tests asserted recurring value and adapter boundary without pinning exact emitted three-key map.
