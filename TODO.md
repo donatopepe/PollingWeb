@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Cover exact daily invoice JobDataMap contract with an offline test, including omission of order-only `tipoExport`.
+Add offline exact-key coverage for the SQL01 daily JobDataMap contract, including recurring flag and omission of `tipoExport`.
 
 ## Metric / threshold
-Test projection used by invoice daily: exact three keys `codist`, `idprocesso`, `onetime`, values and recurring false. Both TFMs/focused/full tests/diff check pass; no runtime scheduler.
+Policy projection is asserted to have exactly `codist`, `idprocesso`, `onetime` with expected values. Both TFMs/focused/full tests/diff check pass. No production code or scheduler execution.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, plan order and invoice adapter/policy tests. **Done.**
-2. Baseline: invoice uses pure map projection but tests don't assert its exact three-key daily shape. **Done.**
-3. Add exact invoice daily projection contract test. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused invoice/order policy 45/45; suite 233 pass/2 skip; diff check exit 0. **Done.**
-5. Update records, commit/push; verify clean. **In progress.**
+1. Confirm clean main, CodeGraph, plan order, inspect SQL01 tests/projection. **Done.**
+2. Baseline: SQL01 daily uses shared projection but exact-key test has not been added to SQL01 adapter tests. **Done.**
+3. Add the focused SQL01 daily map contract test. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused SQL01/order policy 44/44; suite 234 pass/2 skip; diff check exit 0. **Done.**
+5. Update PLAN/LOOP_LOG/TODO, commit/push and verify clean. **In progress.**
 
 ## Constraints
-No scheduler/job/DB; preserve behavior and no public API change.
+No scheduler/job/database runtime; no functional modifications.
 
 ## Acceptance
-- [ ] Invoice daily map exact key/value contract tested.
+- [ ] Exact SQL01 daily map key/value contract covered.
 - [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO updated, pushed and clean.
+- [ ] Evidence recorded, commit pushed, clean tree verified.
