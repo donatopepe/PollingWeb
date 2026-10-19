@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T01:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** supplier daily uses shared projection with `tipoExport` omitted; tests asserted recurring flag and scheduling policy but not exact three-key map.
+
+**Expected:** pure projection test asserts exact keys and values including recurring `onetime=false`; no production code changed.
+
+**Change:** added test in `FornitoriSchedulePolicyTests`.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; focused supplier policy 17/17; full suite 235 pass, 2 skip; `git diff --check` exit 0. No scheduler/DB started.
+
+**Next:** continue X2.3. Runtime job/SQL verification remains blocked by unavailable authorized credentials.
+
 ## 2026-10-19T01:30Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** SQL01 daily uses shared map projection with `tipoExport` excluded; existing SQL01 tests covered gateway boundary, recurring value and cron but not exact projected keys.
