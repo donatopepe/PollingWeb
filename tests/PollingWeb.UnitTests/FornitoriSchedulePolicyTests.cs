@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using PollingClass;
 using Xunit;
 
@@ -6,6 +7,18 @@ namespace PollingWeb.UnitTests
 {
     public class FornitoriSchedulePolicyTests
     {
+        [Fact]
+        public void Daily_supplier_job_data_projection_has_legacy_three_keys()
+        {
+            var data = OrdiniJobDataPolicy.JobData("inst", "proc", false, false,
+                string.Empty, includeTipoExport: false);
+            Assert.Equal(new[] { "codist", "idprocesso", "onetime" }, data.Keys.OrderBy(key => key));
+            Assert.Equal("inst", data["codist"]);
+            Assert.Equal("proc", data["idprocesso"]);
+            Assert.Equal("false", data["onetime"]);
+            Assert.DoesNotContain("tipoExport", data.Keys);
+        }
+
         [Fact]
         public void Supplier_daily_jobs_explicitly_select_recurring_execution()
         {
