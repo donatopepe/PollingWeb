@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Add pure argument-selection coverage for `JobOrdini_SAP_Esito` receipt jobs, confirming `tipoExport` is discarded while one-time state is preserved.
+Add explicit pure policy coverage for the budget job's `onetime` boolean conversion consumed by the legacy invocation.
 
 ## Metric / threshold
-Receipt arguments for both oneTime values always have `SendFile=false`, `TipoExport=""`, with OneTime unchanged; focused/full tests, both TFM builds and diff check pass. No job execution.
+A tested conversion policy maps Quartz strings `true/false` to booleans exactly as `Convert.ToBoolean`; `JobBudget` uses it. No invocation/DB execution; both TFMs and tests pass.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, prompt/plan order; inspect order jobs and policy tests. **Done.**
-2. Baseline: send/receipt argument policy tested, but no explicit test asserts selector discarded for receipt for both flags. **Done.**
-3. Add two table cases for receipt selector normalization. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused order policy 37/37; suite 246 pass/2 skip; diff check exit 0. **Done.**
-5. Record evidence; commit/push; verify clean. **In progress.**
+1. Confirm clean main, CodeGraph, plan order and inspect JobBudget/current contracts. **Done.**
+2. Baseline: callers directly `Convert.ToBoolean` on JobDataMap values; no pure dispatch-policy test pins it specifically for budget. **Done.**
+3. Extract boolean conversion policy and use in JobBudget; test both values. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); WorkerJobContractTests 49/49; suite 248 pass/2 skip; diff check exit 0. **Done.**
+5. Update evidence, commit/push, verify clean. **In progress.**
 
 ## Constraints
-Pure tests only; no SAP/job/DB execution, no behavior changes.
+No budget job execution, database or scheduler; preserve conversion semantics and legacy method signature.
 
 ## Acceptance
-- [ ] Receipt arguments pinned for oneTime true/false and selector discarded.
-- [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO updated, pushed, clean.
+- [ ] JobBudget uses tested policy; true/false semantics match.
+- [ ] Both builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG/TODO updated; pushed cleanly.
