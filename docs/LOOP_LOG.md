@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T03:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** receipt order job consumes `onetime` but calls a legacy method without `tipoExport`; current policy tests covered combined cases but did not isolate selector-discard behavior for both one-time values.
+
+**Expected:** receipt argument projection always has `SendFile=false`, empty `TipoExport`, and preserves `OneTime` for both true/false.
+
+**Change:** added two pure policy test cases; no production changes or job execution.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; order policy tests 37/37; unit suite 246 pass, 2 skip; `git diff --check` exit 0.
+
+**Next:** continue X2.3. SQL job execution not performed; authorized DB credential remains unavailable.
+
 ## 2026-10-19T02:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** configured task mappings were recently made immutable, but repeated lookup identity and immutable surface were not directly asserted.
