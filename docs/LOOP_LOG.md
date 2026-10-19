@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T00:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** order daily gateway had inline JobDataMap construction, while interval already used shared policy. Existing projection tests asserted four keys and recurring string for a send case.
+
+**Expected:** shared projection used by both daily/interval order paths; send/receipt selector and recurring `onetime=false` preserved.
+
+**Change:** daily order gateway now passes explicit `false` to shared `JobData` policy and adds its entries. Expanded the daily map test to pin send and receipt selector values. No scheduling/job behavior executed.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 5 warnings/0 errors each; focused order policy 35/35; unit suite 231 pass, 2 skip; `git diff --check` exit 0. No scheduler/DB runtime.
+
+**Next:** continue X2.3. Live DB/job verification remains blocked without authorized credentials.
+
 ## 2026-10-19T00:30Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** supplier interval gateway directly populated `codist`, `idprocesso`, and interval-derived `onetime` in both branches; budget, invoice and SQL01 interval use shared projection.
