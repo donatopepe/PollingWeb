@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Complete reuse of the pure interval JobDataMap projection in the order gateway's daily path by extracting its recurring data flag to the same policy.
+Add focused coverage of budget gateway's daily JobDataMap contract: exact three-key map and recurring flag, without executing Quartz.
 
 ## Metric / threshold
-Daily order map uses shared projection, preserves all four keys and exact values (`onetime=false`); daily job selection and scheduling behavior untouched. Both TFM builds, focused/full tests, diff check pass; no Quartz/DB runtime.
+Pure policy projection emits `codist`, `idprocesso`, `onetime=false` for budget daily and excludes `tipoExport`; existing tests explicitly assert this. Both TFM builds, focused/full tests and diff check pass.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, PROMPT/PLAN order; inspect order daily/interval construction. **Done.**
-2. Baseline: order interval already projects map; daily still adds keys inline and separately derives false. **Done.**
-3. Use shared `JobData` projection for daily order map and test exact four keys/values. **Done.**
-4. PollingClass net8/net48 exit 0 (5 warnings each); focused order policy tests 35/35; suite 231 pass/2 skip; diff check exit 0. **Done.**
-5. Record evidence, commit/push, verify clean. **In progress.**
+1. Verify clean main, CodeGraph, PROMPT/PLAN order; inspect budget policy and adapter tests. **Done.**
+2. Baseline: shared policy supports omission but tests assert exact keys only for order; budget adapter tests don't pin daily JobDataMap shape. **Done.**
+3. Add exact-key/value test for budget map projection. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused budget/order policy 44/44; suite 232 pass/2 skip; diff check exit 0. **Done.**
+5. Update evidence, commit/push, verify clean. **In progress.**
 
 ## Constraints
-No job/scheduler/DB execution; retain send/receipt mapping and order identities/trigger policy.
+No scheduler/job/DB execution; preserve existing behavior.
 
 ## Acceptance
-- [ ] Daily order map projected by tested pure policy, exact legacy map.
+- [ ] Budget projection asserts exact three keys and recurring false.
 - [ ] Both builds/tests/diff check pass.
-- [ ] Records updated, commit pushed, clean tree confirmed.
+- [ ] PLAN/LOOP_LOG/TODO updated; pushed; clean tree verified.
