@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T02:45Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** configured task mappings were recently made immutable, but repeated lookup identity and immutable surface were not directly asserted.
+
+**Expected:** each supported type 1–7 produces non-null equivalent but distinct mapping instances; no public setters; policy values remain stable.
+
+**Change:** added table-driven test to `WorkerJobContractTests` covering seven supported values, instance freshness, setter visibility and equivalence.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; WorkerJobContractTests 47/47; full suite 244 pass, 2 skip; `git diff --check` exit 0. No job/DB executed.
+
+**Next:** continue X2.3 with distinct job adapter contracts; SQL execution still requires an authorized credential not presently available.
+
 ## 2026-10-19T02:30Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `MapTaskType` returned `ConfiguredTaskMapping` with public setters, so callers could mutate a validated routing result.
