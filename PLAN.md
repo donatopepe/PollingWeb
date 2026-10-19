@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-19 | 193 | X2.3 — Porting dei job — parziale | `[~]` | Entrambi i job ordine (`Esito`, `Invio`) usano `FornitoriJobDispatchPolicy.ParseOneTime`; mapping argomenti invariato. Test focused ordini/worker 86/86, suite 248/2 ignorati; PollingClass net8/net48 exit 0, 12 warning ciascuno; diff check exit 0. Nessun job eseguito. |
+| 2026-10-19 | 194 | X2.3 — Porting dei job — parziale | `[~]` | Test `ParseOneTime` aggiunge edge null→false e stringa malformata→`FormatException`, compatibili con `Convert.ToBoolean`; WorkerJobContractTests 50/50, suite 249/2 ignorati; PollingClass net8/net48 exit 0, zero warning; diff check exit 0. Nessun job eseguito. |
 | 2026-10-18 | 104 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass con markup malformato; `git diff --check` exit 0. |
 | 2026-10-18 | 103 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` test SQL 1/1 pass con fine anno; `git diff --check` exit 0. |
 | 2026-10-18 | 102 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `Flusso_RDA_ist_clears_output_for_multiple_requests` test SQL 1/1 pass; `git diff --check` exit 0. |

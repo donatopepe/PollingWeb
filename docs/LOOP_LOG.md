@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T04:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** shared `ParseOneTime` delegates to `Convert.ToBoolean`; tests exercised only valid `true` and `false` strings.
+
+**Expected:** preserve framework conversion edge behavior: null→false; malformed non-null→`FormatException`.
+
+**Change:** added pure policy edge-case test; no production change or job execution.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, zero warnings/errors; WorkerJobContractTests 50/50; unit suite 249 pass, 2 skip; `git diff --check` exit 0.
+
+**Next:** continue X2.3 on remaining job contracts; live DB/job verification remains unavailable.
+
 ## 2026-10-19T04:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** both order job adapters parsed the Quartz one-time string inline; supplier, budget, invoice and SQL01 already use shared `ParseOneTime`.
