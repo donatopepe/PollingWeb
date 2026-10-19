@@ -9,6 +9,13 @@ namespace PollingClass
         public static bool UseOneTime(bool onetime) { return onetime; }
     }
 
+    public sealed class ConfiguredTaskMapping
+    {
+        public string ProcessFamily { get; set; }
+        public Type JobType { get; set; }
+        public string OrderExportType { get; set; }
+    }
+
     public static class FornitoriSchedulePolicy
     {
         /// <summary>Formats a validated clock time into a Quartz weekday expression.</summary>
@@ -35,20 +42,22 @@ namespace PollingClass
             return intervalMinutes >= 0;
         }
 
-        public static string ProcessFamily(int taskType)
+        public static ConfiguredTaskMapping MapTaskType(int taskType)
         {
             switch (taskType)
             {
-                case 1: return "Supplier";
-                case 2: return "OrderSend";
-                case 3: return "OrderReceipt";
-                case 4: return "Budget";
-                case 5: return "SqlExport";
-                case 6: return "RequestSend";
-                case 7: return "Invoice";
+                case 1: return new ConfiguredTaskMapping { ProcessFamily = "Supplier", JobType = typeof(JobFornitori) };
+                case 2: return new ConfiguredTaskMapping { ProcessFamily = "OrderSend", JobType = typeof(JobOrdini_SAP_Invio), OrderExportType = "ODA" };
+                case 3: return new ConfiguredTaskMapping { ProcessFamily = "OrderReceipt", JobType = typeof(JobOrdini_SAP_Esito) };
+                case 4: return new ConfiguredTaskMapping { ProcessFamily = "Budget", JobType = typeof(JobBudget) };
+                case 5: return new ConfiguredTaskMapping { ProcessFamily = "SqlExport", JobType = typeof(JobSQL01) };
+                case 6: return new ConfiguredTaskMapping { ProcessFamily = "RequestSend", JobType = typeof(JobOrdini_SAP_Invio), OrderExportType = "RDA" };
+                case 7: return new ConfiguredTaskMapping { ProcessFamily = "Invoice", JobType = typeof(JobImportFatture) };
                 default: throw new ArgumentOutOfRangeException(nameof(taskType), "Unsupported configured task type.");
             }
         }
+
+        public static string ProcessFamily(int taskType) { return MapTaskType(taskType).ProcessFamily; }
 
         public static string DailyRecurringOnetimeValue()
         {
@@ -64,28 +73,13 @@ namespace PollingClass
 
         public static string OrderExportType(int taskType)
         {
-            switch (taskType)
-            {
-                case 2: return "ODA";
-                case 6: return "RDA";
-                default: throw new ArgumentOutOfRangeException(nameof(taskType), "Task type is not an order send.");
-            }
+            var mapping = MapTaskType(taskType);
+            if (mapping.OrderExportType == null)
+                throw new ArgumentOutOfRangeException(nameof(taskType), "Task type is not an order send.");
+            return mapping.OrderExportType;
         }
 
-        public static Type JobType(int taskType)
-        {
-            switch (taskType)
-            {
-                case 1: return typeof(JobFornitori);
-                case 2:
-                case 6: return typeof(JobOrdini_SAP_Invio);
-                case 3: return typeof(JobOrdini_SAP_Esito);
-                case 4: return typeof(JobBudget);
-                case 5: return typeof(JobSQL01);
-                case 7: return typeof(JobImportFatture);
-                default: throw new ArgumentOutOfRangeException(nameof(taskType), "Unsupported configured task type.");
-            }
-        }
+        public static Type JobType(int taskType) { return MapTaskType(taskType).JobType; }
 
         public static string DailyIdentity(string processId, string institutionCode)
         {

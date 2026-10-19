@@ -29,6 +29,10 @@ namespace PollingWeb.UnitTests
         [InlineData(7, "Invoice", typeof(JobImportFatture))]
         public void Configured_task_type_maps_to_legacy_job_family(int taskType, string family, Type expectedJobType)
         {
+            var mapping = FornitoriSchedulePolicy.MapTaskType(taskType);
+            Assert.Equal(family, mapping.ProcessFamily);
+            Assert.Equal(expectedJobType, mapping.JobType);
+            Assert.Equal(taskType == 2 ? "ODA" : taskType == 6 ? "RDA" : null, mapping.OrderExportType);
             Assert.Equal(family, FornitoriSchedulePolicy.ProcessFamily(taskType));
             Assert.Equal(expectedJobType, FornitoriSchedulePolicy.JobType(taskType));
         }
