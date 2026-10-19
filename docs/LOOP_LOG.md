@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T02:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `ProcessFamily`, `JobType`, and `OrderExportType` maintained separate switch mappings for configured task types 1–7; current tests pin those values.
+
+**Expected:** one pure mapping returns the existing family/job and selector only for send types; public helper methods delegate, preserving invalid-type exceptions and exact routing.
+
+**Change:** added `ConfiguredTaskMapping` / `MapTaskType`; refactored the existing methods to delegate; expanded all-seven mapping assertions including null selector for non-send tasks.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; `WorkerJobContractTests` 40/40; full suite 237 pass, 2 skip; `git diff --check` exit 0. No jobs/DB executed.
+
+**Next:** continue X2.3; SQL-backed job execution remains blocked by unavailable authorized credentials.
+
 ## 2026-10-19T02:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** SQL01 interval path uses shared pure projection; dedicated tests validated interval acceptance but not the exact map emitted for zero/positive values.
