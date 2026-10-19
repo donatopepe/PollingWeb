@@ -13,7 +13,7 @@ namespace PollingClass
             try
             {
                 var arguments = OrdiniJobDataPolicy.Arguments(false,
-                    Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime")),
+                    FornitoriJobDispatchPolicy.ParseOneTime(context.JobDetail.JobDataMap.GetString("onetime")),
                     context.JobDetail.JobDataMap.GetString("tipoExport"));
                 Ordini_Sap ordini = new Ordini_Sap();
                 ordini.Leggi_Esito_Sap(
@@ -38,7 +38,7 @@ namespace PollingClass
             try
             {
                 var arguments = OrdiniJobDataPolicy.Arguments(true,
-                    Convert.ToBoolean(context.JobDetail.JobDataMap.GetString("onetime")),
+                    FornitoriJobDispatchPolicy.ParseOneTime(context.JobDetail.JobDataMap.GetString("onetime")),
                     context.JobDetail.JobDataMap.GetString("tipoExport"));
                 Ordini_Sap ordini = new Ordini_Sap();
                 ordini.Invia_file_Sap(
