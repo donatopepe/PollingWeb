@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Reuse the already-tested one-time string parser in the invoice job adapter without changing its legacy invocation.
+Use the shared tested Quartz `onetime` parser in `JobFornitori` while preserving its ONETIME/recurring dispatch.
 
 ## Metric / threshold
-`JobImportFatture` calls `FornitoriJobDispatchPolicy.ParseOneTime`; string `true/false` mapping covered; method branch and arguments unchanged. Both TFMs, focused/full tests, diff check pass; no job execution.
+`JobFornitori` uses `FornitoriJobDispatchPolicy.ParseOneTime`; both boolean strings preserve dispatch selection. Both TFMs, focused/full tests, diff check pass. No job execution.
 
 ## Ordered steps
-1. Check clean main, CodeGraph, plan order, inspect invoice job parser and shared policy. **Done.**
-2. Baseline: budget and SQL01 use shared parser; invoice job still calls `Convert.ToBoolean` inline. **Done.**
-3. Replace invoice parse call with shared policy; existing true/false policy tests suffice. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused job/invoice tests 59/59; suite 248 pass/2 skip; diff check exit 0. **Done.**
+1. Confirm clean main, CodeGraph, task order; inspect supplier job parser and tests. **Done.**
+2. Baseline: budget, SQL01, invoice use shared parser; supplier still calls `Convert.ToBoolean`. **Done.**
+3. Replace parser call in supplier job; rely on shared true/false policy tests. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused job/supplier tests 66/66; suite 248 pass/2 skip; diff check exit 0. **Done.**
 5. Update records, commit/push, verify clean. **In progress.**
 
 ## Constraints
-No job/SAP/DB execution; preserve ONETIME vs recurring calls and parameters.
+No supplier job/DB/SAP execution; preserve selected legacy methods and arguments.
 
 ## Acceptance
-- [ ] Invoice job uses tested shared parser.
+- [ ] Supplier job uses shared parser.
 - [ ] Builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO updated and push verified clean.
+- [ ] PLAN/LOOP_LOG/TODO updated and push cleanly verified.
