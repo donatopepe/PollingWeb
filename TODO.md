@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Add focused coverage of budget gateway's daily JobDataMap contract: exact three-key map and recurring flag, without executing Quartz.
+Cover exact daily invoice JobDataMap contract with an offline test, including omission of order-only `tipoExport`.
 
 ## Metric / threshold
-Pure policy projection emits `codist`, `idprocesso`, `onetime=false` for budget daily and excludes `tipoExport`; existing tests explicitly assert this. Both TFM builds, focused/full tests and diff check pass.
+Test projection used by invoice daily: exact three keys `codist`, `idprocesso`, `onetime`, values and recurring false. Both TFMs/focused/full tests/diff check pass; no runtime scheduler.
 
 ## Ordered steps
-1. Verify clean main, CodeGraph, PROMPT/PLAN order; inspect budget policy and adapter tests. **Done.**
-2. Baseline: shared policy supports omission but tests assert exact keys only for order; budget adapter tests don't pin daily JobDataMap shape. **Done.**
-3. Add exact-key/value test for budget map projection. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused budget/order policy 44/44; suite 232 pass/2 skip; diff check exit 0. **Done.**
-5. Update evidence, commit/push, verify clean. **In progress.**
+1. Verify clean main, CodeGraph, plan order and invoice adapter/policy tests. **Done.**
+2. Baseline: invoice uses pure map projection but tests don't assert its exact three-key daily shape. **Done.**
+3. Add exact invoice daily projection contract test. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused invoice/order policy 45/45; suite 233 pass/2 skip; diff check exit 0. **Done.**
+5. Update records, commit/push; verify clean. **In progress.**
 
 ## Constraints
-No scheduler/job/DB execution; preserve existing behavior.
+No scheduler/job/DB; preserve behavior and no public API change.
 
 ## Acceptance
-- [ ] Budget projection asserts exact three keys and recurring false.
-- [ ] Both builds/tests/diff check pass.
-- [ ] PLAN/LOOP_LOG/TODO updated; pushed; clean tree verified.
+- [ ] Invoice daily map exact key/value contract tested.
+- [ ] Builds/tests/diff check pass.
+- [ ] PLAN/LOOP_LOG/TODO updated, pushed and clean.
