@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using PollingClass;
 using Xunit;
 
@@ -10,6 +11,18 @@ namespace PollingWeb.UnitTests
         public void Sql01_gateway_implements_shared_scheduling_boundary()
         {
             Assert.True(typeof(IFornitoriSchedulingGateway).IsAssignableFrom(typeof(SQL01QuartzGateway)));
+        }
+
+        [Fact]
+        public void Daily_sql01_job_data_projection_has_legacy_three_keys()
+        {
+            var data = OrdiniJobDataPolicy.JobData("inst", "proc", false, false,
+                string.Empty, includeTipoExport: false);
+            Assert.Equal(new[] { "codist", "idprocesso", "onetime" }, data.Keys.OrderBy(key => key));
+            Assert.Equal("inst", data["codist"]);
+            Assert.Equal("proc", data["idprocesso"]);
+            Assert.Equal("false", data["onetime"]);
+            Assert.DoesNotContain("tipoExport", data.Keys);
         }
 
         [Fact]
