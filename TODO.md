@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Add offline exact-key coverage for the SQL01 daily JobDataMap contract, including recurring flag and omission of `tipoExport`.
+Test the pure recurring daily JobDataMap projection for supplier jobs, asserting its exact legacy three-key contract.
 
 ## Metric / threshold
-Policy projection is asserted to have exactly `codist`, `idprocesso`, `onetime` with expected values. Both TFMs/focused/full tests/diff check pass. No production code or scheduler execution.
+Projection asserts `codist`, `idprocesso`, `onetime=false`, excludes `tipoExport`; focused/full tests and both PollingClass TFMs pass; diff clean. No scheduler runtime.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, plan order, inspect SQL01 tests/projection. **Done.**
-2. Baseline: SQL01 daily uses shared projection but exact-key test has not been added to SQL01 adapter tests. **Done.**
-3. Add the focused SQL01 daily map contract test. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); focused SQL01/order policy 44/44; suite 234 pass/2 skip; diff check exit 0. **Done.**
-5. Update PLAN/LOOP_LOG/TODO, commit/push and verify clean. **In progress.**
+1. Confirm main clean, CodeGraph, task order, review supplier map and tests. **Done.**
+2. Baseline: supplier daily uses shared projection; no test explicitly asserts its exact key set and recurring value. **Done.**
+3. Add supplier daily map contract coverage. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused supplier policy 17/17; suite 235 pass/2 skip; diff check exit 0. **Done.**
+5. Update records and commit/push. **In progress.**
 
 ## Constraints
-No scheduler/job/database runtime; no functional modifications.
+No Quartz/job/DB execution; only test policy.
 
 ## Acceptance
-- [ ] Exact SQL01 daily map key/value contract covered.
+- [ ] Supplier three-key projection asserted exactly.
 - [ ] Builds/tests/diff check pass.
-- [ ] Evidence recorded, commit pushed, clean tree verified.
+- [ ] PLAN/LOOP_LOG/TODO evidence recorded, commit pushed, tree clean.
