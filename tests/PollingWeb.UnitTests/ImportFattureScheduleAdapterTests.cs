@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using PollingClass;
 using Xunit;
 
@@ -30,6 +31,18 @@ namespace PollingWeb.UnitTests
         public void Polling_interval_validation_is_consistent(int minutes, bool expected)
         {
             Assert.Equal(expected, FornitoriSchedulePolicy.IsValidInterval(minutes));
+        }
+
+        [Fact]
+        public void Daily_invoice_job_data_projection_has_legacy_three_keys()
+        {
+            var data = OrdiniJobDataPolicy.JobData("inst", "proc", false, false,
+                string.Empty, includeTipoExport: false);
+            Assert.Equal(new[] { "codist", "idprocesso", "onetime" }, data.Keys.OrderBy(key => key));
+            Assert.Equal("inst", data["codist"]);
+            Assert.Equal("proc", data["idprocesso"]);
+            Assert.Equal("false", data["onetime"]);
+            Assert.DoesNotContain("tipoExport", data.Keys);
         }
 
         [Fact]
