@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T02:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `MapTaskType` returned `ConfiguredTaskMapping` with public setters, so callers could mutate a validated routing result.
+
+**Expected:** immutable mapping values, construction restricted to policy assembly; preserve all task type routing/selector values.
+
+**Change:** properties now have private setters and an internal constructor; seven existing mappings instantiate the immutable type. No mapping values changed.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; WorkerJobContractTests 40/40; full suite 237 pass, 2 skip; `git diff --check` exit 0. No job/DB execution.
+
+**Next:** continue X2.3 on remaining verified contracts. SQL runtime unavailable absent authorized credentials.
+
 ## 2026-10-19T02:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `ProcessFamily`, `JobType`, and `OrderExportType` maintained separate switch mappings for configured task types 1–7; current tests pin those values.
