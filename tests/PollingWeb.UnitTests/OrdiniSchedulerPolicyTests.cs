@@ -19,15 +19,18 @@ namespace PollingWeb.UnitTests
             Assert.Equal(onetime, data["onetime"]);
         }
 
-        [Fact]
-        public void Daily_job_data_projection_preserves_legacy_keys_and_values()
+        [Theory]
+        [InlineData(true, "ODA", "ODA")]
+        [InlineData(false, "ODA", "")]
+        public void Daily_order_job_data_projection_preserves_legacy_keys_and_values(bool sendFile,
+            string selector, string expectedSelector)
         {
-            var data = OrdiniJobDataPolicy.JobData("inst", "proc", true, false, "ODA");
+            var data = OrdiniJobDataPolicy.JobData("inst", "proc", sendFile, false, selector);
             Assert.Equal(new[] { "codist", "idprocesso", "onetime", "tipoExport" }, data.Keys.OrderBy(key => key));
             Assert.Equal("inst", data["codist"]);
             Assert.Equal("proc", data["idprocesso"]);
             Assert.Equal("false", data["onetime"]);
-            Assert.Equal("ODA", data["tipoExport"]);
+            Assert.Equal(expectedSelector, data["tipoExport"]);
         }
 
         [Fact]

@@ -15,7 +15,7 @@ namespace PollingClass
                 ? JobBuilder.Create<JobOrdini_SAP_Invio>().WithIdentity("JOB_" + processId + "_" + institutionCode, "IDG").Build()
                 : JobBuilder.Create<JobOrdini_SAP_Esito>().WithIdentity("JOB_" + processId + "_" + institutionCode, "IDG").Build();
             var jobData = OrdiniJobDataPolicy.JobData(institutionCode, processId, sendFile,
-                Convert.ToBoolean(FornitoriSchedulePolicy.DailyRecurringOnetimeValue()), tipoExport);
+                false, tipoExport);
             foreach (var entry in jobData) job.JobDataMap.Add(entry.Key, entry.Value);
 
             var weekdays = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
