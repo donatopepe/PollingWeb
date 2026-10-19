@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-19 | 179 | X2.3 — Porting dei job — parziale | `[~]` | `OrdiniQuartzGateway` daily riusa `OrdiniJobDataPolicy.JobData`; testano selector send/receipt e mappa a quattro chiavi con `onetime=false`. Test focused ordini 35/35, suite 231/2 ignorati; PollingClass net8/net48 exit 0, 5 warning ciascuno; diff check exit 0. Nessuno scheduler/DB avviato. |
+| 2026-10-19 | 180 | X2.3 — Porting dei job — parziale | `[~]` | Aggiunto test della proiezione budget daily: mappa esatta a tre chiavi, valori e assenza di `tipoExport`; focused budget/ordine policy 44/44, suite 232/2 ignorati. PollingClass net8/net48 exit 0, 12 warning ciascuno; diff check exit 0. Nessun scheduler/DB avviato. |
 | 2026-10-18 | 104 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass con markup malformato; `git diff --check` exit 0. |
 | 2026-10-18 | 103 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` test SQL 1/1 pass con fine anno; `git diff --check` exit 0. |
 | 2026-10-18 | 102 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `Flusso_RDA_ist_clears_output_for_multiple_requests` test SQL 1/1 pass; `git diff --check` exit 0. |

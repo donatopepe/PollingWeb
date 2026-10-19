@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T01:00Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** budget daily projection omits `tipoExport` by policy parameter, but prior tests asserted recurring value and adapter boundary without pinning exact emitted three-key map.
+
+**Expected:** offline unit test asserts exact keys (`codist`, `idprocesso`, `onetime`), values and selector absence; no production code/scheduler side effect.
+
+**Change:** added pure-policy contract test to `ImportBudgetScheduleAdapterTests`.
+
+**Evidence:** PollingClass net8/net48 exit 0, 12 warnings/0 errors each; focused budget/order policy tests 44/44; full unit suite 232 pass, 2 skip; `git diff --check` exit 0. No scheduler/DB started.
+
+**Next:** continue X2.3 on remaining verifiable job contracts; runtime DB remains blocked by lack of authorized credentials.
+
 ## 2026-10-19T00:45Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** order daily gateway had inline JobDataMap construction, while interval already used shared policy. Existing projection tests asserted four keys and recurring string for a send case.
