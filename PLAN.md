@@ -679,7 +679,7 @@ Rubrica binaria — ognuno 0/1, target **15/15**:
 
 | Data | Iterazione | Task | Esito | Evidenza |
 |------|-----------|------|-------|----------|
-| 2026-10-19 | 188 | X2.3 — Porting dei job — parziale | `[~]` | Aggiunti test per gli argomenti dei job receipt: selector export sempre vuoto con flag oneTime invariato (true/false). Test policy ordini 37/37, suite 246/2 ignorati; PollingClass net8/net48 exit 0, 12 warning ciascuno; diff check exit 0. Nessun job eseguito. |
+| 2026-10-19 | 189 | X2.3 — Porting dei job — parziale | `[~]` | Estratta `FornitoriJobDispatchPolicy.ParseOneTime`, usata da `JobBudget`, con test true/false. WorkerJobContractTests 49/49, suite 248/2 ignorati; PollingClass net8/net48 exit 0, 12 warning ciascuno; diff check exit 0. Nessun job/DB eseguito. |
 | 2026-10-18 | 104 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `StripHTML_functions_cover_empty_null_and_plain_text_inputs` test SQL 1/1 pass con markup malformato; `git diff --check` exit 0. |
 | 2026-10-18 | 103 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0 (warning preesistenti); `Datini_and_Datfin_return_expected_synthetic_boundaries` test SQL 1/1 pass con fine anno; `git diff --check` exit 0. |
 | 2026-10-18 | 102 | T3 Integration test stored procedure e funzioni — parziale | `[~]` | IntegrationTests build exit 0, 12 warning preesistenti; `Flusso_RDA_ist_clears_output_for_multiple_requests` test SQL 1/1 pass; `git diff --check` exit 0. |

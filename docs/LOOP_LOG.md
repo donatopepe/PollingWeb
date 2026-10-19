@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T03:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** `JobBudget.Execute` parsed the Quartz `onetime` string with inline `Convert.ToBoolean`; no budget-specific pure contract test asserted true/false conversion.
+
+**Expected:** shared dispatch policy parses strings identically, and JobBudget uses it without changing invocation or exception handling.
+
+**Change:** added `FornitoriJobDispatchPolicy.ParseOneTime` delegating to `Convert.ToBoolean`; JobBudget now calls it; test covers both string values. No job invoked.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; WorkerJobContractTests 49/49; unit suite 248 pass, 2 skip; `git diff --check` exit 0.
+
+**Next:** continue X2.3 with remaining job dispatch contracts; no SQL runtime due unavailable authorized credentials.
+
 ## 2026-10-19T03:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** receipt order job consumes `onetime` but calls a legacy method without `tipoExport`; current policy tests covered combined cases but did not isolate selector-discard behavior for both one-time values.
