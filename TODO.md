@@ -1,22 +1,22 @@
 # PollingWeb — Iteration TODO
 
 ## Goal
-Add explicit pure policy coverage for the budget job's `onetime` boolean conversion consumed by the legacy invocation.
+Use the tested shared `ParseOneTime` conversion policy in `JobSQL01` and add explicit true/false dispatch-contract coverage.
 
 ## Metric / threshold
-A tested conversion policy maps Quartz strings `true/false` to booleans exactly as `Convert.ToBoolean`; `JobBudget` uses it. No invocation/DB execution; both TFMs and tests pass.
+`JobSQL01` parses Quartz `onetime` via shared policy; true/false behavior pinned, legacy calls/logging/exception handling unchanged. Both TFM builds, focused/full tests and diff check pass. No job runtime.
 
 ## Ordered steps
-1. Confirm clean main, CodeGraph, plan order and inspect JobBudget/current contracts. **Done.**
-2. Baseline: callers directly `Convert.ToBoolean` on JobDataMap values; no pure dispatch-policy test pins it specifically for budget. **Done.**
-3. Extract boolean conversion policy and use in JobBudget; test both values. **Done.**
-4. PollingClass net8/net48 exit 0 (12 warnings each); WorkerJobContractTests 49/49; suite 248 pass/2 skip; diff check exit 0. **Done.**
-5. Update evidence, commit/push, verify clean. **In progress.**
+1. Verify clean main, CodeGraph, prompt/plan order, inspect SQL01 job and dispatch policy/tests. **Done.**
+2. Baseline: `JobBudget` uses shared parse policy; `JobSQL01` still performs inline `Convert.ToBoolean`. **Done.**
+3. Apply same pure parser to SQL01; existing true/false tests cover shared parser. **Done.**
+4. PollingClass net8/net48 exit 0 (12 warnings each); focused WorkerJobContract+SQL01 60/60; suite 248 pass/2 skip; diff check exit 0. **Done.**
+5. Update records, commit/push and confirm clean. **In progress.**
 
 ## Constraints
-No budget job execution, database or scheduler; preserve conversion semantics and legacy method signature.
+Do not execute SQL01, access database or alter log/message behavior.
 
 ## Acceptance
-- [ ] JobBudget uses tested policy; true/false semantics match.
-- [ ] Both builds/tests/diff check pass.
+- [ ] SQL01 uses shared conversion policy and true/false tested.
+- [ ] Builds/tests/diff check pass.
 - [ ] PLAN/LOOP_LOG/TODO updated; pushed cleanly.
