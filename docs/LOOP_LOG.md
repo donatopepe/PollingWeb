@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T03:30Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** SQL01 job parsed JobDataMap `onetime` inline using `Convert.ToBoolean`; Budget already uses shared `FornitoriJobDispatchPolicy.ParseOneTime`.
+
+**Expected:** SQL01 delegates only the same conversion to shared policy; ExportSQL01 call, logging and catch semantics unchanged.
+
+**Change:** switched SQL01's boolean conversion to shared policy. No SQL01 job executed.
+
+**Evidence:** PollingClass net8/net48 builds exit 0, 12 warnings/0 errors each; focused WorkerJobContract+SQL01 tests 60/60; suite 248 pass, 2 skip; `git diff --check` exit 0.
+
+**Next:** continue X2.3 for remaining job contracts; DB execution remains blocked absent authorized credentials.
+
 ## 2026-10-19T03:15Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** `JobBudget.Execute` parsed the Quartz `onetime` string with inline `Convert.ToBoolean`; no budget-specific pure contract test asserted true/false conversion.
