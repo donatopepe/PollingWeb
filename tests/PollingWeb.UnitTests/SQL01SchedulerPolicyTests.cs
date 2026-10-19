@@ -41,6 +41,19 @@ namespace PollingWeb.UnitTests
         }
 
         [Theory]
+        [InlineData(0, "true")]
+        [InlineData(30, "false")]
+        public void SQL01_interval_job_data_projection_preserves_three_keys(int interval, string onetime)
+        {
+            var data = OrdiniJobDataPolicy.IntervalJobData("inst", "proc", interval);
+            Assert.Equal(new[] { "codist", "idprocesso", "onetime" }, data.Keys.OrderBy(key => key));
+            Assert.Equal("inst", data["codist"]);
+            Assert.Equal("proc", data["idprocesso"]);
+            Assert.Equal(onetime, data["onetime"]);
+            Assert.DoesNotContain("tipoExport", data.Keys);
+        }
+
+        [Theory]
         [InlineData(0, true)]
         [InlineData(30, true)]
         [InlineData(-1, false)]
