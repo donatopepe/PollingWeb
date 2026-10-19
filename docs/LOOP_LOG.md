@@ -1,5 +1,17 @@
 # LOOP LOG — PollingWeb remediation
 
+## 2026-10-19T04:15Z — X2.3 Porting dei job — IN PROGRESS
+
+**Baseline:** both order job adapters parsed the Quartz one-time string inline; supplier, budget, invoice and SQL01 already use shared `ParseOneTime`.
+
+**Expected:** both order jobs reuse parser; send/receipt selector and `OrdiniJobDataPolicy` argument handling unchanged.
+
+**Change:** replaced only the two inline conversions with shared parser. No order job executed.
+
+**Evidence:** PollingClass net8/net48 exit 0, 12 warnings/0 errors each; focused order/worker tests 86/86; full suite 248 pass, 2 skip; `git diff --check` exit 0.
+
+**Next:** continue X2.3 with order mapping/dispatch contracts; no SQL/SAP runtime performed.
+
 ## 2026-10-19T04:00Z — X2.3 Porting dei job — IN PROGRESS
 
 **Baseline:** supplier job parsed JobDataMap `onetime` inline; budget, SQL01 and invoice call shared `FornitoriJobDispatchPolicy.ParseOneTime`.
