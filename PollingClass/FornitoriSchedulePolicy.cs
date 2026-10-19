@@ -11,9 +11,16 @@ namespace PollingClass
 
     public sealed class ConfiguredTaskMapping
     {
-        public string ProcessFamily { get; set; }
-        public Type JobType { get; set; }
-        public string OrderExportType { get; set; }
+        public string ProcessFamily { get; private set; }
+        public Type JobType { get; private set; }
+        public string OrderExportType { get; private set; }
+
+        internal ConfiguredTaskMapping(string processFamily, Type jobType, string orderExportType)
+        {
+            ProcessFamily = processFamily;
+            JobType = jobType;
+            OrderExportType = orderExportType;
+        }
     }
 
     public static class FornitoriSchedulePolicy
@@ -46,13 +53,13 @@ namespace PollingClass
         {
             switch (taskType)
             {
-                case 1: return new ConfiguredTaskMapping { ProcessFamily = "Supplier", JobType = typeof(JobFornitori) };
-                case 2: return new ConfiguredTaskMapping { ProcessFamily = "OrderSend", JobType = typeof(JobOrdini_SAP_Invio), OrderExportType = "ODA" };
-                case 3: return new ConfiguredTaskMapping { ProcessFamily = "OrderReceipt", JobType = typeof(JobOrdini_SAP_Esito) };
-                case 4: return new ConfiguredTaskMapping { ProcessFamily = "Budget", JobType = typeof(JobBudget) };
-                case 5: return new ConfiguredTaskMapping { ProcessFamily = "SqlExport", JobType = typeof(JobSQL01) };
-                case 6: return new ConfiguredTaskMapping { ProcessFamily = "RequestSend", JobType = typeof(JobOrdini_SAP_Invio), OrderExportType = "RDA" };
-                case 7: return new ConfiguredTaskMapping { ProcessFamily = "Invoice", JobType = typeof(JobImportFatture) };
+                case 1: return new ConfiguredTaskMapping("Supplier", typeof(JobFornitori), null);
+                case 2: return new ConfiguredTaskMapping("OrderSend", typeof(JobOrdini_SAP_Invio), "ODA");
+                case 3: return new ConfiguredTaskMapping("OrderReceipt", typeof(JobOrdini_SAP_Esito), null);
+                case 4: return new ConfiguredTaskMapping("Budget", typeof(JobBudget), null);
+                case 5: return new ConfiguredTaskMapping("SqlExport", typeof(JobSQL01), null);
+                case 6: return new ConfiguredTaskMapping("RequestSend", typeof(JobOrdini_SAP_Invio), "RDA");
+                case 7: return new ConfiguredTaskMapping("Invoice", typeof(JobImportFatture), null);
                 default: throw new ArgumentOutOfRangeException(nameof(taskType), "Unsupported configured task type.");
             }
         }
